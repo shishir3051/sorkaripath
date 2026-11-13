@@ -1,0 +1,7 @@
+import { Router } from "express";
+import { getOverview } from "../controllers/meta.controller.js";
+
+const router = Router();
+router.get("/overview", getOverview);
+
+export default router;
