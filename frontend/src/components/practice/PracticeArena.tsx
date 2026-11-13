@@ -1,0 +1,1209 @@
+"use client";
+
+import Link from "next/link";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  AlertTriangle,
+  Award,
+  Bookmark,
+  BookOpen,
+  CheckCircle2,
+  Clock,
+  FileCheck2,
+  Play,
+  RotateCcw,
+  Search,
+  Sparkles,
+  Target,
+  XCircle,
+} from "lucide-react";
+import { apiFetch, formatBdDateTime, getOrCreateSessionId } from "@/lib/api";
+import type {
+  LearnerProgress,
+  McqQuestion,
+  PastPaperSummary,
+  QuizAttempt,
+  StudyTopic,
+} from "@/lib/types";
+
+interface QuestionsResponse {
+  items: McqQuestion[];
+  totalAvailable: number;
+  subjects: string[];
+  examTracks: string[];
+  examSeriesList?: string[];
+}
+
+interface ReviewItem {
+  questionId: string;
+  question: string;
+  options: string[];
+  selectedIndex: number | null;
+  correctIndex: number;
+  explanation: string;
+  subject: string;
+  isCorrect: boolean;
+  status: "correct" | "wrong" | "unanswered";
+}
+
+interface SubmitResponse {
+  attempt: QuizAttempt;
+  review: ReviewItem[];
+}
+
+interface ArchiveResponse {
+  activeSeries: string;
+  seriesList: PastPaperSummary[];
+  items: McqQuestion[];
+}
+
+interface SmartSearchResponse {
+  questions: McqQuestion[];
+  topics: StudyTopic[];
+}
+
+interface MistakeVaultResponse {
+  wrongQuestions: McqQuestion[];
+  bookmarkedQuestions: McqQuestion[];
+}
+
+type ArenaMode = "mock" | "archive" | "search" | "mistakes";
+
+function resolveMode(param: string | null): ArenaMode {
+  if (
+    param === "mock" ||
+    param === "archive" ||
+    param === "search" ||
+    param === "mistakes"
+  ) {
+    return param;
+  }
+  return "mock";
+}
+
+export function PracticeArena() {
+  const searchParams = useSearchParams();
+  const initialMode = resolveMode(searchParams.get("mode"));
+  const initialTrack = searchParams.get("examTrack") || "All";
+  const initialSubject = searchParams.get("subject") || "All";
+  const initialSeries = searchParams.get("examSeries") || "All";
+  const initialLimit = searchParams.get("limit") || "15";
+  const shouldAutostart = searchParams.get("autostart") === "1";
+
+  const [mode, setMode] = useState<ArenaMode>(initialMode);
+  const [subject, setSubject] = useState(initialSubject);
+  const [examTrack, setExamTrack] = useState(initialTrack);
+  const [examSeries, setExamSeries] = useState(initialSeries);
+  const [limit, setLimit] = useState(initialLimit);
+  const [negativeMarking, setNegativeMarking] = useState(true);
+  const autostartDoneRef = useRef(false);
+
+  const [subjects, setSubjects] = useState<string[]>([]);
+  const [examTracks, setExamTracks] = useState<string[]>([]);
+  const [examSeriesList, setExamSeriesList] = useState<string[]>([]);
+  const [questions, setQuestions] = useState<McqQuestion[]>([]);
+  const [answers, setAnswers] = useState<Record<string, number | null>>({});
+  const [elapsedSec, setElapsedSec] = useState(0);
+  const [quizActive, setQuizActive] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<SubmitResponse | null>(null);
+  const [attempts, setAttempts] = useState<QuizAttempt[]>([]);
+  const [bookmarkedQIds, setBookmarkedQIds] = useState<Set<string>>(new Set());
+
+  // Archive Mode State
+  const [archiveData, setArchiveData] = useState<ArchiveResponse | null>(null);
+  const [loadingArchive, setLoadingArchive] = useState(false);
+
+  // Smart Search Mode State
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchSubject, setSearchSubject] = useState(
+    initialSubject !== "All" ? initialSubject : "All"
+  );
+  const [searchResults, setSearchResults] = useState<SmartSearchResponse | null>(
+    null
+  );
+  const [loadingSearch, setLoadingSearch] = useState(false);
+
+  // Mistake Vault State
+  const [vault, setVault] = useState<MistakeVaultResponse>({
+    wrongQuestions: [],
+    bookmarkedQuestions: [],
+  });
+  const [loadingVault, setLoadingVault] = useState(false);
+
+  const loadMetaAndVault = useCallback(async () => {
+    const sid = getOrCreateSessionId();
+    try {
+      const [metaRes, histRes, progRes, vaultRes] = await Promise.all([
+        apiFetch<QuestionsResponse>("/practice/questions?limit=1&includeAnswers=false"),
+        apiFetch<QuizAttempt[]>(
+          `/practice/attempts?sessionId=${encodeURIComponent(sid)}`
+        ),
+        apiFetch<LearnerProgress>(`/progress/${encodeURIComponent(sid)}`),
+        apiFetch<MistakeVaultResponse>(
+          `/practice/mistakes?sessionId=${encodeURIComponent(sid)}`
+        ),
+      ]);
+      setSubjects(["All", ...metaRes.subjects]);
+      setExamTracks(["All", ...metaRes.examTracks]);
+      setExamSeriesList(["All", ...(metaRes.examSeriesList ?? [])]);
+      setAttempts(histRes);
+      setBookmarkedQIds(new Set(progRes.bookmarkedQuestionIds ?? []));
+      setVault(vaultRes);
+    } catch {
+      // handled gracefully in UI
+    }
+  }, []);
+
+  const loadArchive = useCallback(async (seriesName?: string) => {
+    setLoadingArchive(true);
+    try {
+      const query = seriesName
+        ? `?examSeries=${encodeURIComponent(seriesName)}`
+        : "";
+      const res = await apiFetch<ArchiveResponse>(`/practice/archive${query}`);
+      setArchiveData(res);
+    } finally {
+      setLoadingArchive(false);
+    }
+  }, []);
+
+  const runSmartSearch = useCallback(
+    async (qText = searchQuery, sub = searchSubject) => {
+      setLoadingSearch(true);
+      try {
+        const params = new URLSearchParams();
+        if (qText.trim()) params.set("q", qText.trim());
+        if (sub && sub !== "All") params.set("subject", sub);
+        const res = await apiFetch<SmartSearchResponse>(
+          `/practice/search?${params.toString()}`
+        );
+        setSearchResults(res);
+      } finally {
+        setLoadingSearch(false);
+      }
+    },
+    [searchQuery, searchSubject]
+  );
+
+  const refreshVault = useCallback(async () => {
+    setLoadingVault(true);
+    try {
+      const sid = getOrCreateSessionId();
+      const res = await apiFetch<MistakeVaultResponse>(
+        `/practice/mistakes?sessionId=${encodeURIComponent(sid)}`
+      );
+      setVault(res);
+    } finally {
+      setLoadingVault(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    let active = true;
+    const sid = getOrCreateSessionId();
+
+    Promise.all([
+      apiFetch<QuestionsResponse>("/practice/questions?limit=1&includeAnswers=false"),
+      apiFetch<QuizAttempt[]>(
+        `/practice/attempts?sessionId=${encodeURIComponent(sid)}`
+      ),
+      apiFetch<LearnerProgress>(`/progress/${encodeURIComponent(sid)}`),
+      apiFetch<MistakeVaultResponse>(
+        `/practice/mistakes?sessionId=${encodeURIComponent(sid)}`
+      ),
+    ])
+      .then(([metaRes, histRes, progRes, vaultRes]) => {
+        if (!active) return;
+        setSubjects(["All", ...metaRes.subjects]);
+        setExamTracks(["All", ...metaRes.examTracks]);
+        setExamSeriesList(["All", ...(metaRes.examSeriesList ?? [])]);
+        setAttempts(histRes);
+        setBookmarkedQIds(new Set(progRes.bookmarkedQuestionIds ?? []));
+        setVault(vaultRes);
+      })
+      .catch(() => {});
+
+    if (initialMode === "archive") {
+      const q =
+        initialSeries !== "All"
+          ? `?examSeries=${encodeURIComponent(initialSeries)}`
+          : "";
+      apiFetch<ArchiveResponse>(`/practice/archive${q}`)
+        .then((res) => {
+          if (active) setArchiveData(res);
+        })
+        .catch(() => {});
+    } else if (initialMode === "search") {
+      const sp = new URLSearchParams();
+      if (initialSubject !== "All") sp.set("subject", initialSubject);
+      apiFetch<SmartSearchResponse>(`/practice/search?${sp.toString()}`)
+        .then((res) => {
+          if (active) setSearchResults(res);
+        })
+        .catch(() => {});
+    }
+
+    if (shouldAutostart && !autostartDoneRef.current) {
+      autostartDoneRef.current = true;
+      const params = new URLSearchParams({
+        subject: initialSubject,
+        examTrack: initialTrack,
+        examSeries: initialSeries,
+        limit: initialLimit,
+        includeAnswers: "false",
+      });
+      apiFetch<QuestionsResponse>(`/practice/questions?${params.toString()}`)
+        .then((res) => {
+          if (!active) return;
+          setQuestions(res.items);
+          setQuizActive(res.items.length > 0);
+        })
+        .catch(() => {});
+    }
+
+    return () => {
+      active = false;
+    };
+  }, [
+    initialMode,
+    initialSeries,
+    initialSubject,
+    initialTrack,
+    initialLimit,
+    shouldAutostart,
+  ]);
+
+  useEffect(() => {
+    if (!quizActive) return;
+    const timer = setInterval(() => {
+      setElapsedSec((prev) => prev + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [quizActive]);
+
+  function handleSwitchMode(nextMode: ArenaMode) {
+    setMode(nextMode);
+    if (nextMode === "archive" && !archiveData) {
+      loadArchive(initialSeries !== "All" ? initialSeries : undefined);
+    } else if (nextMode === "search" && !searchResults) {
+      runSmartSearch(searchQuery, searchSubject);
+    } else if (nextMode === "mistakes") {
+      refreshVault();
+    }
+  }
+
+  async function startMock(customIds?: string[]) {
+    setMode("mock");
+    setLoading(true);
+    setResult(null);
+    setAnswers({});
+    setElapsedSec(0);
+    try {
+      const params = new URLSearchParams({
+        includeAnswers: "false",
+      });
+      if (customIds && customIds.length > 0) {
+        params.set("ids", customIds.join(","));
+        params.set("limit", String(Math.min(50, customIds.length)));
+      } else {
+        params.set("subject", subject);
+        params.set("examTrack", examTrack);
+        params.set("examSeries", examSeries);
+        params.set("limit", limit);
+      }
+
+      const res = await apiFetch<QuestionsResponse>(
+        `/practice/questions?${params.toString()}`
+      );
+      setQuestions(res.items);
+      setQuizActive(res.items.length > 0);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function submitMock() {
+    if (questions.length === 0) return;
+    setSubmitting(true);
+    setQuizActive(false);
+    try {
+      const sid = getOrCreateSessionId();
+      const payload = {
+        sessionId: sid,
+        examTrack: examSeries !== "All" ? examSeries : examTrack,
+        subject,
+        negativeMarkingEnabled: negativeMarking,
+        durationSeconds: elapsedSec,
+        answers: questions.map((q) => ({
+          questionId: q._id,
+          selectedIndex:
+            typeof answers[q._id] === "number" ? answers[q._id] : null,
+        })),
+      };
+
+      const res = await apiFetch<SubmitResponse>("/practice/submit", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+      setResult(res);
+      await loadMetaAndVault();
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  async function handleToggleQuestionBookmark(questionId: string) {
+    const sid = getOrCreateSessionId();
+    const res = await apiFetch<LearnerProgress>(
+      `/progress/${encodeURIComponent(sid)}/toggle-question-bookmark`,
+      {
+        method: "POST",
+        body: JSON.stringify({ questionId }),
+      }
+    );
+    setBookmarkedQIds(new Set(res.bookmarkedQuestionIds ?? []));
+    if (mode === "mistakes") {
+      await refreshVault();
+    }
+  }
+
+  const formatTimer = (secs: number) => {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* 4-Mode Navigation Bar */}
+      <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm">
+        {[
+          { id: "mock", label: "Timed Mock Simulator", icon: Target },
+          {
+            id: "archive",
+            label: "Job Solution Archive",
+            icon: FileCheck2,
+          },
+          { id: "search", label: "Smart MCQ Search", icon: Search },
+          {
+            id: "mistakes",
+            label: `Mistake Vault (${vault.wrongQuestions.length})`,
+            icon: AlertTriangle,
+          },
+        ].map((tab) => {
+          const Icon = tab.icon;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => handleSwitchMode(tab.id as ArenaMode)}
+              className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-colors cursor-pointer ${
+                mode === tab.id
+                  ? "bg-emerald-700 text-white shadow-xs"
+                  : "text-slate-700 hover:bg-slate-100"
+              }`}
+            >
+              <Icon className="h-4 w-4 shrink-0" />
+              <span>{tab.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* MODE 1: TIMED MOCK SIMULATOR */}
+      {mode === "mock" && (
+        <div className="space-y-8">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-5">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-500 mb-1.5">
+                  Subject Filter
+                </label>
+                <select
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  disabled={quizActive}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800 focus:border-emerald-600 focus:outline-none"
+                >
+                  {(subjects.length ? subjects : ["All"]).map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-500 mb-1.5">
+                  Exam Track
+                </label>
+                <select
+                  value={examTrack}
+                  onChange={(e) => setExamTrack(e.target.value)}
+                  disabled={quizActive}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800 focus:border-emerald-600 focus:outline-none"
+                >
+                  {(examTracks.length ? examTracks : ["All"]).map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-500 mb-1.5">
+                  Past Paper Series
+                </label>
+                <select
+                  value={examSeries}
+                  onChange={(e) => setExamSeries(e.target.value)}
+                  disabled={quizActive}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800 focus:border-emerald-600 focus:outline-none"
+                >
+                  {(examSeriesList.length ? examSeriesList : ["All"]).map(
+                    (series) => (
+                      <option key={series} value={series}>
+                        {series}
+                      </option>
+                    )
+                  )}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold uppercase text-slate-500 mb-1.5">
+                  Questions
+                </label>
+                <select
+                  value={limit}
+                  onChange={(e) => setLimit(e.target.value)}
+                  disabled={quizActive}
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800 focus:border-emerald-600 focus:outline-none"
+                >
+                  <option value="5">5 Questions</option>
+                  <option value="10">10 Questions</option>
+                  <option value="15">15 Questions</option>
+                  <option value="20">20 Questions</option>
+                  <option value="25">25 Questions</option>
+                  <option value="30">30 Questions</option>
+                  <option value="40">40 Questions</option>
+                  <option value="50">Full Bank (Up to 50)</option>
+                </select>
+              </div>
+
+              <div className="flex flex-col justify-between">
+                <label className="block text-xs font-bold uppercase text-slate-500 mb-1.5">
+                  Negative Marking
+                </label>
+                <label className="flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-xs sm:text-sm font-semibold text-slate-800 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={negativeMarking}
+                    disabled={quizActive}
+                    onChange={(e) => setNegativeMarking(e.target.checked)}
+                    className="h-4 w-4 accent-emerald-700"
+                  />
+                  <span>-0.50 penalty</span>
+                </label>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
+              <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+                <Target className="h-4 w-4 text-emerald-700" />
+                <span>
+                  Wrong answers automatically save to your Mistake Vault for easy re-drilling.
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => startMock()}
+                disabled={loading}
+                className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-60 cursor-pointer"
+              >
+                {result || quizActive ? (
+                  <RotateCcw className="h-4 w-4" />
+                ) : (
+                  <Play className="h-4 w-4" />
+                )}
+                <span>{loading ? "Generating..." : "Start New Mock Test"}</span>
+              </button>
+            </div>
+          </div>
+
+          {quizActive && questions.length > 0 && (
+            <div className="space-y-5">
+              <div className="sticky top-16 z-20 flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-950 px-5 py-3 text-white shadow-md">
+                <div className="text-sm font-bold">
+                  Answered:{" "}
+                  {
+                    Object.values(answers).filter((v) => typeof v === "number")
+                      .length
+                  }{" "}
+                  / {questions.length}
+                </div>
+                <div className="inline-flex items-center gap-2 font-mono text-sm font-bold text-emerald-300">
+                  <Clock className="h-4 w-4" />
+                  {formatTimer(elapsedSec)}
+                </div>
+                <button
+                  type="button"
+                  onClick={submitMock}
+                  disabled={submitting}
+                  className="rounded-xl bg-emerald-500 px-4 py-1.5 text-xs font-extrabold text-slate-950 hover:bg-emerald-400 cursor-pointer"
+                >
+                  {submitting ? "Grading..." : "Submit Exam"}
+                </button>
+              </div>
+
+              {questions.map((q, idx) => (
+                <div
+                  key={q._id}
+                  className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm space-y-4"
+                >
+                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                    <span className="font-bold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full">
+                      Q{idx + 1} • {q.subject}
+                    </span>
+                    <span className="text-slate-500 font-semibold">
+                      {q.examSeries && q.examSeries !== "Topic Practice Bank"
+                        ? q.examSeries
+                        : `${q.examTrack} (${q.difficulty})`}
+                    </span>
+                  </div>
+
+                  <h3 className="text-base font-bold text-slate-900 leading-snug">
+                    {q.question}
+                  </h3>
+
+                  <div className="grid gap-2.5 sm:grid-cols-2">
+                    {q.options.map((opt, optIdx) => {
+                      const selected = answers[q._id] === optIdx;
+                      return (
+                        <button
+                          key={opt}
+                          type="button"
+                          onClick={() =>
+                            setAnswers((prev) => ({
+                              ...prev,
+                              [q._id]: prev[q._id] === optIdx ? null : optIdx,
+                            }))
+                          }
+                          className={`flex items-center gap-3 rounded-xl border p-3.5 text-left text-sm font-medium transition-all cursor-pointer ${
+                            selected
+                              ? "border-emerald-600 bg-emerald-50 text-emerald-950 font-bold ring-1 ring-emerald-600"
+                              : "border-slate-200 bg-slate-50/70 text-slate-800 hover:bg-slate-100"
+                          }`}
+                        >
+                          <span
+                            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold ${
+                              selected
+                                ? "bg-emerald-700 text-white"
+                                : "bg-white border border-slate-300 text-slate-600"
+                            }`}
+                          >
+                            {String.fromCharCode(65 + optIdx)}
+                          </span>
+                          <span>{opt}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {result && (
+            <div className="space-y-6">
+              <div className="rounded-2xl border border-emerald-300 bg-gradient-to-br from-emerald-900 to-teal-900 p-6 text-white shadow-md">
+                <div className="flex flex-wrap items-center justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-emerald-300">
+                      Mock Exam Result Summary
+                    </p>
+                    <h2 className="mt-1 text-3xl font-extrabold">
+                      Net Score: {result.attempt.netScore} /{" "}
+                      {result.attempt.maxScore}
+                    </h2>
+                    <p className="mt-1 text-sm text-emerald-100">
+                      Accuracy: {result.attempt.accuracyPercent}% • Time:{" "}
+                      {formatTimer(result.attempt.durationSeconds)}{" "}
+                      {result.attempt.negativeMarkingEnabled
+                        ? "• (-0.50 Penalty Applied)"
+                        : "• (No Negative Marking)"}
+                    </p>
+                  </div>
+                  <div className="flex gap-3 text-center">
+                    <div className="rounded-xl bg-white/10 px-4 py-2.5">
+                      <p className="text-xs text-emerald-200">Correct</p>
+                      <p className="text-xl font-extrabold">
+                        {result.attempt.correctCount}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-white/10 px-4 py-2.5">
+                      <p className="text-xs text-rose-200">Wrong</p>
+                      <p className="text-xl font-extrabold">
+                        {result.attempt.wrongCount}
+                      </p>
+                    </div>
+                    <div className="rounded-xl bg-white/10 px-4 py-2.5">
+                      <p className="text-xs text-slate-200">Skipped</p>
+                      <p className="text-xl font-extrabold">
+                        {result.attempt.unansweredCount}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-extrabold text-slate-900">
+                  Detailed Answer &amp; Explanation Review
+                </h3>
+                {result.review.map((item, idx) => {
+                  const isSaved = bookmarkedQIds.has(item.questionId);
+                  return (
+                    <div
+                      key={item.questionId}
+                      className={`rounded-2xl border p-5 bg-white shadow-sm space-y-3 ${
+                        item.status === "correct"
+                          ? "border-emerald-300"
+                          : item.status === "wrong"
+                          ? "border-rose-300"
+                          : "border-slate-200"
+                      }`}
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold">
+                        <span className="text-slate-500">
+                          Q{idx + 1} • {item.subject}
+                        </span>
+                        <div className="flex items-center gap-3">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleToggleQuestionBookmark(item.questionId)
+                            }
+                            className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold cursor-pointer ${
+                              isSaved
+                                ? "bg-amber-100 text-amber-800"
+                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                            }`}
+                          >
+                            <Bookmark className="h-3.5 w-3.5" />
+                            <span>{isSaved ? "Saved" : "Bookmark"}</span>
+                          </button>
+                          {item.status === "correct" ? (
+                            <span className="inline-flex items-center gap-1 text-emerald-700">
+                              <CheckCircle2 className="h-4 w-4" /> Correct (+1)
+                            </span>
+                          ) : item.status === "wrong" ? (
+                            <span className="inline-flex items-center gap-1 text-rose-700">
+                              <XCircle className="h-4 w-4" /> Wrong{" "}
+                              {result.attempt.negativeMarkingEnabled
+                                ? "(-0.50)"
+                                : "(0)"}
+                            </span>
+                          ) : (
+                            <span className="text-slate-500">Skipped (0)</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <p className="text-sm font-bold text-slate-900">
+                        {item.question}
+                      </p>
+
+                      <div className="grid gap-2 sm:grid-cols-2 text-xs">
+                        {item.options.map((opt, i) => {
+                          const isRight = i === item.correctIndex;
+                          const isChosen = i === item.selectedIndex;
+                          return (
+                            <div
+                              key={opt}
+                              className={`rounded-lg px-3 py-2 border font-semibold ${
+                                isRight
+                                  ? "border-emerald-500 bg-emerald-50 text-emerald-900"
+                                  : isChosen
+                                  ? "border-rose-400 bg-rose-50 text-rose-900"
+                                  : "border-slate-200 text-slate-600"
+                              }`}
+                            >
+                              {String.fromCharCode(65 + i)}. {opt}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      <div className="rounded-xl bg-slate-50 p-3 text-xs text-slate-700 leading-relaxed">
+                        <strong className="text-slate-900">Explanation:</strong>{" "}
+                        {item.explanation}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {attempts.length > 0 && (
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">
+              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                <Award className="h-5 w-5 text-emerald-700" />
+                Your Recent Mock Attempts
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-500 uppercase">
+                      <th className="py-2 pr-4">Date</th>
+                      <th className="py-2 pr-4">Subject / Track</th>
+                      <th className="py-2 pr-4">Net Score</th>
+                      <th className="py-2 pr-4">Accuracy</th>
+                      <th className="py-2">Time</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {attempts.map((a) => (
+                      <tr key={a._id}>
+                        <td className="py-2.5 pr-4 text-slate-600">
+                          {formatBdDateTime(a.createdAt)}
+                        </td>
+                        <td className="py-2.5 pr-4 font-semibold text-slate-900">
+                          {a.subject} ({a.examTrack})
+                        </td>
+                        <td className="py-2.5 pr-4 font-bold text-emerald-700">
+                          {a.netScore} / {a.maxScore}
+                        </td>
+                        <td className="py-2.5 pr-4 text-slate-700">
+                          {a.accuracyPercent}%
+                        </td>
+                        <td className="py-2.5 font-mono text-slate-600">
+                          {formatTimer(a.durationSeconds)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* MODE 2: JOB SOLUTION ARCHIVE (READ PREVIOUS EXAM PAPERS WITH SOLUTIONS) */}
+      {mode === "archive" && (
+        <section className="space-y-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div>
+                <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                  <FileCheck2 className="h-5 w-5 text-emerald-700" />
+                  BD Job Solution Archive — Previous Exam Sets
+                </h2>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  Read authentic past exam papers directly with verified answers and
+                  detailed explanations, or test yourself timed.
+                </p>
+              </div>
+              {archiveData && archiveData.items.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setExamSeries(archiveData.activeSeries);
+                    setExamTrack("All");
+                    setSubject("All");
+                    setLimit(String(archiveData.items.length));
+                    startMock(archiveData.items.map((i) => i._id));
+                  }}
+                  className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-800 cursor-pointer"
+                >
+                  <Play className="h-3.5 w-3.5" />
+                  <span>Take This Archive Timed</span>
+                </button>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-1.5">
+              {(archiveData?.seriesList ?? []).map((series) => (
+                <button
+                  key={series.examSeries}
+                  type="button"
+                  onClick={() => loadArchive(series.examSeries)}
+                  className={`rounded-xl px-3 py-1.5 text-xs font-bold cursor-pointer ${
+                    archiveData?.activeSeries === series.examSeries
+                      ? "bg-slate-900 text-white"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
+                >
+                  {series.examSeries} ({series.count})
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {loadingArchive ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">
+              Loading Job Solution paper...
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {(archiveData?.items ?? []).map((item, idx) => {
+                const isSaved = bookmarkedQIds.has(item._id);
+                return (
+                  <article
+                    key={item._id}
+                    className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-3"
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold">
+                      <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-emerald-800">
+                        Q{idx + 1} • {item.subject}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-slate-500">{item.examSeries}</span>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleQuestionBookmark(item._id)}
+                          className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold cursor-pointer ${
+                            isSaved
+                              ? "bg-amber-100 text-amber-800"
+                              : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                          }`}
+                        >
+                          <Bookmark className="h-3.5 w-3.5" />
+                          <span>{isSaved ? "Saved" : "Save"}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <h3 className="text-sm sm:text-base font-extrabold text-slate-900">
+                      {item.question}
+                    </h3>
+
+                    <div className="grid gap-2 sm:grid-cols-2 text-xs">
+                      {item.options.map((opt, optIdx) => {
+                        const isRight = optIdx === item.correctIndex;
+                        return (
+                          <div
+                            key={opt}
+                            className={`rounded-lg px-3 py-2 border font-semibold ${
+                              isRight
+                                ? "border-emerald-500 bg-emerald-50 text-emerald-950"
+                                : "border-slate-200 bg-slate-50/50 text-slate-700"
+                            }`}
+                          >
+                            {String.fromCharCode(65 + optIdx)}. {opt}
+                            {isRight && " ✓"}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    {item.explanation && (
+                      <div className="rounded-xl bg-slate-50 p-3 text-xs text-slate-700 leading-relaxed">
+                        <strong className="text-slate-900">Explanation:</strong>{" "}
+                        {item.explanation}
+                      </div>
+                    )}
+                  </article>
+                );
+              })}
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* MODE 3: SMART MCQ & TOPIC SEARCH */}
+      {mode === "search" && (
+        <section className="space-y-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4">
+            <div>
+              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                <Sparkles className="h-5 w-5 text-emerald-700" />
+                Smart MCQ &amp; Concept Search
+              </h2>
+              <p className="text-xs text-slate-600 mt-0.5">
+                Search any Bangla or English keyword (e.g., &ldquo;সন্ধি&rdquo;,
+                &ldquo;Article 137&rdquo;, &ldquo;Conditional&rdquo;, &ldquo;CRR&rdquo;,
+                &ldquo;Quota&rdquo;) across both Study Lecture Sheets and the MCQ Explanation Bank.
+              </p>
+            </div>
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                runSmartSearch(searchQuery, searchSubject);
+              }}
+              className="flex flex-col sm:flex-row gap-3"
+            >
+              <div className="relative flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Type topic keyword, constitutional article, grammar term..."
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2.5 text-sm focus:border-emerald-600 focus:bg-white focus:outline-none"
+                />
+              </div>
+              <select
+                value={searchSubject}
+                onChange={(e) => {
+                  setSearchSubject(e.target.value);
+                  runSmartSearch(searchQuery, e.target.value);
+                }}
+                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm font-semibold text-slate-800"
+              >
+                {(subjects.length ? subjects : ["All"]).map((s) => (
+                  <option key={s} value={s}>
+                    {s}
+                  </option>
+                ))}
+              </select>
+              <button
+                type="submit"
+                className="rounded-xl bg-emerald-700 px-5 py-2.5 text-xs sm:text-sm font-bold text-white hover:bg-emerald-800 cursor-pointer"
+              >
+                Search All
+              </button>
+            </form>
+          </div>
+
+          {loadingSearch ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">
+              Searching Lecture Sheets &amp; MCQ Explanations...
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {(searchResults?.topics?.length ?? 0) > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-700">
+                    Matching Lecture Sheets ({searchResults?.topics.length})
+                  </h3>
+                  <div className="grid gap-3 md:grid-cols-2">
+                    {searchResults?.topics.map((t) => (
+                      <Link
+                        key={t._id}
+                        href={`/study?tab=topics&topicSlug=${encodeURIComponent(
+                          t.slug
+                        )}`}
+                        className="rounded-2xl border border-emerald-200 bg-emerald-50/50 p-4 hover:border-emerald-500 transition-colors"
+                      >
+                        <p className="text-[11px] font-bold text-emerald-800">
+                          {t.subject} &bull; {t.unit}
+                        </p>
+                        <p className="mt-1 text-sm font-extrabold text-slate-900">
+                          {t.title}
+                        </p>
+                        <p className="mt-1 text-xs text-slate-600 line-clamp-2">
+                          {t.highYieldSummary}
+                        </p>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-3">
+                <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-700">
+                  Matching Solved MCQs ({searchResults?.questions.length ?? 0})
+                </h3>
+                {(searchResults?.questions.length ?? 0) === 0 ? (
+                  <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+                    No matching questions found. Try another keyword or choose Subject: All.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {searchResults?.questions.map((q) => {
+                      const isSaved = bookmarkedQIds.has(q._id);
+                      return (
+                        <article
+                          key={q._id}
+                          className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-2.5"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-bold">
+                            <span className="text-emerald-800">
+                              {q.subject} &bull; {q.examSeries || q.examTrack}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() => handleToggleQuestionBookmark(q._id)}
+                              className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold cursor-pointer ${
+                                isSaved
+                                  ? "bg-amber-100 text-amber-800"
+                                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                              }`}
+                            >
+                              <Bookmark className="h-3.5 w-3.5" />
+                              <span>{isSaved ? "Saved" : "Bookmark"}</span>
+                            </button>
+                          </div>
+                          <p className="text-sm font-extrabold text-slate-900">
+                            {q.question}
+                          </p>
+                          {typeof q.correctIndex === "number" && (
+                            <p className="text-xs font-bold text-emerald-800 bg-emerald-50 inline-block rounded-lg px-2.5 py-1">
+                              Answer: {q.options[q.correctIndex]}
+                            </p>
+                          )}
+                          {q.explanation && (
+                            <p className="text-xs text-slate-600 leading-relaxed">
+                              <strong>Explanation:</strong> {q.explanation}
+                            </p>
+                          )}
+                        </article>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* MODE 4: MISTAKE VAULT & BOOKMARKED FLASHCARDS */}
+      {mode === "mistakes" && (
+        <section className="space-y-6">
+          <div className="rounded-2xl border border-rose-200 bg-rose-50/70 p-5 flex flex-wrap items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5 text-rose-600" />
+                Mistake Vault &amp; Saved Hard Questions
+              </h2>
+              <p className="text-xs text-slate-700 mt-0.5">
+                Every MCQ you miss during a Mock Test lands here automatically and clears as
+                soon as you answer it correctly on retry.
+              </p>
+            </div>
+            {vault.wrongQuestions.length > 0 && (
+              <button
+                type="button"
+                onClick={() => startMock(vault.wrongQuestions.map((q) => q._id))}
+                className="inline-flex items-center gap-2 rounded-xl bg-rose-700 px-4 py-2.5 text-xs sm:text-sm font-bold text-white hover:bg-rose-800 cursor-pointer"
+              >
+                <RotateCcw className="h-4 w-4" />
+                <span>
+                  Retry All {vault.wrongQuestions.length} Wrong Answers
+                </span>
+              </button>
+            )}
+          </div>
+
+          {loadingVault ? (
+            <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-500">
+              Loading your Mistake Vault...
+            </div>
+          ) : (
+            <div className="space-y-8">
+              {/* Wrong Questions */}
+              <div className="space-y-3">
+                <h3 className="text-sm font-extrabold uppercase tracking-wider text-rose-800">
+                  Questions Missed in Previous Mocks ({vault.wrongQuestions.length})
+                </h3>
+                {vault.wrongQuestions.length === 0 ? (
+                  <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+                    Your Mistake Vault is clean! Take a Timed Mock Simulator — any wrong
+                    answers will appear here for targeted revision.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {vault.wrongQuestions.map((q) => (
+                      <article
+                        key={q._id}
+                        className="rounded-2xl border border-rose-200 bg-white p-5 shadow-xs space-y-2"
+                      >
+                        <p className="text-xs font-bold text-rose-700">
+                          {q.subject} &bull; {q.examTrack}
+                        </p>
+                        <p className="text-sm font-extrabold text-slate-900">
+                          {q.question}
+                        </p>
+                        {typeof q.correctIndex === "number" && (
+                          <p className="text-xs font-bold text-emerald-800 bg-emerald-50 inline-block rounded-lg px-2.5 py-1">
+                            Correct: {q.options[q.correctIndex]}
+                          </p>
+                        )}
+                        {q.explanation && (
+                          <p className="text-xs text-slate-600 leading-relaxed">
+                            {q.explanation}
+                          </p>
+                        )}
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Bookmarked Flashcards */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-sm font-extrabold uppercase tracking-wider text-amber-800">
+                    Bookmarked Flashcards ({vault.bookmarkedQuestions.length})
+                  </h3>
+                  {vault.bookmarkedQuestions.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        startMock(vault.bookmarkedQuestions.map((q) => q._id))
+                      }
+                      className="inline-flex items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3 py-1.5 text-xs font-bold text-amber-900 hover:bg-amber-100 cursor-pointer"
+                    >
+                      <BookOpen className="h-3.5 w-3.5" />
+                      <span>Quiz Saved Questions</span>
+                    </button>
+                  )}
+                </div>
+                {vault.bookmarkedQuestions.length === 0 ? (
+                  <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center text-sm text-slate-500">
+                    No bookmarked questions yet. Star any tricky question in Smart Search,
+                    Job Solution Archive, or Mock Review.
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {vault.bookmarkedQuestions.map((q) => (
+                      <article
+                        key={q._id}
+                        className="rounded-2xl border border-amber-200 bg-white p-5 shadow-xs space-y-2"
+                      >
+                        <div className="flex items-center justify-between text-xs font-bold">
+                          <span className="text-amber-800">
+                            {q.subject} &bull; {q.examTrack}
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => handleToggleQuestionBookmark(q._id)}
+                            className="text-xs font-bold text-slate-500 hover:text-rose-700 cursor-pointer"
+                          >
+                            Remove Bookmark
+                          </button>
+                        </div>
+                        <p className="text-sm font-extrabold text-slate-900">
+                          {q.question}
+                        </p>
+                        {typeof q.correctIndex === "number" && (
+                          <p className="text-xs font-bold text-emerald-800 bg-emerald-50 inline-block rounded-lg px-2.5 py-1">
+                            Answer: {q.options[q.correctIndex]}
+                          </p>
+                        )}
+                        {q.explanation && (
+                          <p className="text-xs text-slate-600 leading-relaxed">
+                            {q.explanation}
+                          </p>
+                        )}
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </section>
+      )}
+    </div>
+  );
+}
