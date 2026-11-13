@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+server/node_modules/
+
+# Next.js
+frontend/.next/
+frontend/.next-vercel-check/
+frontend/out/
+frontend/build/
+frontend/next-env.d.ts
+*.tsbuildinfo
+
+# Environment files
+.env
+.env.*
+!.env.example
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+server/.env
+server/.env.*
+!server/.env.example
+
+# Vercel
+.vercel
+frontend/.vercel
+server/.vercel
+
+# Logs & OS
+*.log
+.DS_Store
+Thumbs.db

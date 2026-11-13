@@ -1,0 +1,21 @@
+{
+  "name": "bd-govt-job-portal",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "install:all": "npm install && npm --prefix frontend install && npm --prefix server install",
+    "dev": "npm --prefix frontend run dev",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "dev:server": "npm --prefix server run dev",
+    "dev:full": "concurrently -n API,WEB -c green,cyan \"npm run dev:server\" \"npm run dev:frontend\"",
+    "build": "npm --prefix frontend run build",
+    "start:frontend": "npm --prefix frontend run start",
+    "start:server": "npm --prefix server run start",
+    "lint": "npm --prefix frontend run lint",
+    "seed": "npm --prefix server run seed",
+    "sync": "npm --prefix server run sync"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.7"
+  }
+}
