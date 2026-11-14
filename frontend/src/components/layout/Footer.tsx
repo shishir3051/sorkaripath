@@ -67,7 +67,7 @@ export function Footer() {
             <h4 className="text-sm font-bold uppercase tracking-wider text-slate-200">
               Verified Official Portals
             </h4>
-            <ul className="mt-3 grid grid-cols-2 gap-2 text-sm">
+            <ul className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
               {OFFICIAL_PORTALS.map((portal) => (
                 <li key={portal.url}>
                   <a

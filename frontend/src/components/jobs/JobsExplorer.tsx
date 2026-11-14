@@ -170,7 +170,7 @@ export function JobsExplorer({
           </div>
 
           <div className="flex flex-wrap items-center gap-2">
-            <div className="inline-flex rounded-xl bg-slate-100 p-1 text-xs font-bold">
+            <div className="flex flex-wrap sm:inline-flex rounded-xl bg-slate-100 p-1 text-xs font-bold">
               {[
                 { val: "All", label: "All Sources" },
                 { val: "web_sync", label: "Live Web Sync" },
@@ -413,19 +413,19 @@ export function JobsExplorer({
               <Globe className="h-5 w-5 text-emerald-700 shrink-0 mt-0.5" />
               <div>
                 <h3 className="text-sm font-extrabold text-slate-900">
-                  Direct Browser Portals (JS-Rendered &amp; Certificate-Restricted Boards)
+                  Direct Browser Portals (JS-Rendered, Bot-Protected &amp; TLS-Restricted Boards)
                 </h3>
                 <p className="text-xs text-slate-600 mt-0.5">
                   We auto-sync 20+ official ministries, BPSC &amp; Bangladesh Bank portals live.
-                  The portals below use client-side JavaScript rendering or incomplete server SSL
-                  chains that cannot be scraped safely from backend workers — open them directly in
-                  your browser for 100% coverage:
+                  The portals below use client-side rendering, restrict automated scraping, or have
+                  incomplete server SSL chains — open them directly in your browser for full coverage:
                 </p>
               </div>
             </div>
             <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 text-xs">
               {[
                 { name: "AllJobs by Teletalk (Central Portal)", url: "https://alljobs.teletalk.com.bd/" },
+                { name: "Bdjobs — Govt Jobs & Career Portal", url: "https://bdjobs.com/h/" },
                 { name: "DPE — Primary Education Circulars", url: "https://dpe.gov.bd/site/view/notices" },
                 { name: "NTRCA — Non-Govt Teacher Registration", url: "https://ntrca.gov.bd/site/view/notices" },
                 { name: "BJSC — Judicial Service Commission", url: "https://bjsc.gov.bd/site/view/notices" },
