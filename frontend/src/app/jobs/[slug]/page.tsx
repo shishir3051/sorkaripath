@@ -22,6 +22,7 @@ import {
 import type { JobCircular, LearningModule } from "@/lib/types";
 import { OriginBadge, RecordTypeBadge } from "@/components/ui/Badges";
 import { BookmarkButton } from "@/components/jobs/BookmarkButton";
+import { AiPdfAnalyzer } from "@/components/jobs/AiPdfAnalyzer";
 
 export const dynamic = "force-dynamic";
 
@@ -115,6 +116,12 @@ export default async function JobDetailPage({
       </div>
 
       {/* Key Specs Grid */}
+      <AiPdfAnalyzer
+        slug={job.slug}
+        hasPdf={Boolean(safePdfUrl)}
+        initialExtraction={job.aiExtraction || null}
+      />
+
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <div className="rounded-2xl border border-slate-200 bg-white p-4">
           <div className="flex items-center gap-2 text-xs font-bold uppercase text-slate-500">

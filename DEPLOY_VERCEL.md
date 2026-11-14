@@ -31,6 +31,8 @@ git push -u origin main
    - `CRON_SECRET` = strong random secret (**16+ characters**) for Vercel Cron auth on `GET /api/v1/sync/cron`
    - `PUBLIC_SYNC_COOLDOWN_SEC` = `180` *(recommended cooldown in seconds between public UI sync triggers; admin key bypasses cooldown)*
    - `SCRAPER_TIMEOUT_MS` = `10000`
+   - `GEMINI_API_KEY` = your Google Gemini API key *(optional, enables AI Circular Finder and Official PDF Reader on `/jobs` & `/jobs/[slug]`)*
+   - `GEMINI_MODEL` = `gemini-4-hydrogen` *(optional; automatically falls back to `gemini-3.5-flash` / `gemini-3.5-flash-lite` / `gemini-3.1-flash-lite`)*
 4. Click **Deploy**.
    - `server/vercel.json` routes all requests to `server/api/index.js` (`maxDuration: 60`) and schedules a daily **Vercel Cron Job** (`0 2 * * *` UTC / 08:00 AM BST — compatible with the Vercel Hobby plan). *If you upgrade to Vercel Pro, you can change the cron schedule to `0 */6 * * *`.*
 5. Verify your deployed API health URL in the browser:

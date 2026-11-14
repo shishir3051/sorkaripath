@@ -156,7 +156,7 @@ const intermediateCaAgent = new https.Agent({
   keepAlive: false,
 });
 
-function requestHttpsOnce(targetUrl, timeoutMs) {
+function requestHttpsOnce(targetUrl, timeoutMs, maxBytes = 8 * 1024 * 1024) {
   return new Promise((resolve, reject) => {
     const req = https.get(
       targetUrl,
@@ -187,19 +187,23 @@ function requestHttpsOnce(targetUrl, timeoutMs) {
 
         const chunks = [];
         let totalBytes = 0;
-        const maxBytes = 8 * 1024 * 1024;
 
         res.on("data", (chunk) => {
           totalBytes += chunk.length;
           if (totalBytes > maxBytes) {
-            req.destroy(new Error("Scraper response exceeded 8MB safety limit"));
+            req.destroy(
+              new Error(`Response exceeded ${Math.round(maxBytes / (1024 * 1024))}MB safety limit`)
+            );
             return;
           }
           chunks.push(chunk);
         });
 
         res.on("end", () => {
-          resolve({ html: Buffer.concat(chunks).toString("utf8") });
+          resolve({
+            buffer: Buffer.concat(chunks),
+            contentType: String(res.headers["content-type"] || ""),
+          });
         });
 
         res.on("error", reject);
@@ -213,9 +217,12 @@ function requestHttpsOnce(targetUrl, timeoutMs) {
   });
 }
 
-async function fetchHttpsWithIntermediateCas(startUrl, maxRedirects = 4) {
+async function fetchHttpsWithIntermediateCas(
+  startUrl,
+  { maxRedirects = 4, timeoutMs = env.SCRAPER_TIMEOUT_MS, maxBytes = 8 * 1024 * 1024 } = {}
+) {
   let currentUrl = startUrl;
-  const deadline = Date.now() + env.SCRAPER_TIMEOUT_MS;
+  const deadline = Date.now() + timeoutMs;
 
   for (let step = 0; step <= maxRedirects; step += 1) {
     const safeUrl = sanitizeHttpUrl(currentUrl);
@@ -228,7 +235,7 @@ async function fetchHttpsWithIntermediateCas(startUrl, maxRedirects = 4) {
       throw new Error("Request timed out");
     }
 
-    const result = await requestHttpsOnce(safeUrl, remainingMs);
+    const result = await requestHttpsOnce(safeUrl, remainingMs, maxBytes);
     if (result.redirectLocation) {
       if (step === maxRedirects) {
         throw new Error("Too many HTTPS redirects");
@@ -237,14 +244,73 @@ async function fetchHttpsWithIntermediateCas(startUrl, maxRedirects = 4) {
       continue;
     }
 
-    const html = result.html || "";
-    if (HUMAN_VERIFICATION_REGEX.test(html)) {
-      throw new Error("Source presented a human-verification challenge; skipped");
-    }
-    return html;
+    return result;
   }
 
   throw new Error("Too many HTTPS redirects");
+}
+
+function isMissingIntermediateError(err) {
+  return (
+    err?.cause?.code === "UNABLE_TO_VERIFY_LEAF_SIGNATURE" ||
+    err?.code === "UNABLE_TO_VERIFY_LEAF_SIGNATURE"
+  );
+}
+
+/**
+ * Fetches binary assets (such as official .gov.bd circular PDFs) with strict TLS + size limits.
+ */
+export async function fetchPublicBinary(
+  url,
+  { maxBytes = 9 * 1024 * 1024, timeoutMs = 15000 } = {}
+) {
+  const safeUrl = sanitizeHttpUrl(url);
+  if (!safeUrl) {
+    throw new Error("Invalid binary target URL");
+  }
+
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(safeUrl, {
+      signal: controller.signal,
+      headers: {
+        "User-Agent": SCRAPER_REQUEST_HEADERS["User-Agent"],
+        Accept: "application/pdf,application/octet-stream,*/*",
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status} ${res.statusText}`);
+    }
+
+    const contentLength = Number(res.headers.get("content-length") || 0);
+    if (contentLength > maxBytes) {
+      throw new Error(
+        `Attachment exceeds ${Math.round(maxBytes / (1024 * 1024))}MB safety limit`
+      );
+    }
+
+    const arrayBuf = await res.arrayBuffer();
+    if (arrayBuf.byteLength > maxBytes) {
+      throw new Error(
+        `Attachment exceeds ${Math.round(maxBytes / (1024 * 1024))}MB safety limit`
+      );
+    }
+
+    return {
+      buffer: Buffer.from(arrayBuf),
+      contentType: String(res.headers.get("content-type") || ""),
+    };
+  } catch (err) {
+    if (isMissingIntermediateError(err) && safeUrl.startsWith("https://")) {
+      return await fetchHttpsWithIntermediateCas(safeUrl, { maxBytes, timeoutMs });
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 export async function fetchPublicHtml(url) {
@@ -276,12 +342,13 @@ export async function fetchPublicHtml(url) {
   } catch (err) {
     // Some valid .gov.bd nginx hosts omit public Sectigo intermediate CA certs in their TLS handshake.
     // Retry using strict TLS (rejectUnauthorized: true) augmented with those verified public intermediate CAs.
-    const isMissingIntermediate =
-      err?.cause?.code === "UNABLE_TO_VERIFY_LEAF_SIGNATURE" ||
-      err?.code === "UNABLE_TO_VERIFY_LEAF_SIGNATURE";
-
-    if (isMissingIntermediate && safeUrl.startsWith("https://")) {
-      return await fetchHttpsWithIntermediateCas(safeUrl);
+    if (isMissingIntermediateError(err) && safeUrl.startsWith("https://")) {
+      const { buffer } = await fetchHttpsWithIntermediateCas(safeUrl);
+      const html = buffer.toString("utf8");
+      if (HUMAN_VERIFICATION_REGEX.test(html)) {
+        throw new Error("Source presented a human-verification challenge; skipped");
+      }
+      return html;
     }
 
     throw err;

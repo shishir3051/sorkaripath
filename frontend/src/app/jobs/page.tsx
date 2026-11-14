@@ -42,8 +42,9 @@ export default async function JobsPage({
         </h1>
         <p className="mt-1 text-sm text-slate-600 max-w-3xl">
           Browse curated track blueprints alongside live circulars, exam schedules,
-          and results pulled directly from 20+ official ministries &amp; boards (BPSC,
-          Bangladesh Bank BSC, MOPA, MoF, DSHE, MoHA, MoD, DGHS &amp; Railway).
+          and results pulled directly from 40 official ministries &amp; boards (BPSC,
+          Bangladesh Bank BSC, BDPost, DPE, NTRCA, DG Food, MOPA, MoF, DSHE, MoHA,
+          MoD, DGHS &amp; Railway) — enhanced with Gemini AI PDF extraction.
         </p>
       </div>
 

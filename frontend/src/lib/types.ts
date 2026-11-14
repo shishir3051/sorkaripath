@@ -6,6 +6,22 @@ export type RecordType =
   | "admit_card"
   | "exam_schedule";
 
+export interface AiCircularExtraction {
+  extractedAt?: string | null;
+  modelUsed?: string;
+  summaryEn?: string;
+  summaryBn?: string;
+  totalVacancies?: string;
+  positions?: string[];
+  educationSummary?: string;
+  ageRequirement?: string;
+  applicationFee?: string;
+  applyStartDate?: string;
+  applyDeadline?: string;
+  applyWebsite?: string;
+  keyInstructions?: string[];
+}
+
 export interface JobCircular {
   _id: string;
   title: string;
@@ -36,6 +52,7 @@ export interface JobCircular {
   applicationSteps: string[];
   relatedLessonSlugs: string[];
   tags: string[];
+  aiExtraction?: AiCircularExtraction;
   isFeatured: boolean;
   isActive: boolean;
   createdAt?: string;

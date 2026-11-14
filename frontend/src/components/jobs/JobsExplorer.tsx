@@ -15,6 +15,7 @@ import {
   Loader2,
   RefreshCw,
   Search,
+  Sparkles,
 } from "lucide-react";
 import {
   apiFetch,
@@ -25,6 +26,10 @@ import {
 } from "@/lib/api";
 import type { JobCircular } from "@/lib/types";
 import { OriginBadge, RecordTypeBadge } from "@/components/ui/Badges";
+import {
+  AiCircularAssistant,
+  type AiCircularAssistantHandle,
+} from "@/components/jobs/AiCircularAssistant";
 
 export interface JobsResponse {
   items: JobCircular[];
@@ -83,6 +88,7 @@ export function JobsExplorer({
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState("");
   const [syncNotice, setSyncNotice] = useState("");
+  const aiAssistantRef = useRef<AiCircularAssistantHandle>(null);
   const skippedFirstEffect = useRef(Boolean(initialData));
   const autoSyncedRef = useRef(false);
   const mountedRef = useRef(true);
@@ -262,6 +268,17 @@ export function JobsExplorer({
               <RefreshCw className={`h-3.5 w-3.5 ${syncing ? "animate-spin" : ""}`} />
               <span>{syncing ? "Syncing Web..." : "Grab Latest from Web"}</span>
             </button>
+
+            {q.trim().length >= 2 && (
+              <button
+                type="button"
+                onClick={() => aiAssistantRef.current?.ask(q.trim())}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 cursor-pointer"
+              >
+                <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
+                <span>Ask AI</span>
+              </button>
+            )}
           </div>
         </div>
 
@@ -319,6 +336,9 @@ export function JobsExplorer({
         </div>
       </div>
 
+      {/* Gemini AI Live Circular Assistant */}
+      <AiCircularAssistant ref={aiAssistantRef} />
+
       {/* Results List */}
       {loading ? (
         <div className="flex items-center justify-center py-16 text-slate-500 gap-2 text-sm">
@@ -344,6 +364,16 @@ export function JobsExplorer({
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+            {q.trim().length >= 2 && (
+              <button
+                type="button"
+                onClick={() => aiAssistantRef.current?.ask(q.trim())}
+                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-800 cursor-pointer"
+              >
+                <Sparkles className="h-3.5 w-3.5" />
+                <span>Ask Gemini AI Instead</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={resetAllFilters}
@@ -510,19 +540,18 @@ export function JobsExplorer({
             </div>
           )}
 
-          {/* Direct Links for Client-Rendered & Additional Directorate Boards */}
+          {/* Direct Links for Aggregators & External Boards */}
           <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-3">
             <div className="flex items-start gap-2.5">
               <Globe className="h-5 w-5 text-emerald-700 shrink-0 mt-0.5" />
               <div>
                 <h3 className="text-sm font-extrabold text-slate-900">
-                  Direct Browser Portals (JS-Rendered &amp; Additional Directorate Boards)
+                  Official Application Portals &amp; Aggregators
                 </h3>
                 <p className="text-xs text-slate-600 mt-0.5">
-                  We auto-sync 35 official ministries, BPSC, Bangladesh Bank, Bangladesh Post
-                  Office (<code>bdpost.gov.bd</code>) &amp; DPE (<code>dpe.gov.bd</code>) live.
-                  Use the direct browser links below for central aggregators (AllJobs/Bdjobs) and
-                  additional department portals:
+                  We auto-sync 40 official ministries &amp; boards live (BPSC, Bangladesh
+                  Bank BSC, BDPost, DPE, NTRCA, DG Food, DSS, LGED, PWD &amp; Railway).
+                  Open the central application portals below when submitting forms:
                 </p>
               </div>
             </div>
@@ -530,12 +559,9 @@ export function JobsExplorer({
               {[
                 { name: "AllJobs by Teletalk (Central Portal)", url: "https://alljobs.teletalk.com.bd/" },
                 { name: "Bdjobs — Govt Jobs & Career Portal", url: "https://bdjobs.com/h/" },
-                { name: "NTRCA — Non-Govt Teacher Registration", url: "https://ntrca.gov.bd/site/view/notices" },
-                { name: "DG Food — Food Directorate Circulars", url: "https://dgfood.gov.bd/site/view/notices" },
-                { name: "DSS — Department of Social Services", url: "https://dss.gov.bd/site/view/notices" },
+                { name: "BPSC Teletalk Application Portal", url: "https://bpsc.teletalk.com.bd/" },
+                { name: "Bangladesh Bank e-Recruitment", url: "https://erecruitment.bb.org.bd/" },
                 { name: "BJSC — Judicial Service Commission", url: "https://bjsc.gov.bd/site/view/notices" },
-                { name: "LGED — Local Govt Engineering Dept", url: "https://lged.gov.bd/site/view/notices" },
-                { name: "PWD — Public Works Department", url: "https://pwd.gov.bd/site/view/notices" },
                 { name: "BMET — Manpower & Training Bureau", url: "https://bmet.gov.bd/site/view/notices" },
               ].map((ext) => (
                 <a

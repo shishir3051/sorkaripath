@@ -7,6 +7,7 @@ import practiceRoutes from "./practice.routes.js";
 import progressRoutes from "./progress.routes.js";
 import syncRoutes from "./sync.routes.js";
 import studyRoutes from "./study.routes.js";
+import aiRoutes from "./ai.routes.js";
 
 const router = Router();
 
@@ -27,5 +28,6 @@ router.use("/practice", practiceRoutes);
 router.use("/progress", progressRoutes);
 router.use("/sync", syncRoutes);
 router.use("/study", studyRoutes);
+router.use("/ai", aiRoutes);
 
 export default router;
