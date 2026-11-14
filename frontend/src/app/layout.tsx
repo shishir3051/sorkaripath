@@ -1,24 +1,24 @@
 import type { Metadata } from "next";
 import {
-  Hind_Siliguri,
+  Inter,
   JetBrains_Mono,
-  Plus_Jakarta_Sans,
+  Noto_Sans_Bengali,
 } from "next/font/google";
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { AiCircularAssistant } from "@/components/jobs/AiCircularAssistant";
 
-const jakarta = Plus_Jakarta_Sans({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-jakarta",
-  weight: ["400", "500", "600", "700", "800"],
+  variable: "--font-inter",
+  display: "swap",
 });
 
-const bengali = Hind_Siliguri({
-  subsets: ["bengali", "latin"],
-  variable: "--font-bengali",
-  weight: ["400", "500", "600", "700"],
+const bangla = Noto_Sans_Bengali({
+  subsets: ["bengali"],
+  variable: "--font-bangla-src",
+  display: "swap",
 });
 
 const mono = JetBrains_Mono({
@@ -42,7 +42,7 @@ export default function RootLayout({
     <html
       lang="en"
       suppressHydrationWarning
-      className={`${jakarta.variable} ${bengali.variable} ${mono.variable}`}
+      className={`${inter.variable} ${bangla.variable} ${mono.variable}`}
     >
       <body
         suppressHydrationWarning
