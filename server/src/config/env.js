@@ -21,6 +21,7 @@ const envSchema = z
     ADMIN_API_KEY: z.string().min(6).default("bd-govt-admin-2026"),
     CRON_SECRET: z.string().optional().default(""),
     PUBLIC_SYNC_COOLDOWN_SEC: z.coerce.number().int().min(30).max(3600).default(180),
+    AUTO_SYNC_STALE_MINUTES: z.coerce.number().int().min(5).max(1440).default(30),
     SYNC_CRON_SCHEDULE: z.string().default("0 */6 * * *"),
     SCRAPER_TIMEOUT_MS: z.coerce.number().int().min(3000).max(30000).default(10000),
   })

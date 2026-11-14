@@ -2,6 +2,8 @@ import { JobCircular } from "../models/JobCircular.js";
 import { CurrentAffairsItem } from "../models/CurrentAffairsItem.js";
 import { WebSource } from "../models/WebSource.js";
 import { SyncLog } from "../models/SyncLog.js";
+import { env } from "../config/env.js";
+import { webSourcesData } from "../seed/data/webSources.js";
 import { fetchPublicHtml } from "./utils.js";
 import { parseNpfTable } from "./adapters/npfTableAdapter.js";
 import { parseBbErecruitment } from "./adapters/bbErecruitmentAdapter.js";
@@ -11,6 +13,66 @@ let syncInProgress = false;
 
 export function isSyncRunning() {
   return syncInProgress;
+}
+
+export async function ensureWebSourcesUpserted() {
+  for (const src of webSourcesData) {
+    await WebSource.updateOne(
+      { key: src.key },
+      {
+        $setOnInsert: {
+          key: src.key,
+          name: src.name,
+          organization: src.organization,
+          organizationShort: src.organizationShort,
+          url: src.url,
+          adapterType: src.adapterType,
+          targetType: src.targetType || "job",
+          defaultCategory: src.defaultCategory,
+          enabled: src.enabled ?? true,
+        },
+      },
+      { upsert: true }
+    );
+  }
+}
+
+export async function getSyncFreshness() {
+  const lastLog = await SyncLog.findOne()
+    .sort({ finishedAt: -1 })
+    .select("finishedAt status triggeredBy")
+    .lean();
+
+  const lastSyncAt = lastLog?.finishedAt || null;
+  const staleMs = env.AUTO_SYNC_STALE_MINUTES * 60_000;
+  const isStale =
+    !lastSyncAt || Date.now() - new Date(lastSyncAt).getTime() >= staleMs;
+
+  return {
+    lastSyncAt,
+    isStale,
+    syncRunning: syncInProgress,
+  };
+}
+
+let lastAutoTriggerMs = 0;
+
+export async function triggerStaleSyncInBackground(triggeredBy = "auto") {
+  if (syncInProgress) return false;
+  const now = Date.now();
+  const minCooldownMs = env.PUBLIC_SYNC_COOLDOWN_SEC * 1000;
+  if (now - lastAutoTriggerMs < minCooldownMs) return false;
+
+  const { isStale } = await getSyncFreshness();
+  if (!isStale) return false;
+
+  lastAutoTriggerMs = now;
+  setTimeout(() => {
+    runLiveWebSync({ triggeredBy }).catch((err) => {
+      console.error("[AutoSync] Background sync error:", err?.message || err);
+    });
+  }, 0);
+  return true;
 }
 
 function runAdapter(adapterType, payload, source) {
@@ -132,7 +194,7 @@ export async function runLiveWebSync({
     if (targetType) query.targetType = targetType;
 
     const sources = await WebSource.find(query).sort({ name: 1 });
-    const CONCURRENCY = Math.min(6, Math.max(1, sources.length));
+    const CONCURRENCY = Math.min(8, Math.max(1, sources.length));
     let cursor = 0;
 
     async function runWorker() {

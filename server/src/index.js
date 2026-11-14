@@ -2,16 +2,22 @@ import cron from "node-cron";
 import app from "./app.js";
 import { env } from "./config/env.js";
 import { connectDatabase, disconnectDatabase } from "./config/db.js";
-import { runLiveWebSync } from "./scrapers/index.js";
+import {
+  ensureWebSourcesUpserted,
+  runLiveWebSync,
+  triggerStaleSyncInBackground,
+} from "./scrapers/index.js";
 
 let server;
 let cronTask;
 
 async function start() {
   await connectDatabase();
+  await ensureWebSourcesUpserted();
 
   server = app.listen(env.PORT, () => {
     console.log(`[API] Server listening on http://localhost:${env.PORT}/api/v1`);
+    triggerStaleSyncInBackground("auto").catch(() => {});
   });
 
   if (cron.validate(env.SYNC_CRON_SCHEDULE)) {

@@ -35,6 +35,12 @@ export interface JobsResponse {
     totalPages: number;
   };
   categories: string[];
+  searchFallback?: "broad" | null;
+  syncMeta?: {
+    lastSyncAt?: string | null;
+    isStale?: boolean;
+    syncRunning?: boolean;
+  };
 }
 
 const CATEGORIES = [
@@ -78,6 +84,9 @@ export function JobsExplorer({
   const [error, setError] = useState("");
   const [syncNotice, setSyncNotice] = useState("");
   const skippedFirstEffect = useRef(Boolean(initialData));
+  const autoSyncedRef = useRef(false);
+  const mountedRef = useRef(true);
+  const fetchJobsRef = useRef<() => Promise<void>>(async () => {});
 
   const buildParams = useCallback(() => {
     const params = new URLSearchParams();
@@ -128,6 +137,56 @@ export function JobsExplorer({
       active = false;
     };
   }, [buildParams]);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
+
+  useEffect(() => {
+    fetchJobsRef.current = fetchJobs;
+  }, [fetchJobs]);
+
+  useEffect(() => {
+    if (autoSyncedRef.current || !data?.syncMeta?.isStale) return;
+    autoSyncedRef.current = true;
+
+    const timer = setTimeout(async () => {
+      if (!mountedRef.current) return;
+      setSyncing(true);
+      try {
+        const res = await apiFetch<{
+          log?: { totalFetched: number; newInserted: number };
+        }>("/sync/run", { method: "POST", body: JSON.stringify({}) });
+        if (!mountedRef.current) return;
+        const fresh = res.log?.newInserted ?? 0;
+        if (fresh > 0) {
+          setSyncNotice(
+            `Auto-synced ${fresh} new live notice(s) from official portals.`
+          );
+        }
+        await fetchJobsRef.current();
+      } catch {
+        // Silently ignore cooldown (429) or transient background auto-sync errors
+      } finally {
+        if (mountedRef.current) setSyncing(false);
+      }
+    }, 200);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [data?.syncMeta?.isStale]);
+
+  function resetAllFilters() {
+    setQ("");
+    setCategory("All");
+    setRecordType("All");
+    setOrigin("All");
+    setPage(1);
+  }
 
   async function handleQuickSync() {
     setSyncing(true);
@@ -271,25 +330,69 @@ export function JobsExplorer({
           {error}
         </div>
       ) : !data || data.items.length === 0 ? (
-        <div className="rounded-2xl border border-slate-200 bg-white p-12 text-center space-y-2">
+        <div className="rounded-2xl border border-slate-200 bg-white p-8 sm:p-12 text-center space-y-4">
           <Briefcase className="mx-auto h-8 w-8 text-slate-400" />
-          <p className="text-base font-bold text-slate-800">
-            No matching circulars or notices found
-          </p>
-          <p className="text-sm text-slate-500">
-            Try clearing filters or click &ldquo;Grab Latest from Web&rdquo;.
-          </p>
+          <div className="space-y-1">
+            <p className="text-base font-bold text-slate-800">
+              No matching circulars or notices found
+            </p>
+            <p className="text-sm text-slate-500 max-w-xl mx-auto">
+              Some directorates (such as Bangladesh Post Office{" "}
+              <code>bdpost.gov.bd</code>, DPE, NTRCA, or DG Food) block
+              automated server scraping — try shorter keywords, clear filters,
+              or open their official portal directly below.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={resetAllFilters}
+              className="rounded-xl border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
+            >
+              Clear Search &amp; Filters
+            </button>
+            <a
+              href={safeExternalHref("https://bdpost.gov.bd/site/view/notices")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-800"
+            >
+              <span>Bangladesh Post Office</span>
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+            <a
+              href={safeExternalHref("https://alljobs.teletalk.com.bd/")}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800"
+            >
+              <span>AllJobs Teletalk</span>
+              <ExternalLink className="h-3.5 w-3.5" />
+            </a>
+          </div>
         </div>
       ) : (
         <>
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs font-semibold text-slate-500">
-            <span>
-              Showing{" "}
-              {(data.pagination.page - 1) * data.pagination.limit + 1}–
-              {(data.pagination.page - 1) * data.pagination.limit +
-                data.items.length}{" "}
-              of {data.pagination.total} official records (newest first)
-            </span>
+            <div className="flex flex-wrap items-center gap-2">
+              <span>
+                Showing{" "}
+                {(data.pagination.page - 1) * data.pagination.limit + 1}–
+                {(data.pagination.page - 1) * data.pagination.limit +
+                  data.items.length}{" "}
+                of {data.pagination.total} official records (newest first)
+              </span>
+              {data.syncMeta?.lastSyncAt && (
+                <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
+                  Last Auto-Sync: {formatBdDateTime(data.syncMeta.lastSyncAt)}
+                </span>
+              )}
+              {data.searchFallback === "broad" && (
+                <span className="rounded-full bg-amber-50 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
+                  Broad keyword matches shown
+                </span>
+              )}
+            </div>
             <span>
               Page {data.pagination.page} of {data.pagination.totalPages}
             </span>
@@ -426,8 +529,11 @@ export function JobsExplorer({
               {[
                 { name: "AllJobs by Teletalk (Central Portal)", url: "https://alljobs.teletalk.com.bd/" },
                 { name: "Bdjobs — Govt Jobs & Career Portal", url: "https://bdjobs.com/h/" },
+                { name: "Bangladesh Post Office (bdpost.gov.bd)", url: "https://bdpost.gov.bd/site/view/notices" },
                 { name: "DPE — Primary Education Circulars", url: "https://dpe.gov.bd/site/view/notices" },
                 { name: "NTRCA — Non-Govt Teacher Registration", url: "https://ntrca.gov.bd/site/view/notices" },
+                { name: "DG Food — Food Directorate Circulars", url: "https://dgfood.gov.bd/site/view/notices" },
+                { name: "DSS — Department of Social Services", url: "https://dss.gov.bd/site/view/notices" },
                 { name: "BJSC — Judicial Service Commission", url: "https://bjsc.gov.bd/site/view/notices" },
                 { name: "LGED — Local Govt Engineering Dept", url: "https://lged.gov.bd/site/view/notices" },
                 { name: "PWD — Public Works Department", url: "https://pwd.gov.bd/site/view/notices" },

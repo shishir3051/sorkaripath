@@ -13,7 +13,7 @@ const syncLogSchema = new mongoose.Schema(
   {
     triggeredBy: {
       type: String,
-      enum: ["cron", "manual", "seed"],
+      enum: ["cron", "manual", "seed", "auto"],
       default: "manual",
     },
     startedAt: { type: Date, required: true },
