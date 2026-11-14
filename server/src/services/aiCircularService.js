@@ -38,31 +38,133 @@ export function getGeminiModelChain() {
   return chain;
 }
 
-export function getAiCapabilityStatus() {
-  const chain = getGeminiModelChain();
-  return {
-    configured: Boolean(env.GEMINI_API_KEY),
-    primaryModel: chain[0] || "gemini-4-hydrogen",
-    fallbackModels: chain.slice(1),
-  };
+const KEY_STRIKE_RESET_IDLE_MS = 2 * 60 * 60_000;
+const geminiClientCache = new Map();
+const keyHealthMap = new Map();
+
+function parseKeyTokens(rawValue) {
+  return String(rawValue || "")
+    .split(/[\s,;]+/)
+    .map((item) => item.trim().replace(/^['"]|['"]$/g, ""))
+    .filter(
+      (item) =>
+        item.length >= 12 &&
+        !/^(replace-with|your[-_ ]|<)/i.test(item) &&
+        item !== "undefined" &&
+        item !== "null"
+    );
 }
 
-let cachedClient = null;
-let cachedKey = "";
+/**
+ * Collect configured Gemini API keys in priority order from GEMINI_API_KEY,
+ * GEMINI_API_KEYS (comma/whitespace-separated), and GEMINI_API_KEY_1..N.
+ */
+export function getGeminiApiKeys() {
+  const numberedEntries = Object.entries(process.env)
+    .map(([name, val]) => {
+      const m = /^GEMINI_API_KEY_(\d+)$/i.exec(name);
+      return m ? { order: Number(m[1]), val } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.order - b.order)
+    .map((entry) => entry.val);
 
-function getGeminiClient() {
-  if (!env.GEMINI_API_KEY) {
-    const err = new Error(
-      "Gemini AI is not configured on the server yet. Set GEMINI_API_KEY in environment variables."
-    );
-    err.statusCode = 503;
-    throw err;
+  const rawSources = [
+    process.env.GEMINI_API_KEY || env.GEMINI_API_KEY,
+    process.env.GEMINI_API_KEYS || env.GEMINI_API_KEYS,
+    ...numberedEntries,
+  ];
+
+  const seen = new Set();
+  const keys = [];
+  for (const raw of rawSources) {
+    for (const token of parseKeyTokens(raw)) {
+      if (!seen.has(token)) {
+        seen.add(token);
+        keys.push(token);
+      }
+    }
   }
-  if (!cachedClient || cachedKey !== env.GEMINI_API_KEY) {
-    cachedClient = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY });
-    cachedKey = env.GEMINI_API_KEY;
+  return keys;
+}
+
+function getKeyHealth(apiKey) {
+  let state = keyHealthMap.get(apiKey);
+  if (!state) {
+    state = {
+      globalCooldownUntil: 0,
+      modelCooldownUntil: new Map(),
+      strikes: 0,
+      lastSuccessAt: 0,
+      lastErrorAt: 0,
+    };
+    keyHealthMap.set(apiKey, state);
   }
-  return cachedClient;
+  const now = Date.now();
+  if (
+    state.strikes > 0 &&
+    state.lastErrorAt > 0 &&
+    now - state.lastErrorAt > KEY_STRIKE_RESET_IDLE_MS
+  ) {
+    state.strikes = 0;
+  }
+  return state;
+}
+
+function getGeminiClientForKey(apiKey) {
+  let client = geminiClientCache.get(apiKey);
+  if (!client) {
+    if (geminiClientCache.size >= 32) {
+      const activeKeys = new Set(getGeminiApiKeys());
+      for (const k of geminiClientCache.keys()) {
+        if (!activeKeys.has(k)) geminiClientCache.delete(k);
+      }
+      if (geminiClientCache.size >= 32) {
+        const oldest = geminiClientCache.keys().next().value;
+        if (oldest) geminiClientCache.delete(oldest);
+      }
+    }
+    client = new GoogleGenAI({ apiKey });
+    geminiClientCache.set(apiKey, client);
+  }
+  return client;
+}
+
+export function getAiCapabilityStatus() {
+  const keys = getGeminiApiKeys();
+  const chain = getGeminiModelChain();
+  const primaryModel = chain[0] || "gemini-4-hydrogen";
+  const now = Date.now();
+
+  const keyStatuses = keys.map((key, idx) => {
+    const health = getKeyHealth(key);
+    const pairCooldown = health.modelCooldownUntil.get(primaryModel) || 0;
+    const blockedUntil = Math.max(health.globalCooldownUntil, pairCooldown);
+    const inCooldown = blockedUntil > now;
+    return {
+      slot: idx + 1,
+      status:
+        health.globalCooldownUntil > now
+          ? "auth_cooldown"
+          : pairCooldown > now
+          ? "rate_limited"
+          : "ready",
+      cooldownRemainingSec: inCooldown ? Math.ceil((blockedUntil - now) / 1000) : 0,
+      strikes: health.strikes,
+    };
+  });
+
+  const availableKeys = keyStatuses.filter((k) => k.status === "ready").length;
+
+  return {
+    configured: keys.length > 0,
+    totalKeys: keys.length,
+    availableKeys,
+    failoverEnabled: keys.length > 1,
+    primaryModel,
+    fallbackModels: chain.slice(1),
+    keys: keyStatuses,
+  };
 }
 
 function getDhakaTodayString() {
@@ -83,55 +185,301 @@ function safeParseJsonText(rawText) {
   return JSON.parse(cleaned);
 }
 
-function isRetryableModelError(err) {
-  const status = Number(err?.status || err?.code || 0);
-  if ([404, 429, 500, 502, 503, 504].includes(status)) return true;
+function extractErrorStatus(err) {
+  const numeric = Number(err?.status || err?.statusCode || err?.code || 0);
+  if (numeric >= 400 && numeric < 600) return numeric;
+  const match = /\b(?:status|code)["':=\s]+(4\d{2}|5\d{2})\b/i.exec(
+    String(err?.message || "")
+  );
+  return match ? Number(match[1]) : 0;
+}
+
+function parseRetryAfterMs(err) {
+  const msg = String(err?.message || "");
+  const match =
+    /retry(?:\s+in|Delay["':=\s]+)(\d+(?:\.\d+)?)\s*s/i.exec(msg);
+  if (!match) return 0;
+  const parsedMs = Math.ceil(Number(match[1]) * 1000);
+  if (!Number.isFinite(parsedMs) || parsedMs <= 0) return 0;
+  return Math.min(Math.max(parsedMs, 60_000), 15 * 60_000);
+}
+
+export function classifyGeminiError(err) {
+  if (err?.name === "AbortError") return "timeout";
+  const status = extractErrorStatus(err);
   const msg = String(err?.message || "").toLowerCase();
-  return (
+
+  if (
+    status === 401 ||
+    status === 403 ||
+    msg.includes("api_key_invalid") ||
+    msg.includes("api key not valid") ||
+    msg.includes("api key expired") ||
+    msg.includes("api key invalid") ||
+    msg.includes("permission_denied") ||
+    msg.includes("permission denied") ||
+    msg.includes("unauthenticated") ||
+    msg.includes("consumer_suspended") ||
+    msg.includes("billing")
+  ) {
+    return "key_invalid";
+  }
+
+  if (
+    status === 429 ||
+    msg.includes("resource_exhausted") ||
     msg.includes("quota") ||
+    msg.includes("rate limit") ||
+    msg.includes("too many requests") ||
+    msg.includes("limit: 0")
+  ) {
+    return "quota_limit";
+  }
+
+  if (
+    status === 404 ||
+    msg.includes("not found") ||
+    msg.includes("not supported") ||
+    msg.includes("is not found for api version")
+  ) {
+    return "model_unavailable";
+  }
+
+  if (
+    [408, 500, 502, 503, 504].includes(status) ||
     msg.includes("deadline") ||
     msg.includes("high demand") ||
     msg.includes("timed out") ||
-    msg.includes("not found") ||
-    msg.includes("not supported")
-  );
+    msg.includes("overloaded") ||
+    msg.includes("unavailable") ||
+    msg.includes("fetch failed") ||
+    msg.includes("network")
+  ) {
+    return "transient";
+  }
+
+  if (err instanceof SyntaxError) {
+    return "bad_output";
+  }
+
+  return "fatal";
 }
 
-async function generateJsonWithGemini({ contents, timeoutMs = 20000 }) {
-  const ai = getGeminiClient();
-  const models = getGeminiModelChain();
-  let lastError = null;
+function recordGeminiKeyFailure(apiKey, model, kind, err) {
+  const health = getKeyHealth(apiKey);
+  const now = Date.now();
 
-  for (const model of models) {
+  if (kind === "key_invalid") {
+    health.globalCooldownUntil = now + 15 * 60_000;
+    health.strikes = Math.max(health.strikes + 2, 3);
+    health.lastErrorAt = now;
+    return;
+  }
+
+  if (kind === "quota_limit") {
+    health.strikes += 1;
+    health.lastErrorAt = now;
+    const suggested = parseRetryAfterMs(err);
+    const backoffMs =
+      health.strikes === 1
+        ? suggested || 90_000
+        : health.strikes === 2
+        ? Math.max(suggested, 5 * 60_000)
+        : 30 * 60_000;
+    health.modelCooldownUntil.set(model, now + backoffMs);
+    return;
+  }
+
+  if (kind === "transient" || kind === "timeout" || kind === "bad_output") {
+    health.strikes += 1;
+    health.lastErrorAt = now;
+    health.modelCooldownUntil.set(model, now + 20_000);
+  }
+}
+
+function recordGeminiKeySuccess(apiKey, model) {
+  const health = getKeyHealth(apiKey);
+  health.strikes = 0;
+  health.globalCooldownUntil = 0;
+  health.modelCooldownUntil.delete(model);
+  health.lastSuccessAt = Date.now();
+}
+
+function orderKeyCandidatesForModel(keys, model, now = Date.now()) {
+  const candidates = keys.map((apiKey, slotIndex) => {
+    const health = getKeyHealth(apiKey);
+    const blockedUntil = Math.max(
+      health.globalCooldownUntil,
+      health.modelCooldownUntil.get(model) || 0
+    );
+    return {
+      apiKey,
+      slotIndex,
+      strikes: health.strikes,
+      blockedUntil,
+      inCooldown: blockedUntil > now,
+    };
+  });
+
+  candidates.sort((a, b) => {
+    if (a.inCooldown !== b.inCooldown) return a.inCooldown ? 1 : -1;
+    if (!a.inCooldown && !b.inCooldown) {
+      if (a.strikes !== b.strikes) return a.strikes - b.strikes;
+      return a.slotIndex - b.slotIndex;
+    }
+    return a.blockedUntil - b.blockedUntil;
+  });
+
+  return candidates;
+}
+
+async function callDefaultGeminiJson({ apiKey, model, contents, signal }) {
+  const ai = getGeminiClientForKey(apiKey);
+  return ai.models.generateContent({
+    model,
+    contents,
+    config: {
+      responseMimeType: "application/json",
+      abortSignal: signal,
+    },
+  });
+}
+
+/**
+ * Execute structured JSON generation with automatic multi-key failover
+ * (switching keys first on 429/401/403 so the primary model stays preferred)
+ * followed by automatic fallback across the configured Gemini model chain.
+ */
+export async function generateJsonWithGemini({
+  contents,
+  timeoutMs = 22000,
+  _generateFn,
+}) {
+  const keys = getGeminiApiKeys();
+  if (keys.length === 0) {
+    const err = new Error(
+      "Gemini AI is not configured on the server yet. Set GEMINI_API_KEY or GEMINI_API_KEYS in environment variables."
+    );
+    err.statusCode = 503;
+    throw err;
+  }
+
+  const models = getGeminiModelChain();
+  const runGenerate = _generateFn || callDefaultGeminiJson;
+  const totalBudgetMs = Math.min(48_000, Math.max(timeoutMs + 14_000, 32_000));
+  const deadlineAt = Date.now() + totalBudgetMs;
+  const maxAttempts = Math.min(12, models.length * keys.length);
+
+  let attempts = 0;
+  let lastError = null;
+  let lastKind = "";
+  let sawLimitError = false;
+  const unavailableModels = new Set();
+
+  const tryAttempt = async (model, candidate) => {
+    const remainingMs = deadlineAt - Date.now();
+    if (remainingMs < 1500) return { stopAll: true };
+
+    attempts += 1;
+    const attemptTimeout = Math.min(timeoutMs, remainingMs);
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const timer = setTimeout(() => controller.abort(), attemptTimeout);
+
     try {
-      const response = await ai.models.generateContent({
+      const response = await runGenerate({
+        apiKey: candidate.apiKey,
         model,
         contents,
-        config: {
-          responseMimeType: "application/json",
-          abortSignal: controller.signal,
-        },
+        signal: controller.signal,
       });
-      const data = safeParseJsonText(response.text);
-      return { data, modelUsed: model };
+      const data = safeParseJsonText(response?.text);
+      recordGeminiKeySuccess(candidate.apiKey, model);
+      return {
+        success: true,
+        result: {
+          data,
+          modelUsed: model,
+          keySlotUsed: candidate.slotIndex + 1,
+          totalKeys: keys.length,
+        },
+      };
     } catch (err) {
       lastError = err;
-      if (!isRetryableModelError(err) && err?.name !== "AbortError") {
-        break;
+      const kind = classifyGeminiError(err);
+      lastKind = kind;
+      if (kind === "quota_limit" || kind === "key_invalid") {
+        sawLimitError = true;
       }
+
+      if (kind === "model_unavailable") {
+        unavailableModels.add(model);
+        return { skipModel: true };
+      }
+
+      recordGeminiKeyFailure(candidate.apiKey, model, kind, err);
+
+      if (kind === "fatal") {
+        return { stopAll: true };
+      }
+
+      if (keys.length > 1 || models.length > 1) {
+        console.warn(
+          `[Gemini AI] Key #${candidate.slotIndex + 1} failed (${kind}) on ${model}; trying failover.`
+        );
+      }
+      return { continueLoop: true };
     } finally {
       clearTimeout(timer);
     }
+  };
+
+  // Pass 1: try ready (non-cooled-down) keys per model in quality order
+  for (const model of models) {
+    if (unavailableModels.has(model) || attempts >= maxAttempts) continue;
+    const candidates = orderKeyCandidatesForModel(keys, model).filter(
+      (c) => !c.inCooldown
+    );
+    for (const candidate of candidates) {
+      if (attempts >= maxAttempts) break;
+      const outcome = await tryAttempt(model, candidate);
+      if (outcome.success) return outcome.result;
+      if (outcome.stopAll) break;
+      if (outcome.skipModel) break;
+    }
+    if (lastKind === "fatal" || Date.now() >= deadlineAt - 1500) break;
   }
 
-  const msg =
-    lastError?.name === "AbortError"
-      ? "Gemini AI request timed out. Please try again."
-      : "Gemini AI service is temporarily busy or quota-limited. Please try again shortly.";
+  // Pass 2: if every key/model pair was in cooldown, probe up to 2 soonest pairs
+  if (attempts === 0) {
+    let probes = 0;
+    for (const model of models.slice(0, 2)) {
+      if (unavailableModels.has(model) || probes >= 2) break;
+      const earliest = orderKeyCandidatesForModel(keys, model)[0];
+      if (!earliest) continue;
+      probes += 1;
+      const outcome = await tryAttempt(model, earliest);
+      if (outcome.success) return outcome.result;
+      if (outcome.stopAll) break;
+    }
+  }
+
+  let msg;
+  let statusCode = 502;
+  if (lastError?.name === "AbortError" && !sawLimitError) {
+    msg = "Gemini AI request timed out. Please try again.";
+  } else if (sawLimitError) {
+    statusCode = 429;
+    msg =
+      keys.length > 1
+        ? `All ${keys.length} configured Gemini API keys are currently quota-limited or unavailable. Add another key or retry shortly.`
+        : "Gemini API key hit its quota or rate limit. Configure backup keys via GEMINI_API_KEYS or retry shortly.";
+  } else {
+    msg =
+      "Gemini AI service is temporarily busy or unavailable. Please try again shortly.";
+  }
+
   const wrapped = new Error(msg);
-  wrapped.statusCode = 502;
+  wrapped.statusCode = statusCode;
   throw wrapped;
 }
 
@@ -383,7 +731,12 @@ Return strictly valid JSON with these exact keys:
     ? [{ role: "user", parts: [attachment.part, { text: promptText }] }]
     : promptText;
 
-  const { data: raw, modelUsed } = await generateJsonWithGemini({
+  const {
+    data: raw,
+    modelUsed,
+    keySlotUsed,
+    totalKeys,
+  } = await generateJsonWithGemini({
     contents,
     timeoutMs: 32000,
   });
@@ -490,6 +843,8 @@ Return strictly valid JSON with these exact keys:
     cached: false,
     sourceMode: attachment.mode,
     modelUsed,
+    keySlotUsed,
+    totalKeys,
   };
 }
 
@@ -646,7 +1001,12 @@ Return strictly valid JSON with these exact keys:
   "followUpQueries": ["3 useful next questions a Bangladeshi govt job candidate might ask"]
 }`;
 
-  const { data: raw, modelUsed } = await generateJsonWithGemini({
+  const {
+    data: raw,
+    modelUsed,
+    keySlotUsed,
+    totalKeys,
+  } = await generateJsonWithGemini({
     contents: prompt,
     timeoutMs: 22000,
   });
@@ -679,6 +1039,8 @@ Return strictly valid JSON with these exact keys:
       : [],
     meta: {
       modelUsed,
+      keySlotUsed,
+      totalKeys,
       groundedCount: groundedDocs.length,
       sourcesRefreshed: liveSyncStats.sourcesRefreshed,
       checkedSourceNames: liveSyncStats.checkedSourceNames,

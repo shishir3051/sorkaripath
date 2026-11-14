@@ -25,6 +25,7 @@ const envSchema = z
     SYNC_CRON_SCHEDULE: z.string().default("0 */6 * * *"),
     SCRAPER_TIMEOUT_MS: z.coerce.number().int().min(3000).max(30000).default(10000),
     GEMINI_API_KEY: z.string().optional().default(""),
+    GEMINI_API_KEYS: z.string().optional().default(""),
     GEMINI_MODEL: z.string().trim().optional().default("gemini-4-hydrogen"),
   })
   .superRefine((data, ctx) => {

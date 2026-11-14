@@ -22,6 +22,8 @@ interface AnalyzeResponse {
   cached: boolean;
   sourceMode: string;
   modelUsed: string;
+  keySlotUsed?: number;
+  totalKeys?: number;
 }
 
 export function AiPdfAnalyzer({
@@ -37,6 +39,7 @@ export function AiPdfAnalyzer({
   const [extraction, setExtraction] = useState<AiCircularExtraction | null>(
     initialExtraction?.extractedAt ? initialExtraction : null
   );
+  const [keyMeta, setKeyMeta] = useState<{ slot: number; total: number } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -52,6 +55,11 @@ export function AiPdfAnalyzer({
         }
       );
       setExtraction(res.aiExtraction);
+      if ((res.totalKeys ?? 0) > 1 && res.keySlotUsed) {
+        setKeyMeta({ slot: res.keySlotUsed, total: res.totalKeys ?? 1 });
+      } else {
+        setKeyMeta(null);
+      }
       router.refresh();
     } catch (err) {
       setError(
@@ -81,6 +89,11 @@ export function AiPdfAnalyzer({
               {extraction?.modelUsed && (
                 <span className="rounded-full bg-slate-900 px-2.5 py-0.5 text-[11px] font-bold text-white">
                   {extraction.modelUsed}
+                </span>
+              )}
+              {keyMeta && (
+                <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-[11px] font-bold text-indigo-800">
+                  Key #{keyMeta.slot}/{keyMeta.total}
                 </span>
               )}
             </div>

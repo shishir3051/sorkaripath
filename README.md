@@ -8,7 +8,7 @@ A full-stack **Bangladesh Government Job Portal, Live Official Notice Aggregator
 
 - **Live Official Job Circulars & Gemini AI Intelligence (`/`, `/jobs`, `/jobs/[slug]`)**
   - Concurrently syncs circulars, exam schedules, admit card notices, and results from **40 official `.gov.bd` & `bb.org.bd` sources** (including BPSC, Bangladesh Bank BSC, Bangladesh Post Office, DPE, NTRCA, DG Food, DSS, LGED, PWD, Railway, and ministries).
-  - **Gemini AI Circular Finder & Multimodal Official PDF Reader** (`GEMINI_API_KEY`, defaulting to `gemini-4-hydrogen` with automatic model fallbacks) lets users ask live questions across `.gov.bd` notices and extract total vacancies, post grades, Teletalk fees, eligibility, and apply links directly from official circular PDFs.
+  - **Gemini AI Circular Finder & Multimodal Official PDF Reader** (`GEMINI_API_KEY` + optional backup pool via `GEMINI_API_KEYS`, defaulting to `gemini-4-hydrogen` with automatic key failover & model fallbacks) lets users ask live questions across `.gov.bd` notices and extract total vacancies, post grades, Teletalk fees, eligibility, and apply links directly from official circular PDFs.
   - Clean **Asia/Dhaka (BST)** date & time display, live header clock, bilingual search normalization (Bangla & English), persistent session bookmarks, and direct portal links (`AllJobs Teletalk`, `Bdjobs`, `BJSC`, `BMET`).
 - **A–Z Career Learning Academy (`/learn`, `/learn/[slug]`)**
   - **26 structured modules (A–Z)** covering BCS, Bangladesh Bank, Primary/NTRCA, Defense, Technical, and Ministry recruitment processes—updated for **2026 rules** (32-year age limit, 93/7 quota distribution, National Pay Scale 2026).

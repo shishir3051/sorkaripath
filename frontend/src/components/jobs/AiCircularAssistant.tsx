@@ -49,6 +49,8 @@ interface AiDiscoverResponse {
   followUpQueries: string[];
   meta: {
     modelUsed: string;
+    keySlotUsed?: number;
+    totalKeys?: number;
     groundedCount: number;
     sourcesRefreshed: number;
     checkedSourceNames: string[];
@@ -213,6 +215,11 @@ export function AiCircularAssistant({
               <span className="rounded-full bg-slate-900 px-2.5 py-0.5 text-white">
                 Model: {result.meta.modelUsed}
               </span>
+              {(result.meta.totalKeys ?? 0) > 1 && result.meta.keySlotUsed && (
+                <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-indigo-800">
+                  Key #{result.meta.keySlotUsed}/{result.meta.totalKeys}
+                </span>
+              )}
               <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-emerald-800">
                 Grounded on {result.meta.groundedCount} live records
               </span>
