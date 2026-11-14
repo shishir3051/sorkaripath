@@ -7,6 +7,7 @@ import {
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { AiCircularAssistant } from "@/components/jobs/AiCircularAssistant";
 
 const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
@@ -50,6 +51,7 @@ export default function RootLayout({
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
+        <AiCircularAssistant />
       </body>
     </html>
   );

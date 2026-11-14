@@ -26,10 +26,7 @@ import {
 } from "@/lib/api";
 import type { JobCircular } from "@/lib/types";
 import { OriginBadge, RecordTypeBadge } from "@/components/ui/Badges";
-import {
-  AiCircularAssistant,
-  type AiCircularAssistantHandle,
-} from "@/components/jobs/AiCircularAssistant";
+import { openAiAssistantChat } from "@/components/jobs/AiCircularAssistant";
 
 export interface JobsResponse {
   items: JobCircular[];
@@ -88,7 +85,6 @@ export function JobsExplorer({
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState("");
   const [syncNotice, setSyncNotice] = useState("");
-  const aiAssistantRef = useRef<AiCircularAssistantHandle>(null);
   const skippedFirstEffect = useRef(Boolean(initialData));
   const autoSyncedRef = useRef(false);
   const mountedRef = useRef(true);
@@ -272,7 +268,7 @@ export function JobsExplorer({
             {q.trim().length >= 2 && (
               <button
                 type="button"
-                onClick={() => aiAssistantRef.current?.ask(q.trim())}
+                onClick={() => openAiAssistantChat(q.trim())}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 cursor-pointer"
               >
                 <Sparkles className="h-3.5 w-3.5 text-emerald-400" />
@@ -336,9 +332,6 @@ export function JobsExplorer({
         </div>
       </div>
 
-      {/* Gemini AI Live Circular Assistant */}
-      <AiCircularAssistant ref={aiAssistantRef} />
-
       {/* Results List */}
       {loading ? (
         <div className="flex items-center justify-center py-16 text-slate-500 gap-2 text-sm">
@@ -367,7 +360,7 @@ export function JobsExplorer({
             {q.trim().length >= 2 && (
               <button
                 type="button"
-                onClick={() => aiAssistantRef.current?.ask(q.trim())}
+                onClick={() => openAiAssistantChat(q.trim())}
                 className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-800 cursor-pointer"
               >
                 <Sparkles className="h-3.5 w-3.5" />
