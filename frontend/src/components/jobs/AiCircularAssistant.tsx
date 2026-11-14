@@ -488,40 +488,25 @@ export function AiCircularAssistant() {
 
   if (!open) {
     return (
-      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex items-center gap-2">
-        <button
-          type="button"
-          onClick={() => {
-            setOpen(true);
-            setTimeout(() => startVoiceListening(), 120);
-          }}
-          title="Speak with Gemini AI"
-          aria-label="Speak with Gemini AI directly by voice"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-indigo-700 text-white shadow-xl shadow-indigo-950/25 ring-2 ring-white/80 hover:bg-indigo-800 hover:scale-[1.05] active:scale-[0.97] transition-all cursor-pointer"
-        >
-          <Mic className="h-4.5 w-4.5" />
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setOpen(true)}
-          aria-label="Open Gemini AI Live Circular and Study Chat"
-          className="inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-emerald-700 to-teal-800 px-4 py-3 text-white shadow-xl shadow-emerald-950/25 ring-2 ring-white/80 hover:from-emerald-800 hover:to-teal-900 hover:scale-[1.03] active:scale-[0.98] transition-all cursor-pointer"
-        >
-          <span className="relative flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
-            <MessageSquare className="h-3.5 w-3.5 text-emerald-100" />
-            <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-emerald-800" />
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        aria-label="Open Gemini AI Live Circular and Study Chat"
+        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-emerald-700 to-teal-800 px-4 py-3 text-white shadow-xl shadow-emerald-950/25 ring-2 ring-white/80 hover:from-emerald-800 hover:to-teal-900 hover:scale-[1.03] active:scale-[0.98] transition-all cursor-pointer"
+      >
+        <span className="relative flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
+          <MessageSquare className="h-3.5 w-3.5 text-emerald-100" />
+          <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-emerald-800" />
+        </span>
+        <span className="text-xs sm:text-sm font-extrabold tracking-tight">
+          {isStudyRoute ? "AI Study & Prep" : "Ask AI • Jobs & Study"}
+        </span>
+        {messages.length > 0 && (
+          <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-bold">
+            {messages.filter((m) => m.role === "user").length}
           </span>
-          <span className="text-xs sm:text-sm font-extrabold tracking-tight">
-            {isStudyRoute ? "AI Study & Prep" : "Ask AI • Jobs & Study"}
-          </span>
-          {messages.length > 0 && (
-            <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-bold">
-              {messages.filter((m) => m.role === "user").length}
-            </span>
-          )}
-        </button>
-      </div>
+        )}
+      </button>
     );
   }
 
