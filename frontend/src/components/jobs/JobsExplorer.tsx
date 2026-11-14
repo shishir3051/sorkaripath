@@ -337,10 +337,10 @@ export function JobsExplorer({
               No matching circulars or notices found
             </p>
             <p className="text-sm text-slate-500 max-w-xl mx-auto">
-              Some directorates (such as Bangladesh Post Office{" "}
-              <code>bdpost.gov.bd</code>, DPE, NTRCA, or DG Food) block
-              automated server scraping — try shorter keywords, clear filters,
-              or open their official portal directly below.
+              Try shorter bilingual keywords (e.g. &ldquo;Post Office&rdquo;,
+              &ldquo;DPE&rdquo;, &ldquo;Railway&rdquo;, &ldquo;ডাক&rdquo;),
+              clear active filters, or check portals with browser-only access
+              directly below.
             </p>
           </div>
           <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
@@ -352,21 +352,21 @@ export function JobsExplorer({
               Clear Search &amp; Filters
             </button>
             <a
-              href={safeExternalHref("https://bdpost.gov.bd/site/view/notices")}
+              href={safeExternalHref("https://alljobs.teletalk.com.bd/")}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-800"
             >
-              <span>Bangladesh Post Office</span>
+              <span>AllJobs Teletalk</span>
               <ExternalLink className="h-3.5 w-3.5" />
             </a>
             <a
-              href={safeExternalHref("https://alljobs.teletalk.com.bd/")}
+              href={safeExternalHref("https://bdjobs.com/h/")}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800"
             >
-              <span>AllJobs Teletalk</span>
+              <span>Bdjobs Govt Portal</span>
               <ExternalLink className="h-3.5 w-3.5" />
             </a>
           </div>
@@ -510,18 +510,19 @@ export function JobsExplorer({
             </div>
           )}
 
-          {/* Honest Direct Links for Client-Rendered / TLS-Restricted Boards */}
+          {/* Direct Links for Client-Rendered & Additional Directorate Boards */}
           <div className="mt-6 rounded-2xl border border-slate-200 bg-slate-50 p-5 space-y-3">
             <div className="flex items-start gap-2.5">
               <Globe className="h-5 w-5 text-emerald-700 shrink-0 mt-0.5" />
               <div>
                 <h3 className="text-sm font-extrabold text-slate-900">
-                  Direct Browser Portals (JS-Rendered, Bot-Protected &amp; TLS-Restricted Boards)
+                  Direct Browser Portals (JS-Rendered &amp; Additional Directorate Boards)
                 </h3>
                 <p className="text-xs text-slate-600 mt-0.5">
-                  We auto-sync 20+ official ministries, BPSC &amp; Bangladesh Bank portals live.
-                  The portals below use client-side rendering, restrict automated scraping, or have
-                  incomplete server SSL chains — open them directly in your browser for full coverage:
+                  We auto-sync 35 official ministries, BPSC, Bangladesh Bank, Bangladesh Post
+                  Office (<code>bdpost.gov.bd</code>) &amp; DPE (<code>dpe.gov.bd</code>) live.
+                  Use the direct browser links below for central aggregators (AllJobs/Bdjobs) and
+                  additional department portals:
                 </p>
               </div>
             </div>
@@ -529,14 +530,13 @@ export function JobsExplorer({
               {[
                 { name: "AllJobs by Teletalk (Central Portal)", url: "https://alljobs.teletalk.com.bd/" },
                 { name: "Bdjobs — Govt Jobs & Career Portal", url: "https://bdjobs.com/h/" },
-                { name: "Bangladesh Post Office (bdpost.gov.bd)", url: "https://bdpost.gov.bd/site/view/notices" },
-                { name: "DPE — Primary Education Circulars", url: "https://dpe.gov.bd/site/view/notices" },
                 { name: "NTRCA — Non-Govt Teacher Registration", url: "https://ntrca.gov.bd/site/view/notices" },
                 { name: "DG Food — Food Directorate Circulars", url: "https://dgfood.gov.bd/site/view/notices" },
                 { name: "DSS — Department of Social Services", url: "https://dss.gov.bd/site/view/notices" },
                 { name: "BJSC — Judicial Service Commission", url: "https://bjsc.gov.bd/site/view/notices" },
                 { name: "LGED — Local Govt Engineering Dept", url: "https://lged.gov.bd/site/view/notices" },
                 { name: "PWD — Public Works Department", url: "https://pwd.gov.bd/site/view/notices" },
+                { name: "BMET — Manpower & Training Bureau", url: "https://bmet.gov.bd/site/view/notices" },
               ].map((ext) => (
                 <a
                   key={ext.url}

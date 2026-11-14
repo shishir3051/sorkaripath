@@ -319,6 +319,29 @@ export const webSourcesData = [
     defaultCategory: "Engineering & Technical",
     enabled: true,
   },
+  {
+    key: "bdpost-notices",
+    name: "Bangladesh Post Office Notices (ডাক অধিদপ্তর)",
+    organization: "Bangladesh Post Office (ডাক অধিদপ্তর)",
+    organizationShort: "BDPOST",
+    url: "https://bdpost.gov.bd/site/view/notices",
+    adapterType: "npf-table",
+    targetType: "job",
+    defaultCategory: "Ministry & Directorate",
+    enabled: true,
+  },
+  {
+    key: "dpe-notices",
+    name: "Directorate of Primary Education Notices (DPE)",
+    organization:
+      "Directorate of Primary Education (প্রাথমিক শিক্ষা অধিদপ্তর / DPE)",
+    organizationShort: "DPE",
+    url: "https://dpe.gov.bd/site/view/notices",
+    adapterType: "npf-table",
+    targetType: "job",
+    defaultCategory: "Teaching (Primary/NTRCA)",
+    enabled: true,
+  },
 
   // --- Live Current Affairs & Exam Digest Feeds (RSS) ---
   {

@@ -20,8 +20,7 @@ export async function ensureWebSourcesUpserted() {
     await WebSource.updateOne(
       { key: src.key },
       {
-        $setOnInsert: {
-          key: src.key,
+        $set: {
           name: src.name,
           organization: src.organization,
           organizationShort: src.organizationShort,
@@ -29,6 +28,9 @@ export async function ensureWebSourcesUpserted() {
           adapterType: src.adapterType,
           targetType: src.targetType || "job",
           defaultCategory: src.defaultCategory,
+        },
+        $setOnInsert: {
+          key: src.key,
           enabled: src.enabled ?? true,
         },
       },
@@ -129,6 +131,8 @@ export async function syncSingleSource(source) {
           {
             $set: {
               title: item.title,
+              recordType: item.recordType,
+              category: item.category,
               pdfUrl: item.pdfUrl,
               detailUrl: item.detailUrl,
               deadlineDate: item.deadlineDate,
