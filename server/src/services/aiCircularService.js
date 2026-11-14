@@ -2,6 +2,7 @@ import * as cheerio from "cheerio";
 import { GoogleGenAI } from "@google/genai";
 import { env } from "../config/env.js";
 import { JobCircular } from "../models/JobCircular.js";
+import { StudyTopic } from "../models/StudyTopic.js";
 import { WebSource } from "../models/WebSource.js";
 import { syncSingleSource } from "../scrapers/index.js";
 import { cleanText, fetchPublicBinary, fetchPublicHtml } from "../scrapers/utils.js";
@@ -24,6 +25,100 @@ const DISCOVERY_CACHE_MAX = 80;
 
 const DETAIL_INTENT_REGEX =
   /deadline|last\s*date|fee|post|vacanc|eligib|qualif|education|age|apply|website|salary|grade|how\s*to|বেতন|যোগ্যতা|ফি|তারিখ|আবেদন|পদ|বয়স|বয়স|শূন্য/i;
+
+const PREP_INTENT_REGEX =
+  /prepar|study|learn|subject|syllabus|crack|book|topic|exam\s*pattern|marks|বই|পড়া|পড়ব|প্রস্তুতি|সিলেবাস|বিষয়|বিষয়|কী\s*পড়|কীভাবে\s*পড়/i;
+
+const TRACK_ROUTE_RULES = [
+  {
+    pattern: /\bbcs\b|বিসিএস/i,
+    examTrack: "BCS Preliminary",
+    trackKey: "BCS",
+    url: "/practice?examTrack=BCS%20Preliminary&limit=30&autostart=1",
+  },
+  {
+    pattern: /bank|sonali|rupali|agrani|janata|ব্যাংক/i,
+    examTrack: "Bank Combined",
+    trackKey: "Bank & Financial",
+    url: "/practice?examTrack=Bank%20Combined&limit=25&autostart=1",
+  },
+  {
+    pattern: /primary|ntrca|teacher|শিক্ষক|প্রাথমিক/i,
+    examTrack: "Primary & NTRCA",
+    trackKey: "Primary & NTRCA",
+    url: "/practice?examTrack=Primary%20%26%20NTRCA&limit=25&autostart=1",
+  },
+];
+
+function inferPracticeRecommendation(cleanQuery) {
+  for (const rule of TRACK_ROUTE_RULES) {
+    if (rule.pattern.test(cleanQuery)) return rule;
+  }
+  return {
+    examTrack: "Grade 11-20",
+    trackKey: "Grade 11-20",
+    url: "/practice?examTrack=Grade%2011-20&limit=20&autostart=1",
+  };
+}
+
+function buildDiscoverPrompt({
+  cleanQuery,
+  totalLiveCount,
+  groundedDocs,
+  topicList,
+  isPrepIntent,
+}) {
+  const prepInstructions = isPrepIntent
+    ? [
+        "5. Because the user is asking HOW TO PREPARE / WHAT SUBJECTS TO STUDY:",
+        "   - Provide an authentic Bangladesh government recruitment exam syllabus & subject-wise preparation strategy (exam stages: MCQ/Written + Practical/Typing/Viva where applicable, plus subject breakdown across Bangla, English, Math, BD/Intl Affairs, Postal/Departmental GK, and ICT).",
+        '   - Select up to 5 most helpful lecture sheet slugs from "Grounded Topic Guru Lecture Sheets" into "selectedTopicSlugs".',
+      ].join("\n")
+    : "";
+
+  const compactTopics = topicList.slice(0, 18).map((t) => ({
+    slug: t.slug,
+    title: t.title,
+    subject: t.subject,
+  }));
+
+  const prepContext = isPrepIntent
+    ? `\n\nGrounded Topic Guru Lecture Sheets:\n${JSON.stringify(compactTopics)}`
+    : "";
+
+  const compactRecords = (isPrepIntent ? groundedDocs.slice(0, 8) : groundedDocs).map(
+    toCompactPromptCircular
+  );
+
+  const topicSchemaLine = isPrepIntent
+    ? ',\n  "selectedTopicSlugs": ["Exact slug strings from Grounded Topic Guru Lecture Sheets (max 5)"]'
+    : "";
+
+  return `You are SorkariPath AI — an official Bangladesh Government Job Circular, Notice & Exam Preparation Assistant.
+Today's date in Dhaka (BST): ${getDhakaTodayString()}.
+Total active live web-synced circulars currently indexed across official .gov.bd & Bangladesh Bank portals: ${totalLiveCount}.
+
+User Request: "${cleanQuery}"
+
+STRICT RULES:
+1. Base all circular dates, organizations, deadlines, fees, and post counts ONLY on the "Grounded Live Official Records" JSON below.
+2. NEVER fabricate deadlines, vacancy counts, salary grades, or URLs not present in the records below.
+3. If an official circular only shows a notice title/PDF and hasn't had its PDF parsed yet, clearly mention that full details are in the attached PDF and recommend clicking "Read Official PDF with Gemini AI" on that circular's detail page.
+4. Select up to 6 most relevant circular slugs strictly copied from the "slug" field in the grounded list.
+${prepInstructions}
+
+Grounded Live Official Records:
+${JSON.stringify(compactRecords)}${prepContext}
+
+Return strictly valid JSON with these exact keys:
+{
+  "answerEn": "Crisp, complete English answer (under 1100 characters) citing real circulars, dates, and (when asked about preparation) exact exam stages & subjects to study.",
+  "answerBn": "Concise 2-sentence Bengali summary (under 400 characters) matching answerEn.",
+  "highlights": ["Up to 5 short bullet insights (subjects/marks priority, exam stages, dates, portal tips)"],
+  "selectedSlugs": ["Exact slug strings from the grounded list ordered by relevance (max 6)"],
+  "followUpQueries": ["3 useful next questions a Bangladeshi govt job candidate might ask"]${topicSchemaLine}
+}`;
+}
 
 export function getGeminiModelChain() {
   const seen = new Set();
@@ -366,7 +461,7 @@ export async function generateJsonWithGemini({
 
   const models = getGeminiModelChain();
   const runGenerate = _generateFn || callDefaultGeminiJson;
-  const totalBudgetMs = Math.min(48_000, Math.max(timeoutMs + 14_000, 32_000));
+  const totalBudgetMs = Math.min(48_000, Math.max(timeoutMs * 2 + 12_000, 40_000));
   const deadlineAt = Date.now() + totalBudgetMs;
   const maxAttempts = Math.min(12, models.length * keys.length);
 
@@ -426,6 +521,12 @@ export async function generateJsonWithGemini({
         console.warn(
           `[Gemini AI] Key #${candidate.slotIndex + 1} failed (${kind}) on ${model}; trying failover.`
         );
+      }
+      if (
+        (kind === "timeout" || kind === "transient") &&
+        models.indexOf(model) < models.length - 1
+      ) {
+        return { skipModel: true };
       }
       return { continueLoop: true };
     } finally {
@@ -977,29 +1078,30 @@ export async function discoverLatestCircularsWithAi({
     origin: "web_sync",
   });
 
-  const prompt = `You are SorkariPath AI — an official Bangladesh Government Job Circular & Notice Research Assistant.
-Today's date in Dhaka (BST): ${getDhakaTodayString()}.
-Total active live web-synced circulars currently indexed across official .gov.bd & Bangladesh Bank portals: ${totalLiveCount}.
+  const isPrepIntent = PREP_INTENT_REGEX.test(cleanQuery);
+  const practiceRec = inferPracticeRecommendation(cleanQuery);
+  const allTopics = isPrepIntent
+    ? await StudyTopic.find()
+        .sort({ order: 1 })
+        .select("title slug subject unit targetTracks")
+        .lean()
+    : [];
+  const topicBySlug = new Map(allTopics.map((t) => [t.slug, t]));
 
-User Request: "${cleanQuery}"
+  const orderedTopicsForPrompt = isPrepIntent
+    ? [
+        ...allTopics.filter((t) => t.targetTracks?.includes(practiceRec.trackKey)),
+        ...allTopics.filter((t) => !t.targetTracks?.includes(practiceRec.trackKey)),
+      ]
+    : [];
 
-STRICT RULES:
-1. Base all facts, dates, organizations, deadlines, fees, and post counts ONLY on the "Grounded Live Official Records" JSON below.
-2. NEVER fabricate deadlines, vacancy counts, salary grades, or URLs not present in the records below.
-3. If an official circular only shows a notice title/PDF and hasn't had its PDF parsed yet, clearly mention that full details are in the attached PDF and recommend clicking "Read Official PDF with Gemini AI" on that circular's detail page.
-4. Select up to 6 most relevant circular slugs strictly copied from the "slug" field in the grounded list.
-
-Grounded Live Official Records:
-${JSON.stringify(groundedDocs.map(toCompactPromptCircular))}
-
-Return strictly valid JSON with these exact keys:
-{
-  "answerEn": "Clear, helpful direct answer in English citing real circulars, organizations, and dates from the records above.",
-  "answerBn": "Concise 1-2 sentence Bengali summary matching answerEn.",
-  "highlights": ["Up to 5 short bullet insights (latest dates, open circulars, portal tips)"],
-  "selectedSlugs": ["Exact slug strings from the grounded list ordered by relevance (max 6)"],
-  "followUpQueries": ["3 useful next questions a Bangladeshi govt job candidate might ask"]
-}`;
+  const prompt = buildDiscoverPrompt({
+    cleanQuery,
+    totalLiveCount,
+    groundedDocs,
+    topicList: orderedTopicsForPrompt,
+    isPrepIntent,
+  });
 
   const {
     data: raw,
@@ -1008,7 +1110,7 @@ Return strictly valid JSON with these exact keys:
     totalKeys,
   } = await generateJsonWithGemini({
     contents: prompt,
-    timeoutMs: 22000,
+    timeoutMs: 16000,
   });
 
   const cleanStr = (val, max = 1600) =>
@@ -1026,14 +1128,32 @@ Return strictly valid JSON with these exact keys:
       : recentWebDocs.slice(0, 5)
   ).map(toClientCircularSummary);
 
+  const rawTopicSlugs = Array.isArray(raw?.selectedTopicSlugs)
+    ? raw.selectedTopicSlugs.filter((s) => typeof s === "string" && topicBySlug.has(s)).slice(0, 5)
+    : [];
+  const fallbackTopicSlugs = isPrepIntent
+    ? allTopics
+        .filter((t) => t.targetTracks?.includes(practiceRec.trackKey))
+        .slice(0, 5)
+        .map((t) => t.slug)
+    : [];
+  const finalTopicSlugs = rawTopicSlugs.length > 0 ? rawTopicSlugs : fallbackTopicSlugs;
+  const matchedTopics = finalTopicSlugs.map((s) => {
+    const t = topicBySlug.get(s);
+    return { slug: t.slug, title: t.title, subject: t.subject, unit: t.unit };
+  });
+
   const payload = {
     query: cleanQuery,
-    answerEn: cleanStr(raw?.answerEn, 2000),
-    answerBn: cleanStr(raw?.answerBn, 1500),
+    answerEn: cleanStr(raw?.answerEn, 4500),
+    answerBn: cleanStr(raw?.answerBn, 2200),
     highlights: Array.isArray(raw?.highlights)
-      ? raw.highlights.map((h) => cleanStr(h, 260)).filter(Boolean).slice(0, 5)
+      ? raw.highlights.map((h) => cleanStr(h, 280)).filter(Boolean).slice(0, 5)
       : [],
     matchedCirculars,
+    matchedTopics,
+    recommendedPracticeUrl: isPrepIntent ? practiceRec.url : null,
+    recommendedTrack: isPrepIntent ? practiceRec.examTrack : null,
     followUpQueries: Array.isArray(raw?.followUpQueries)
       ? raw.followUpQueries.map((q) => cleanStr(q, 140)).filter(Boolean).slice(0, 3)
       : [],

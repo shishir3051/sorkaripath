@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
+  BookOpen,
   Bot,
   CheckCircle2,
   ExternalLink,
@@ -12,6 +13,7 @@ import {
   Loader2,
   MessageSquare,
   Minimize2,
+  Play,
   Send,
   Sparkles,
   Trash2,
@@ -46,12 +48,22 @@ interface MatchedAiCircular {
   aiExtracted?: boolean;
 }
 
+interface MatchedTopicSuggestion {
+  slug: string;
+  title: string;
+  subject: string;
+  unit: string;
+}
+
 interface AiDiscoverResponse {
   query: string;
   answerEn: string;
   answerBn?: string;
   highlights: string[];
   matchedCirculars: MatchedAiCircular[];
+  matchedTopics?: MatchedTopicSuggestion[];
+  recommendedPracticeUrl?: string | null;
+  recommendedTrack?: string | null;
   followUpQueries: string[];
   meta: {
     modelUsed: string;
@@ -74,10 +86,10 @@ interface ChatMessage {
 }
 
 const PRESET_PROMPTS = [
+  "Bangladesh Post Office recruitment: which subjects should I study to crack the exam?",
   "Bangladesh Post Office circular fee, posts & deadline",
   "Latest BD govt job circulars published right now",
-  "Primary Assistant Teacher / NTRCA latest notices",
-  "DG Food, LGED & Bangladesh Railway recent circulars",
+  "Primary Assistant Teacher / NTRCA: exam syllabus & latest notices",
 ];
 
 const AI_CHAT_OPEN_EVENT = "sorkaripath:open-ai-chat";
@@ -285,9 +297,10 @@ export function AiCircularAssistant() {
                 <Bot className="h-4 w-4" />
               </div>
               <div className="rounded-2xl rounded-tl-sm border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-700 leading-relaxed shadow-xs">
-                Ask me about any Bangladesh government job circular, total
-                vacancies, Teletalk fee, age limit, or deadline. I refresh{" "}
-                <code>.gov.bd</code> notice boards live and read official PDFs.
+                Ask me about any Bangladesh government job circular, fees, or
+                deadlines — or ask <strong>how to prepare &amp; which subjects to
+                study</strong> for Post Office, BCS, Bank, Primary, or Ministry
+                exams!
               </div>
             </div>
 
@@ -385,6 +398,53 @@ export function AiCircularAssistant() {
                       </li>
                     ))}
                   </ul>
+                )}
+
+                {(result.matchedTopics?.length || result.recommendedPracticeUrl) && (
+                  <div className="space-y-2 pt-1.5 border-t border-slate-100">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-[10px] font-extrabold uppercase tracking-wider text-indigo-700 flex items-center gap-1">
+                        <BookOpen className="h-3 w-3" />
+                        <span>Recommended Study Plan Inside SorkariPath</span>
+                      </p>
+                      {result.recommendedPracticeUrl && (
+                        <Link
+                          href={result.recommendedPracticeUrl}
+                          onClick={() => setOpen(false)}
+                          className="inline-flex items-center gap-1 rounded-lg bg-indigo-700 px-2 py-1 text-[10px] font-bold text-white hover:bg-indigo-800"
+                        >
+                          <Play className="h-2.5 w-2.5" />
+                          <span>
+                            {result.recommendedTrack || "Practice"} Mock
+                          </span>
+                        </Link>
+                      )}
+                    </div>
+                    {result.matchedTopics && result.matchedTopics.length > 0 && (
+                      <div className="space-y-1.5">
+                        {result.matchedTopics.map((topic) => (
+                          <Link
+                            key={topic.slug}
+                            href={`/study?tab=topics&topicSlug=${encodeURIComponent(
+                              topic.slug
+                            )}`}
+                            onClick={() => setOpen(false)}
+                            className="flex items-center justify-between gap-2 rounded-xl border border-indigo-100 bg-indigo-50/60 px-2.5 py-2 hover:bg-indigo-100/70 transition-colors"
+                          >
+                            <div className="min-w-0">
+                              <p className="text-[11px] font-bold text-indigo-950 truncate">
+                                {topic.title}
+                              </p>
+                              <p className="text-[10px] text-indigo-700 truncate">
+                                {topic.subject} &bull; {topic.unit}
+                              </p>
+                            </div>
+                            <ArrowRight className="h-3.5 w-3.5 shrink-0 text-indigo-700" />
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 )}
 
                 {result.matchedCirculars?.length > 0 && (
@@ -505,7 +565,7 @@ export function AiCircularAssistant() {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about any BD govt circular..."
+          placeholder="Ask about circulars OR what to study for any exam..."
           className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:outline-none"
         />
         <button
