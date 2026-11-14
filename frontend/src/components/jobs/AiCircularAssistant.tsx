@@ -15,11 +15,16 @@ import {
   HelpCircle,
   Loader2,
   MessageSquare,
+  Mic,
+  MicOff,
   Minimize2,
   Play,
   Send,
   Sparkles,
+  Square,
   Trash2,
+  Volume2,
+  VolumeX,
   X,
 } from "lucide-react";
 import {
@@ -121,6 +126,63 @@ const TUTOR_PRESETS = [
   "Bangladesh Post Office (UPU, PLI, RMS) & Postal GK cheat-sheet",
 ];
 
+interface SpeechRecognitionAlternativeLike {
+  transcript: string;
+}
+
+interface SpeechRecognitionResultLike {
+  isFinal: boolean;
+  length: number;
+  [index: number]: SpeechRecognitionAlternativeLike;
+}
+
+interface SpeechRecognitionEventLike {
+  results: ArrayLike<SpeechRecognitionResultLike>;
+}
+
+interface SpeechRecognitionErrorEventLike {
+  error?: string;
+}
+
+interface SpeechRecognitionLike {
+  lang: string;
+  interimResults: boolean;
+  maxAlternatives: number;
+  continuous: boolean;
+  onresult: ((event: SpeechRecognitionEventLike) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEventLike) => void) | null;
+  onend: (() => void) | null;
+  start: () => void;
+  stop: () => void;
+  abort: () => void;
+}
+
+type SpeechRecognitionConstructorLike = new () => SpeechRecognitionLike;
+
+type VoiceLang = "en-US" | "bn-BD";
+
+function getSpeechRecognitionCtor(): SpeechRecognitionConstructorLike | null {
+  if (typeof window === "undefined") return null;
+  const w = window as unknown as {
+    SpeechRecognition?: SpeechRecognitionConstructorLike;
+    webkitSpeechRecognition?: SpeechRecognitionConstructorLike;
+  };
+  return w.SpeechRecognition || w.webkitSpeechRecognition || null;
+}
+
+function buildSpeechErrorText(code?: string): string {
+  if (code === "not-allowed" || code === "service-not-allowed") {
+    return "Microphone permission blocked. Please allow mic access in your browser address bar and try again.";
+  }
+  if (code === "no-speech") {
+    return "No speech detected. Tap the microphone again and speak clearly.";
+  }
+  if (code === "audio-capture") {
+    return "No microphone found on this device. Connect a mic or type your question.";
+  }
+  return "Voice recognition could not complete. Tap the microphone to retry or type your question.";
+}
+
 const AI_CHAT_OPEN_EVENT = "sorkaripath:open-ai-chat";
 
 export function openAiAssistantChat(query?: string) {
@@ -146,11 +208,19 @@ export function AiCircularAssistant() {
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
 
+  // Voice Input & Voice Reply state
+  const [isListening, setIsListening] = useState(false);
+  const [voiceLang, setVoiceLang] = useState<VoiceLang>("en-US");
+  const [autoSpeakReplies, setAutoSpeakReplies] = useState(true);
+  const [speakingMsgId, setSpeakingMsgId] = useState<string | null>(null);
+  const [voiceNotice, setVoiceNotice] = useState<string | null>(null);
+
   const activeMode: AssistantMode =
     selectedMode ?? (isStudyRoute ? "tutor" : "circular");
 
   const scrollBodyRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const seqRef = useRef(0);
 
   const nextId = () => {
@@ -158,8 +228,61 @@ export function AiCircularAssistant() {
     return `msg-${seqRef.current}`;
   };
 
+  const stopSpeaking = useCallback(() => {
+    if (typeof window !== "undefined" && "speechSynthesis" in window) {
+      window.speechSynthesis.cancel();
+    }
+    setSpeakingMsgId(null);
+  }, []);
+
+  const speakText = useCallback(
+    (primaryEn: string, primaryBn: string | undefined, messageId: string) => {
+      if (typeof window === "undefined" || !("speechSynthesis" in window)) {
+        return;
+      }
+      const synth = window.speechSynthesis;
+      synth.cancel();
+
+      const voices = synth.getVoices();
+      const bnVoice = voices.find((v) => v.lang.toLowerCase().startsWith("bn"));
+      const preferBangla =
+        (voiceLang === "bn-BD" || !primaryEn.trim()) &&
+        Boolean(primaryBn?.trim()) &&
+        Boolean(bnVoice);
+
+      const textToSpeak = preferBangla
+        ? String(primaryBn || "").trim()
+        : String(primaryEn || primaryBn || "").trim();
+      if (!textToSpeak) return;
+
+      const utterance = new SpeechSynthesisUtterance(textToSpeak.slice(0, 700));
+      if (preferBangla && bnVoice) {
+        utterance.voice = bnVoice;
+        utterance.lang = bnVoice.lang;
+      } else {
+        const enVoice = voices.find((v) =>
+          v.lang.toLowerCase().startsWith("en")
+        );
+        if (enVoice) utterance.voice = enVoice;
+        utterance.lang = "en-US";
+      }
+      utterance.rate = 1.02;
+      utterance.onend = () => setSpeakingMsgId(null);
+      utterance.onerror = () => setSpeakingMsgId(null);
+
+      setSpeakingMsgId(messageId);
+      synth.speak(utterance);
+    },
+    [voiceLang]
+  );
+
   const runDiscover = useCallback(
-    async (text: string, refresh = liveRefresh, forceMode?: AssistantMode) => {
+    async (
+      text: string,
+      refresh = liveRefresh,
+      forceMode?: AssistantMode,
+      speakReply = false
+    ) => {
       const clean = text.trim();
       if (clean.length < 2) return;
 
@@ -171,6 +294,7 @@ export function AiCircularAssistant() {
       };
       setMessages((prev) => [...prev, userMsg]);
       setInput("");
+      setVoiceNotice(null);
       setLoading(true);
 
       try {
@@ -182,38 +306,146 @@ export function AiCircularAssistant() {
               question: clean,
             }),
           });
+          const msgId = nextId();
           setMessages((prev) => [
             ...prev,
-            { id: nextId(), role: "assistant", tutorResult: tutorRes },
+            { id: msgId, role: "assistant", tutorResult: tutorRes },
           ]);
+          if (speakReply && autoSpeakReplies) {
+            speakText(tutorRes.explanationEn, tutorRes.explanationBn, msgId);
+          }
         } else {
           const res = await apiFetch<AiDiscoverResponse>("/ai/discover", {
             method: "POST",
             body: JSON.stringify({ query: clean, liveRefresh: refresh }),
           });
+          const msgId = nextId();
           setMessages((prev) => [
             ...prev,
-            { id: nextId(), role: "assistant", result: res },
+            { id: msgId, role: "assistant", result: res },
           ]);
+          if (speakReply && autoSpeakReplies) {
+            speakText(res.answerEn, res.answerBn, msgId);
+          }
         }
       } catch (err) {
+        const errText =
+          err instanceof Error
+            ? err.message
+            : "Failed to run Gemini AI request";
+        const msgId = nextId();
         setMessages((prev) => [
           ...prev,
           {
-            id: nextId(),
+            id: msgId,
             role: "assistant",
-            error:
-              err instanceof Error
-                ? err.message
-                : "Failed to run Gemini AI request",
+            error: errText,
           },
         ]);
+        if (speakReply && autoSpeakReplies) {
+          speakText(errText, undefined, msgId);
+        }
       } finally {
         setLoading(false);
       }
     },
-    [activeMode, liveRefresh]
+    [activeMode, autoSpeakReplies, liveRefresh, speakText]
   );
+
+  const stopVoiceListening = useCallback(() => {
+    try {
+      recognitionRef.current?.stop();
+    } catch {
+      // Ignore if already stopped
+    }
+    setIsListening(false);
+  }, []);
+
+  const startVoiceListening = useCallback(() => {
+    if (loading) return;
+    const SpeechCtor = getSpeechRecognitionCtor();
+    if (!SpeechCtor) {
+      setVoiceNotice(
+        "Voice mic requires Chrome, Edge, or Android Chrome. Please type your question."
+      );
+      return;
+    }
+
+    stopSpeaking();
+    setVoiceNotice(null);
+
+    try {
+      recognitionRef.current?.abort();
+    } catch {
+      // Ignore stale instance cleanup
+    }
+
+    const rec = new SpeechCtor();
+    rec.lang = voiceLang;
+    rec.interimResults = true;
+    rec.continuous = false;
+    rec.maxAlternatives = 1;
+
+    let finalTranscript = "";
+    let submitted = false;
+
+    rec.onresult = (event) => {
+      let combined = "";
+      let isFinal = false;
+      for (let i = 0; i < event.results.length; i += 1) {
+        const chunk = event.results[i];
+        combined += chunk[0]?.transcript || "";
+        if (chunk.isFinal) isFinal = true;
+      }
+      const trimmed = combined.trim();
+      setInput(trimmed);
+      if (isFinal && trimmed.length >= 2 && !submitted) {
+        submitted = true;
+        finalTranscript = trimmed;
+        setIsListening(false);
+        try {
+          rec.stop();
+        } catch {
+          // Ignore stop race
+        }
+        void runDiscover(trimmed, liveRefresh, undefined, true);
+      }
+    };
+
+    rec.onerror = (event) => {
+      setIsListening(false);
+      if (event.error !== "aborted") {
+        setVoiceNotice(buildSpeechErrorText(event.error));
+      }
+    };
+
+    rec.onend = () => {
+      setIsListening(false);
+      const pending = finalTranscript.trim();
+      if (!submitted && pending.length >= 2) {
+        submitted = true;
+        void runDiscover(pending, liveRefresh, undefined, true);
+      }
+    };
+
+    recognitionRef.current = rec;
+    try {
+      rec.start();
+      setIsListening(true);
+    } catch {
+      setIsListening(false);
+      setVoiceNotice("Could not start microphone. Please retry.");
+    }
+  }, [liveRefresh, loading, runDiscover, stopSpeaking, voiceLang]);
+
+  useEffect(() => {
+    return () => {
+      recognitionRef.current?.abort();
+      if (typeof window !== "undefined" && "speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     function handleOpenEvent(e: Event) {
@@ -256,25 +488,40 @@ export function AiCircularAssistant() {
 
   if (!open) {
     return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        aria-label="Open Gemini AI Live Circular Chat"
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-emerald-700 to-teal-800 px-4 py-3 text-white shadow-xl shadow-emerald-950/25 ring-2 ring-white/80 hover:from-emerald-800 hover:to-teal-900 hover:scale-[1.03] active:scale-[0.98] transition-all cursor-pointer"
-      >
-        <span className="relative flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
-          <MessageSquare className="h-3.5 w-3.5 text-emerald-100" />
-          <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-emerald-800" />
-        </span>
-        <span className="text-xs sm:text-sm font-extrabold tracking-tight">
-          {isStudyRoute ? "AI Study & Prep" : "Ask AI • Jobs & Study"}
-        </span>
-        {messages.length > 0 && (
-          <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-bold">
-            {messages.filter((m) => m.role === "user").length}
+      <div className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => {
+            setOpen(true);
+            setTimeout(() => startVoiceListening(), 120);
+          }}
+          title="Speak with Gemini AI"
+          aria-label="Speak with Gemini AI directly by voice"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-indigo-700 text-white shadow-xl shadow-indigo-950/25 ring-2 ring-white/80 hover:bg-indigo-800 hover:scale-[1.05] active:scale-[0.97] transition-all cursor-pointer"
+        >
+          <Mic className="h-4.5 w-4.5" />
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Open Gemini AI Live Circular and Study Chat"
+          className="inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-emerald-700 to-teal-800 px-4 py-3 text-white shadow-xl shadow-emerald-950/25 ring-2 ring-white/80 hover:from-emerald-800 hover:to-teal-900 hover:scale-[1.03] active:scale-[0.98] transition-all cursor-pointer"
+        >
+          <span className="relative flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
+            <MessageSquare className="h-3.5 w-3.5 text-emerald-100" />
+            <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-emerald-800" />
           </span>
-        )}
-      </button>
+          <span className="text-xs sm:text-sm font-extrabold tracking-tight">
+            {isStudyRoute ? "AI Study & Prep" : "Ask AI • Jobs & Study"}
+          </span>
+          {messages.length > 0 && (
+            <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-bold">
+              {messages.filter((m) => m.role === "user").length}
+            </span>
+          )}
+        </button>
+      </div>
     );
   }
 
@@ -302,10 +549,33 @@ export function AiCircularAssistant() {
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              if (speakingMsgId) stopSpeaking();
+              setAutoSpeakReplies((prev) => !prev);
+            }}
+            title={autoSpeakReplies ? "Auto-voice reply ON" : "Auto-voice reply OFF"}
+            aria-label={autoSpeakReplies ? "Disable voice replies" : "Enable voice replies"}
+            className={`rounded-lg p-1.5 transition-colors cursor-pointer ${
+              autoSpeakReplies
+                ? "bg-white/20 text-white"
+                : "text-emerald-100/70 hover:bg-white/15 hover:text-white"
+            }`}
+          >
+            {autoSpeakReplies ? (
+              <Volume2 className="h-4 w-4" />
+            ) : (
+              <VolumeX className="h-4 w-4" />
+            )}
+          </button>
           {messages.length > 0 && (
             <button
               type="button"
-              onClick={() => setMessages([])}
+              onClick={() => {
+                stopSpeaking();
+                setMessages([]);
+              }}
               disabled={loading}
               title="Clear chat"
               aria-label="Clear chat conversation"
@@ -316,7 +586,11 @@ export function AiCircularAssistant() {
           )}
           <button
             type="button"
-            onClick={() => setOpen(false)}
+            onClick={() => {
+              stopVoiceListening();
+              stopSpeaking();
+              setOpen(false);
+            }}
             title="Minimize chat"
             aria-label="Minimize chat window"
             className="rounded-lg p-1.5 text-emerald-100 hover:bg-white/15 hover:text-white cursor-pointer"
@@ -460,12 +734,35 @@ export function AiCircularAssistant() {
                     <span className="rounded-full bg-indigo-800 px-2 py-0.5 text-white">
                       {tutor.subject}
                     </span>
-                    {tutor.meta && (
-                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-600">
-                        {tutor.meta.modelUsed} • Key #{tutor.meta.keySlotUsed}/
-                        {tutor.meta.totalKeys}
-                      </span>
-                    )}
+                    <div className="flex items-center gap-1.5">
+                      {tutor.meta && (
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-600">
+                          {tutor.meta.modelUsed} • Key #{tutor.meta.keySlotUsed}/
+                          {tutor.meta.totalKeys}
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          speakingMsgId === msg.id
+                            ? stopSpeaking()
+                            : speakText(tutor.explanationEn, tutor.explanationBn, msg.id)
+                        }
+                        className="inline-flex items-center gap-1 rounded-full bg-indigo-50 px-2 py-0.5 text-indigo-800 hover:bg-indigo-100 cursor-pointer"
+                      >
+                        {speakingMsgId === msg.id ? (
+                          <>
+                            <Square className="h-2.5 w-2.5 fill-current" />
+                            <span>Stop</span>
+                          </>
+                        ) : (
+                          <>
+                            <Volume2 className="h-3 w-3" />
+                            <span>Listen</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
                   <p className="text-xs font-extrabold text-slate-900">
                     {tutor.topicTitle}
@@ -538,23 +835,46 @@ export function AiCircularAssistant() {
               </div>
 
               <div className="flex-1 min-w-0 rounded-2xl rounded-tl-sm border border-slate-200 bg-white p-3.5 space-y-3 shadow-xs">
-                <div className="flex flex-wrap items-center gap-1.5 text-[10px] font-bold">
-                  <span className="rounded-full bg-slate-900 px-2 py-0.5 text-white">
-                    {result.meta.modelUsed}
-                  </span>
-                  {(result.meta.totalKeys ?? 0) > 1 && result.meta.keySlotUsed && (
-                    <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-indigo-800">
-                      Key #{result.meta.keySlotUsed}/{result.meta.totalKeys}
+                <div className="flex flex-wrap items-center justify-between gap-1.5 text-[10px] font-bold">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="rounded-full bg-slate-900 px-2 py-0.5 text-white">
+                      {result.meta.modelUsed}
                     </span>
-                  )}
-                  <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-800">
-                    {result.meta.groundedCount} records
-                  </span>
-                  {result.meta.sourcesRefreshed > 0 && (
-                    <span className="rounded-full bg-teal-100 px-2 py-0.5 text-teal-800">
-                      Live: {result.meta.checkedSourceNames.join(", ")}
+                    {(result.meta.totalKeys ?? 0) > 1 && result.meta.keySlotUsed && (
+                      <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-indigo-800">
+                        Key #{result.meta.keySlotUsed}/{result.meta.totalKeys}
+                      </span>
+                    )}
+                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-emerald-800">
+                      {result.meta.groundedCount} records
                     </span>
-                  )}
+                    {result.meta.sourcesRefreshed > 0 && (
+                      <span className="rounded-full bg-teal-100 px-2 py-0.5 text-teal-800">
+                        Live: {result.meta.checkedSourceNames.join(", ")}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      speakingMsgId === msg.id
+                        ? stopSpeaking()
+                        : speakText(result.answerEn, result.answerBn, msg.id)
+                    }
+                    className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-800 hover:bg-emerald-100 cursor-pointer"
+                  >
+                    {speakingMsgId === msg.id ? (
+                      <>
+                        <Square className="h-2.5 w-2.5 fill-current" />
+                        <span>Stop</span>
+                      </>
+                    ) : (
+                      <>
+                        <Volume2 className="h-3 w-3" />
+                        <span>Listen</span>
+                      </>
+                    )}
+                  </button>
                 </div>
 
                 <div className="space-y-2">
@@ -734,11 +1054,75 @@ export function AiCircularAssistant() {
         )}
       </div>
 
+      {/* Voice Status & Error Banner */}
+      {(isListening || voiceNotice) && (
+        <div
+          className={`flex items-center justify-between gap-2 border-t px-3.5 py-2 text-[11px] font-semibold shrink-0 ${
+            isListening
+              ? "border-rose-200 bg-rose-50 text-rose-800"
+              : "border-amber-200 bg-amber-50 text-amber-900"
+          }`}
+        >
+          <span className="flex items-center gap-1.5 truncate">
+            {isListening && (
+              <span className="h-2 w-2 rounded-full bg-rose-600 animate-ping shrink-0" />
+            )}
+            <span className="truncate">
+              {isListening
+                ? `Listening (${voiceLang === "bn-BD" ? "বাংলা" : "English"})... Speak now`
+                : voiceNotice}
+            </span>
+          </span>
+          {isListening && (
+            <button
+              type="button"
+              onClick={stopVoiceListening}
+              className="text-[10px] font-extrabold uppercase underline shrink-0 cursor-pointer"
+            >
+              Stop
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Chat Composer */}
       <form
         onSubmit={handleSubmit}
-        className="flex items-center gap-2 border-t border-slate-200 bg-white p-3 shrink-0"
+        className="flex items-center gap-1.5 border-t border-slate-200 bg-white p-3 shrink-0"
       >
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() =>
+            setVoiceLang((prev) => (prev === "en-US" ? "bn-BD" : "en-US"))
+          }
+          title="Switch voice recognition language (English / বাংলা)"
+          className="h-9 shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-2 text-[10px] font-extrabold text-slate-700 hover:bg-slate-100 cursor-pointer"
+        >
+          {voiceLang === "bn-BD" ? "বাংলা" : "EN"}
+        </button>
+
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() =>
+            isListening ? stopVoiceListening() : startVoiceListening()
+          }
+          title={isListening ? "Stop listening" : "Speak with Gemini AI"}
+          aria-label={isListening ? "Stop voice input" : "Speak with Gemini AI"}
+          className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors cursor-pointer disabled:opacity-45 ${
+            isListening
+              ? "bg-rose-600 text-white animate-pulse"
+              : "border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+          }`}
+        >
+          {isListening ? (
+            <MicOff className="h-4 w-4" />
+          ) : (
+            <Mic className="h-4 w-4" />
+          )}
+        </button>
+
         <input
           ref={inputRef}
           type="text"
@@ -746,10 +1130,10 @@ export function AiCircularAssistant() {
           onChange={(e) => setInput(e.target.value)}
           placeholder={
             activeMode === "tutor"
-              ? "Ask any Bangla, English, Math, GK or Constitution question..."
-              : "Ask about circulars OR what to study for any exam..."
+              ? "Type or tap mic to ask study doubts..."
+              : "Type or tap mic to ask about jobs & study..."
           }
-          className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:outline-none"
+          className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:outline-none"
         />
         <button
           type="submit"
