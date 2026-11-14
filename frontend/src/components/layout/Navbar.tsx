@@ -8,8 +8,8 @@ import {
   Briefcase,
   Calculator,
   Compass,
+  GraduationCap,
   Menu,
-  Newspaper,
   Radio,
   Sparkles,
   Target,
@@ -20,7 +20,7 @@ const PRIMARY_NAV_LINKS = [
   { href: "/", label: "Overview", icon: Compass },
   { href: "/jobs", label: "Circulars", icon: Briefcase },
   { href: "/learn", label: "A–Z Academy", icon: BookOpen },
-  { href: "/study", label: "Study & Affairs", icon: Newspaper },
+  { href: "/study", label: "Study Hub", icon: GraduationCap },
   { href: "/practice", label: "MCQ Arena", icon: Target },
   { href: "/tools", label: "2026 Tools", icon: Calculator },
 ];

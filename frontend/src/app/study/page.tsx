@@ -17,15 +17,15 @@ export default async function StudyPage() {
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
       <div>
         <span className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-800">
-          All-in-One Study Hub: Notes, Routine, News, Books &amp; Past Papers
+          Study Hub: 30 Lecture Sheets, Course Batches, AI Tutor &amp; 216+ MCQs
         </span>
         <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold text-slate-900">
-          Topic Guru, 30-Day Routine, Live Current Affairs &amp; Model Tests
+          BD Govt Exam Study Hub — Batches, Topic Guru, AI Mentor &amp; Mocks
         </h1>
         <p className="mt-1 text-sm text-slate-600 max-w-3xl">
-          Read concise BCS/Bank/Primary subject lecture sheets, follow a structured 30-day
-          study routine, track live daily current affairs, and launch timed mocks or past
-          exam Job Solutions.
+          Study complete 9-subject lecture sheets, follow structured Course Batches &amp;
+          30-day routines, ask Gemini AI for instant explanations or fresh MCQs, browse free
+          official PDFs &amp; current affairs, and launch timed model tests.
         </p>
       </div>
 

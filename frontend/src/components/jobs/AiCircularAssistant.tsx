@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
@@ -10,6 +11,8 @@ import {
   ExternalLink,
   FileText,
   Globe,
+  GraduationCap,
+  HelpCircle,
   Loader2,
   MessageSquare,
   Minimize2,
@@ -77,19 +80,45 @@ interface AiDiscoverResponse {
   cached?: boolean;
 }
 
+interface TutorChatResponse {
+  topicTitle: string;
+  subject: string;
+  explanationEn: string;
+  explanationBn: string;
+  keyPoints: string[];
+  workedExamples: Array<{ label: string; detail: string }>;
+  memoryTip: string;
+  followUpQuestions: string[];
+  meta?: {
+    modelUsed: string;
+    keySlotUsed: number;
+    totalKeys: number;
+  };
+}
+
+type AssistantMode = "circular" | "tutor";
+
 interface ChatMessage {
   id: string;
   role: "user" | "assistant";
   text?: string;
   result?: AiDiscoverResponse;
+  tutorResult?: TutorChatResponse;
   error?: string;
 }
 
-const PRESET_PROMPTS = [
+const CIRCULAR_PRESETS = [
   "Bangladesh Post Office recruitment: which subjects should I study to crack the exam?",
   "Bangladesh Post Office circular fee, posts & deadline",
   "Latest BD govt job circulars published right now",
   "Primary Assistant Teacher / NTRCA: exam syllabus & latest notices",
+];
+
+const TUTOR_PRESETS = [
+  "সমাস ও সন্ধি মনে রাখার সহজ শর্টকাট কী?",
+  "Bangladesh Constitution Articles 1–47 & 137–141 high-yield points",
+  "Profit-Loss & Percentage shortcut formulas with worked examples",
+  "Bangladesh Post Office (UPU, PLI, RMS) & Postal GK cheat-sheet",
 ];
 
 const AI_CHAT_OPEN_EVENT = "sorkaripath:open-ai-chat";
@@ -104,11 +133,21 @@ export function openAiAssistantChat(query?: string) {
 }
 
 export function AiCircularAssistant() {
+  const pathname = usePathname() || "/";
+  const isStudyRoute =
+    pathname.startsWith("/study") ||
+    pathname.startsWith("/learn") ||
+    pathname.startsWith("/practice");
+
   const [open, setOpen] = useState(false);
+  const [selectedMode, setSelectedMode] = useState<AssistantMode | null>(null);
   const [input, setInput] = useState("");
   const [liveRefresh, setLiveRefresh] = useState(true);
   const [loading, setLoading] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+
+  const activeMode: AssistantMode =
+    selectedMode ?? (isStudyRoute ? "tutor" : "circular");
 
   const scrollBodyRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -120,10 +159,11 @@ export function AiCircularAssistant() {
   };
 
   const runDiscover = useCallback(
-    async (text: string, refresh = liveRefresh) => {
+    async (text: string, refresh = liveRefresh, forceMode?: AssistantMode) => {
       const clean = text.trim();
       if (clean.length < 2) return;
 
+      const modeToRun = forceMode ?? activeMode;
       const userMsg: ChatMessage = {
         id: nextId(),
         role: "user",
@@ -134,14 +174,28 @@ export function AiCircularAssistant() {
       setLoading(true);
 
       try {
-        const res = await apiFetch<AiDiscoverResponse>("/ai/discover", {
-          method: "POST",
-          body: JSON.stringify({ query: clean, liveRefresh: refresh }),
-        });
-        setMessages((prev) => [
-          ...prev,
-          { id: nextId(), role: "assistant", result: res },
-        ]);
+        if (modeToRun === "tutor") {
+          const tutorRes = await apiFetch<TutorChatResponse>("/ai/study-tutor", {
+            method: "POST",
+            body: JSON.stringify({
+              subject: "All",
+              question: clean,
+            }),
+          });
+          setMessages((prev) => [
+            ...prev,
+            { id: nextId(), role: "assistant", tutorResult: tutorRes },
+          ]);
+        } else {
+          const res = await apiFetch<AiDiscoverResponse>("/ai/discover", {
+            method: "POST",
+            body: JSON.stringify({ query: clean, liveRefresh: refresh }),
+          });
+          setMessages((prev) => [
+            ...prev,
+            { id: nextId(), role: "assistant", result: res },
+          ]);
+        }
       } catch (err) {
         setMessages((prev) => [
           ...prev,
@@ -151,14 +205,14 @@ export function AiCircularAssistant() {
             error:
               err instanceof Error
                 ? err.message
-                : "Failed to run Gemini AI search",
+                : "Failed to run Gemini AI request",
           },
         ]);
       } finally {
         setLoading(false);
       }
     },
-    [liveRefresh]
+    [activeMode, liveRefresh]
   );
 
   useEffect(() => {
@@ -167,7 +221,8 @@ export function AiCircularAssistant() {
       setOpen(true);
       const q = detail?.query?.trim();
       if (q && q.length >= 2) {
-        void runDiscover(q, true);
+        setSelectedMode("circular");
+        void runDiscover(q, true, "circular");
       }
     }
 
@@ -212,7 +267,7 @@ export function AiCircularAssistant() {
           <span className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full bg-emerald-400 ring-2 ring-emerald-800" />
         </span>
         <span className="text-xs sm:text-sm font-extrabold tracking-tight">
-          Ask Gemini AI
+          {isStudyRoute ? "AI Study & Prep" : "Ask AI • Jobs & Study"}
         </span>
         {messages.length > 0 && (
           <span className="rounded-full bg-white/20 px-1.5 py-0.5 text-[10px] font-bold">
@@ -223,9 +278,11 @@ export function AiCircularAssistant() {
     );
   }
 
+  const activePresets = activeMode === "tutor" ? TUTOR_PRESETS : CIRCULAR_PRESETS;
+
   return (
     <section
-      aria-label="Gemini AI Live Circular Chat"
+      aria-label="Gemini AI Study and Live Circular Chat"
       className="fixed inset-x-3 bottom-3 z-50 flex h-[min(82dvh,640px)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/25 sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-[440px] sm:max-w-[calc(100vw-3rem)]"
     >
       {/* Floating Chat Header */}
@@ -236,10 +293,10 @@ export function AiCircularAssistant() {
           </div>
           <div className="min-w-0">
             <h2 className="text-sm font-extrabold truncate">
-              Gemini AI Circular Chat
+              Gemini AI — Study &amp; Circulars
             </h2>
             <p className="text-[11px] text-emerald-100/90 truncate">
-              Gemini 4 + Live .gov.bd Web &amp; PDFs
+              Subject Tutor, Exam Prep &amp; Live .gov.bd Web
             </p>
           </div>
         </div>
@@ -270,19 +327,51 @@ export function AiCircularAssistant() {
         </div>
       </div>
 
-      {/* Live Web Toggle Bar */}
-      <div className="flex items-center justify-between gap-2 border-b border-slate-100 bg-emerald-50/50 px-4 py-2 text-[11px] shrink-0">
-        <label className="inline-flex items-center gap-1.5 font-semibold text-slate-700 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={liveRefresh}
-            onChange={(e) => setLiveRefresh(e.target.checked)}
-            className="accent-emerald-700"
-          />
-          <Globe className="h-3.5 w-3.5 text-emerald-700" />
-          <span>Check Live .gov.bd Web First</span>
-        </label>
-        <span className="font-bold text-emerald-800">40 Official Portals</span>
+      {/* Mode Switcher + Live Web Toggle Bar */}
+      <div className="border-b border-slate-100 bg-emerald-50/50 px-3.5 py-2 space-y-1.5 shrink-0">
+        <div className="grid grid-cols-2 gap-1.5 rounded-xl bg-white/90 p-1 border border-slate-200">
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => setSelectedMode("tutor")}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors cursor-pointer ${
+              activeMode === "tutor"
+                ? "bg-indigo-700 text-white shadow-xs"
+                : "text-slate-600 hover:bg-slate-100"
+            }`}
+          >
+            <GraduationCap className="h-3.5 w-3.5 shrink-0" />
+            <span>Study &amp; Subject Tutor</span>
+          </button>
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => setSelectedMode("circular")}
+            className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-[11px] font-bold transition-colors cursor-pointer ${
+              activeMode === "circular"
+                ? "bg-emerald-700 text-white shadow-xs"
+                : "text-slate-600 hover:bg-slate-100"
+            }`}
+          >
+            <Globe className="h-3.5 w-3.5 shrink-0" />
+            <span>Circulars &amp; Prep Plan</span>
+          </button>
+        </div>
+
+        {activeMode === "circular" && (
+          <div className="flex items-center justify-between gap-2 px-1 text-[11px]">
+            <label className="inline-flex items-center gap-1.5 font-semibold text-slate-700 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={liveRefresh}
+                onChange={(e) => setLiveRefresh(e.target.checked)}
+                className="accent-emerald-700"
+              />
+              <span>Check Live .gov.bd Web First</span>
+            </label>
+            <span className="font-bold text-emerald-800">40 Official Portals</span>
+          </div>
+        )}
       </div>
 
       {/* Scrollable Chat Thread */}
@@ -297,10 +386,20 @@ export function AiCircularAssistant() {
                 <Bot className="h-4 w-4" />
               </div>
               <div className="rounded-2xl rounded-tl-sm border border-slate-200 bg-white px-3.5 py-2.5 text-xs text-slate-700 leading-relaxed shadow-xs">
-                Ask me about any Bangladesh government job circular, fees, or
-                deadlines — or ask <strong>how to prepare &amp; which subjects to
-                study</strong> for Post Office, BCS, Bank, Primary, or Ministry
-                exams!
+                {activeMode === "tutor" ? (
+                  <>
+                    Ask any <strong>Bangla, English, Math, GK, ICT or Constitution</strong>{" "}
+                    study doubt! I explain rules clearly in <strong>বাংলা + English</strong>{" "}
+                    with worked examples &amp; exam shortcuts.
+                  </>
+                ) : (
+                  <>
+                    Ask me about any Bangladesh government job circular, fees, or
+                    deadlines — or ask <strong>how to prepare &amp; which subjects to
+                    study</strong> for Post Office, BCS, Bank, Primary, or Ministry
+                    exams!
+                  </>
+                )}
               </div>
             </div>
 
@@ -309,7 +408,7 @@ export function AiCircularAssistant() {
                 Try asking:
               </p>
               <div className="flex flex-col gap-1.5">
-                {PRESET_PROMPTS.map((preset) => (
+                {activePresets.map((preset) => (
                   <button
                     key={preset}
                     type="button"
@@ -344,6 +443,86 @@ export function AiCircularAssistant() {
                 </div>
                 <div className="max-w-[88%] rounded-2xl rounded-tl-sm border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs font-semibold text-rose-800">
                   {msg.error}
+                </div>
+              </div>
+            );
+          }
+
+          const tutor = msg.tutorResult;
+          if (tutor) {
+            return (
+              <div key={msg.id} className="flex items-start gap-2">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-indigo-100 text-indigo-800 mt-0.5">
+                  <HelpCircle className="h-4 w-4" />
+                </div>
+                <div className="flex-1 min-w-0 rounded-2xl rounded-tl-sm border border-indigo-200 bg-white p-3.5 space-y-2.5 shadow-xs">
+                  <div className="flex flex-wrap items-center justify-between gap-1.5 text-[10px] font-bold">
+                    <span className="rounded-full bg-indigo-800 px-2 py-0.5 text-white">
+                      {tutor.subject}
+                    </span>
+                    {tutor.meta && (
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-600">
+                        {tutor.meta.modelUsed} • Key #{tutor.meta.keySlotUsed}/
+                        {tutor.meta.totalKeys}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-xs font-extrabold text-slate-900">
+                    {tutor.topicTitle}
+                  </p>
+                  {tutor.explanationBn && (
+                    <p className="rounded-xl bg-emerald-50/70 border border-emerald-100 px-3 py-2 text-xs text-emerald-950 leading-relaxed font-bangla">
+                      {tutor.explanationBn}
+                    </p>
+                  )}
+                  {tutor.explanationEn && (
+                    <p className="text-xs text-slate-700 leading-relaxed">
+                      {tutor.explanationEn}
+                    </p>
+                  )}
+                  {tutor.keyPoints?.length > 0 && (
+                    <ul className="space-y-1 text-[11px] text-slate-700">
+                      {tutor.keyPoints.map((pt) => (
+                        <li key={pt} className="flex items-start gap-1.5">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-indigo-600 shrink-0 mt-0.5" />
+                          <span>{pt}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                  {tutor.workedExamples?.length > 0 && (
+                    <div className="space-y-1.5">
+                      {tutor.workedExamples.map((ex, i) => (
+                        <div
+                          key={i}
+                          className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2 text-[11px]"
+                        >
+                          <p className="font-bold text-slate-900">{ex.label}</p>
+                          <p className="text-slate-600">{ex.detail}</p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {tutor.memoryTip && (
+                    <p className="rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1.5 text-[11px] font-semibold text-amber-950">
+                      Tip: {tutor.memoryTip}
+                    </p>
+                  )}
+                  {tutor.followUpQuestions?.length > 0 && (
+                    <div className="flex flex-wrap gap-1 pt-1 border-t border-slate-100">
+                      {tutor.followUpQuestions.map((fq) => (
+                        <button
+                          key={fq}
+                          type="button"
+                          disabled={loading}
+                          onClick={() => void runDiscover(fq, false, "tutor")}
+                          className="rounded-full bg-indigo-50 px-2.5 py-1 text-[10px] font-semibold text-indigo-800 hover:bg-indigo-100 cursor-pointer text-left"
+                        >
+                          {fq}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             );
@@ -565,7 +744,11 @@ export function AiCircularAssistant() {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ask about circulars OR what to study for any exam..."
+          placeholder={
+            activeMode === "tutor"
+              ? "Ask any Bangla, English, Math, GK or Constitution question..."
+              : "Ask about circulars OR what to study for any exam..."
+          }
           className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:outline-none"
         />
         <button

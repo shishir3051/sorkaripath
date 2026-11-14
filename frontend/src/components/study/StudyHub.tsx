@@ -404,19 +404,19 @@ export function StudyHub({
         </div>
       </div>
 
-      {/* 6-Tab All-in-One Switcher */}
+      {/* 6-Tab Study Hub Switcher */}
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm print:hidden">
         {[
-          { id: "topics", label: "Topic Guru Notes", icon: Layers },
+          { id: "topics", label: "Subject Lecture Sheets", icon: Layers },
           { id: "batches", label: "Course Batches & Classes", icon: GraduationCap },
-          { id: "routine", label: "30-Day Routine", icon: CalendarCheck },
-          { id: "affairs", label: "Live Current Affairs", icon: Newspaper },
+          { id: "routine", label: "30-Day Study Plan", icon: CalendarCheck },
           { id: "books", label: "Books, PDFs & Syllabus", icon: BookOpen },
           {
             id: "model-tests",
             label: "Model Tests & Past Papers",
             icon: ClipboardCheck,
           },
+          { id: "affairs", label: "Current Affairs", icon: Newspaper },
         ].map((tab) => {
           const Icon = tab.icon;
           return (
