@@ -133,6 +133,13 @@ export function PracticeArena() {
   });
   const [loadingVault, setLoadingVault] = useState(false);
 
+  // AI Fresh Quiz State
+  const [isAiQuiz, setIsAiQuiz] = useState(false);
+  const [aiTopicPrompt, setAiTopicPrompt] = useState("");
+  const [aiCount, setAiCount] = useState("5");
+  const [generatingAi, setGeneratingAi] = useState(false);
+  const [aiNotice, setAiNotice] = useState<string | null>(null);
+
   const loadMetaAndVault = useCallback(async () => {
     const sid = getOrCreateSessionId();
     try {
@@ -297,6 +304,8 @@ export function PracticeArena() {
 
   async function startMock(customIds?: string[]) {
     setMode("mock");
+    setIsAiQuiz(false);
+    setAiNotice(null);
     setLoading(true);
     setResult(null);
     setAnswers({});
@@ -307,7 +316,7 @@ export function PracticeArena() {
       });
       if (customIds && customIds.length > 0) {
         params.set("ids", customIds.join(","));
-        params.set("limit", String(Math.min(50, customIds.length)));
+        params.set("limit", String(Math.min(100, customIds.length)));
       } else {
         params.set("subject", subject);
         params.set("examTrack", examTrack);
@@ -325,10 +334,113 @@ export function PracticeArena() {
     }
   }
 
+  async function startAiFreshQuiz() {
+    setMode("mock");
+    setGeneratingAi(true);
+    setAiNotice(null);
+    setResult(null);
+    setAnswers({});
+    setElapsedSec(0);
+    try {
+      const targetSubject = subject === "All" ? "Bangladesh Affairs" : subject;
+      const targetTrack =
+        examTrack === "All" ? "BCS Preliminary" : examTrack;
+      const data = await apiFetch<{
+        topicTitle: string;
+        subject: string;
+        examTrack: string;
+        questions: McqQuestion[];
+        meta?: { modelUsed: string; keySlotUsed: number; totalKeys: number };
+      }>("/ai/generate-mcqs", {
+        method: "POST",
+        body: JSON.stringify({
+          subject: targetSubject,
+          examTrack: targetTrack,
+          topicTitle: aiTopicPrompt.trim(),
+          count: Math.min(10, Math.max(3, parseInt(aiCount, 10) || 5)),
+        }),
+      });
+      setIsAiQuiz(true);
+      setQuestions(data.questions);
+      setQuizActive(data.questions.length > 0);
+      setAiNotice(
+        `Generated ${data.questions.length} fresh ${data.subject} MCQs (${data.meta?.modelUsed || "Gemini AI"} • Key ${data.meta?.keySlotUsed || 1}/${data.meta?.totalKeys || 1}).`
+      );
+    } catch (err) {
+      setAiNotice(
+        err instanceof Error
+          ? err.message
+          : "Could not generate AI MCQs right now."
+      );
+    } finally {
+      setGeneratingAi(false);
+    }
+  }
+
   async function submitMock() {
     if (questions.length === 0) return;
     setSubmitting(true);
     setQuizActive(false);
+
+    if (isAiQuiz) {
+      let correctCount = 0;
+      let wrongCount = 0;
+      let unansweredCount = 0;
+      const review: ReviewItem[] = questions.map((q) => {
+        const picked =
+          typeof answers[q._id] === "number" ? answers[q._id] : null;
+        const correctIdx = typeof q.correctIndex === "number" ? q.correctIndex : 0;
+        let status: ReviewItem["status"] = "unanswered";
+        if (picked === null) {
+          unansweredCount += 1;
+        } else if (picked === correctIdx) {
+          correctCount += 1;
+          status = "correct";
+        } else {
+          wrongCount += 1;
+          status = "wrong";
+        }
+        return {
+          questionId: q._id,
+          question: q.question,
+          options: q.options,
+          selectedIndex: picked,
+          correctIndex: correctIdx,
+          explanation: q.explanation || "",
+          subject: q.subject,
+          isCorrect: status === "correct",
+          status,
+        };
+      });
+      const penalty = negativeMarking ? wrongCount * 0.5 : 0;
+      const netScore = Math.round((correctCount - penalty) * 100) / 100;
+      const accuracyPercent = questions.length
+        ? Math.round((correctCount / questions.length) * 100)
+        : 0;
+
+      setResult({
+        attempt: {
+          _id: `ai-attempt-${Date.now()}`,
+          sessionId: getOrCreateSessionId(),
+          examTrack: examTrack === "All" ? "AI Adaptive Drill" : examTrack,
+          subject: subject === "All" ? "Mixed AI Set" : subject,
+          totalQuestions: questions.length,
+          correctCount,
+          wrongCount,
+          unansweredCount,
+          negativeMarkingEnabled: negativeMarking,
+          netScore,
+          maxScore: questions.length,
+          accuracyPercent,
+          durationSeconds: elapsedSec,
+          createdAt: new Date().toISOString(),
+        },
+        review,
+      });
+      setSubmitting(false);
+      return;
+    }
+
     try {
       const sid = getOrCreateSessionId();
       const payload = {
@@ -491,7 +603,8 @@ export function PracticeArena() {
                   <option value="25">25 Questions</option>
                   <option value="30">30 Questions</option>
                   <option value="40">40 Questions</option>
-                  <option value="50">Full Bank (Up to 50)</option>
+                  <option value="50">50 Questions</option>
+                  <option value="100">Full Bank (Up to 100)</option>
                 </select>
               </div>
 
@@ -522,7 +635,7 @@ export function PracticeArena() {
               <button
                 type="button"
                 onClick={() => startMock()}
-                disabled={loading}
+                disabled={loading || generatingAi}
                 className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-5 py-2.5 text-sm font-bold text-white hover:bg-emerald-800 disabled:opacity-60 cursor-pointer"
               >
                 {result || quizActive ? (
@@ -532,6 +645,51 @@ export function PracticeArena() {
                 )}
                 <span>{loading ? "Generating..." : "Start New Mock Test"}</span>
               </button>
+            </div>
+
+            {/* Unlimited Gemini AI MCQ Generator */}
+            <div className="rounded-xl border border-indigo-200 bg-indigo-50/60 p-4 space-y-2.5">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-xs font-extrabold text-indigo-950 flex items-center gap-1.5">
+                  <Sparkles className="h-4 w-4 text-indigo-600" />
+                  Unlimited AI Fresh MCQ Generator (Uses Selected Subject &amp; Track Above)
+                </p>
+                <span className="text-[11px] font-semibold text-indigo-700">
+                  Instant grading + bilingual exam explanations
+                </span>
+              </div>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <input
+                  type="text"
+                  disabled={quizActive}
+                  value={aiTopicPrompt}
+                  onChange={(e) => setAiTopicPrompt(e.target.value)}
+                  placeholder="Optional focus topic (e.g. Sandhi, BD Constitution Art 137, Bank Ratio Math)"
+                  className="flex-1 rounded-xl border border-indigo-200 bg-white px-3 py-2 text-xs sm:text-sm text-slate-800 focus:border-indigo-500 focus:outline-none disabled:opacity-60"
+                />
+                <select
+                  disabled={quizActive}
+                  value={aiCount}
+                  onChange={(e) => setAiCount(e.target.value)}
+                  className="rounded-xl border border-indigo-200 bg-white px-3 py-2 text-xs sm:text-sm font-semibold text-slate-800"
+                >
+                  <option value="5">5 AI MCQs</option>
+                  <option value="8">8 AI MCQs</option>
+                  <option value="10">10 AI MCQs</option>
+                </select>
+                <button
+                  type="button"
+                  disabled={quizActive || generatingAi || loading}
+                  onClick={startAiFreshQuiz}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-indigo-700 px-4 py-2 text-xs sm:text-sm font-bold text-white hover:bg-indigo-800 disabled:opacity-60 cursor-pointer"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>{generatingAi ? "Generating AI Quiz..." : "Generate AI Quiz"}</span>
+                </button>
+              </div>
+              {aiNotice && (
+                <p className="text-xs font-semibold text-indigo-900">{aiNotice}</p>
+              )}
             </div>
           </div>
 
@@ -683,20 +841,22 @@ export function PracticeArena() {
                           Q{idx + 1} • {item.subject}
                         </span>
                         <div className="flex items-center gap-3">
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleToggleQuestionBookmark(item.questionId)
-                            }
-                            className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold cursor-pointer ${
-                              isSaved
-                                ? "bg-amber-100 text-amber-800"
-                                : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                            }`}
-                          >
-                            <Bookmark className="h-3.5 w-3.5" />
-                            <span>{isSaved ? "Saved" : "Bookmark"}</span>
-                          </button>
+                          {!item.questionId.startsWith("ai-") && (
+                            <button
+                              type="button"
+                              onClick={() =>
+                                handleToggleQuestionBookmark(item.questionId)
+                              }
+                              className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold cursor-pointer ${
+                                isSaved
+                                  ? "bg-amber-100 text-amber-800"
+                                  : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                              }`}
+                            >
+                              <Bookmark className="h-3.5 w-3.5" />
+                              <span>{isSaved ? "Saved" : "Bookmark"}</span>
+                            </button>
+                          )}
                           {item.status === "correct" ? (
                             <span className="inline-flex items-center gap-1 text-emerald-700">
                               <CheckCircle2 className="h-4 w-4" /> Correct (+1)

@@ -38,3 +38,23 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* Clean A4 lecture sheet export when using Print / PDF */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 14mm 12mm;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+  }
+
+  header,
+  nav,
+  footer,
+  .fixed {
+    display: none !important;
+  }
+}

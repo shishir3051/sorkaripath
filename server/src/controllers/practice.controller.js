@@ -38,7 +38,7 @@ export async function getQuestions(req, res, next) {
       if (tag && String(tag).trim()) match.tags = String(tag).trim();
     }
 
-    const size = Math.min(50, Math.max(1, parseInt(limit, 10) || 15));
+    const size = Math.min(100, Math.max(1, parseInt(limit, 10) || 15));
 
     const questions = await McqQuestion.aggregate([
       { $match: match },

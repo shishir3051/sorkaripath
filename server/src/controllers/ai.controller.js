@@ -3,6 +3,10 @@ import {
   discoverLatestCircularsWithAi,
   getAiCapabilityStatus,
 } from "../services/aiCircularService.js";
+import {
+  explainStudyTopicWithAi,
+  generatePracticeMcqsWithAi,
+} from "../services/aiStudyService.js";
 
 export async function getAiStatus(_req, res) {
   res.json({
@@ -35,6 +39,30 @@ export async function analyzeCircular(req, res, next) {
     }
     const forceRefresh = Boolean(req.validatedBody?.forceRefresh);
     const data = await analyzeCircularPdfWithAi(slug, { forceRefresh });
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function studyTutor(req, res, next) {
+  try {
+    const data = await explainStudyTopicWithAi(req.validatedBody);
+    res.json({
+      success: true,
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function generateAiMcqs(req, res, next) {
+  try {
+    const data = await generatePracticeMcqsWithAi(req.validatedBody);
     res.json({
       success: true,
       data,

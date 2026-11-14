@@ -21,31 +21,90 @@ function buildAffairsFilter({ topic, language, q }) {
   return filter;
 }
 
+const SUBJECT_SPRINT_CONFIGS = [
+  {
+    id: "ict-science-sprint",
+    title: "Computer, Cyber & General Science Sprint",
+    subtitle: "Essential for all Bank, ICT Directorate, Computer Operator & BCS exams",
+    subject: "General Science & ICT",
+    officialPattern: "High-scoring technical & daily science section",
+    badge: "Subject Focus",
+  },
+  {
+    id: "bangla-master-sprint",
+    title: "Bangla Literature & Grammar Marathon",
+    subtitle: "Charjapad to Modern Era, Sondhi, Samas, Karok & spelling rules",
+    subject: "Bangla",
+    officialPattern: "BCS 35 Marks & Primary/Ministry 20–25 MCQ standard",
+    badge: "Bangla Core",
+  },
+  {
+    id: "english-master-sprint",
+    title: "English Grammar, Idioms & Comprehension Sprint",
+    subtitle: "BCS Literature, Prepositions, Conditionals, Voice & Bank error detection",
+    subject: "English",
+    officialPattern: "BCS 35 Marks & Bank 25 MCQ benchmark",
+    badge: "English Core",
+  },
+  {
+    id: "math-mental-sprint",
+    title: "Maths & Mental Ability Problem-Solving Sprint",
+    subtitle: "Percentage, Profit-Loss, Mensuration, Probability & IQ Puzzles",
+    subject: "Math & Mental Ability",
+    officialPattern: "BCS 30 Marks & Bank Analytical Math Focus",
+    badge: "Math & IQ",
+  },
+  {
+    id: "ethics-governance-sprint",
+    title: "Ethics, Values & Good Governance Sprint",
+    subtitle: "10-Mark BCS Ethics module, UNCAC, NIS & Public Administration integrity",
+    subject: "Ethics & Governance",
+    officialPattern: "BCS 10 Marks + Cadre Viva Integrity Check",
+    badge: "Ethics & NIS",
+  },
+  {
+    id: "geography-delta-sprint",
+    title: "Geography, Disaster & Delta Plan Sprint",
+    subtitle: "Bengal Basin rivers, Bay of Bengal, Climate Agreements & BD Delta Plan 2100",
+    subject: "Geography & Environment",
+    officialPattern: "BCS 10 Marks + Environmental GK",
+    badge: "Geo & Climate",
+  },
+  {
+    id: "rules-banking-sprint",
+    title: "Service Rules, Banking & Constitution Sprint",
+    subtitle: "2026 Pay Scale, Quota Reform, BB Monetary Policy, BASEL III & Art 133–141",
+    subject: "Govt Job Rules & Banking",
+    officialPattern: "Govt Departmental, Viva & Bank SO Core",
+    badge: "2026 Policy & Bank",
+  },
+];
+
 function buildModelTestCatalog(trackCountMap, subjectCountMap, totalMcqCount) {
   const presets = [
     {
       id: "full-bd-govt-mix",
       title: "All-Track BD Govt Mega Mock",
-      subtitle: "Mixed Bangla, English, BD Affairs, ICT & Math across all tracks",
+      subtitle: "Mixed 9-subject full-length screening mock across all BD govt tracks",
       examTrack: "All",
       subject: "All",
       availableQuestions: totalMcqCount,
-      questionLimit: Math.min(30, Math.max(10, totalMcqCount)),
+      questionLimit: Math.min(50, Math.max(15, totalMcqCount)),
       officialPattern: "100–200 MCQ standard screening pattern",
-      durationMinutes: 25,
+      durationMinutes: 40,
       negativeMarking: "0.50 mark per wrong answer (BCS/PSC benchmark)",
-      badge: "Recommended Daily Mix",
+      badge: "Recommended Full Mix",
     },
     {
       id: "bcs-prelims-mock",
       title: "BCS Preliminary High-Yield Mock",
-      subtitle: "46th–50th BCS Prelims syllabus focus with Governance & BD Affairs",
+      subtitle: "46th–50th BCS Prelims syllabus focus with Ethics, Geography & BD Affairs",
       examTrack: "BCS Preliminary",
       subject: "All",
       availableQuestions: trackCountMap["BCS Preliminary"] || 0,
-      questionLimit: Math.min(25, Math.max(5, trackCountMap["BCS Preliminary"] || 15)),
+      questionLimit: Math.min(40, Math.max(10, trackCountMap["BCS Preliminary"] || 15)),
       officialPattern: "BPSC Official: 200 MCQ / 2 Hours / 0.50 negative",
-      durationMinutes: 20,
+      durationMinutes: 30,
       negativeMarking: "0.50 mark deducted per wrong answer",
       badge: "Cadre Track",
     },
@@ -56,22 +115,22 @@ function buildModelTestCatalog(trackCountMap, subjectCountMap, totalMcqCount) {
       examTrack: "Bank Combined",
       subject: "All",
       availableQuestions: trackCountMap["Bank Combined"] || 0,
-      questionLimit: Math.min(20, Math.max(5, trackCountMap["Bank Combined"] || 10)),
+      questionLimit: Math.min(30, Math.max(10, trackCountMap["Bank Combined"] || 10)),
       officialPattern: "Bankers Selection Committee: 100 MCQ / 60 Min / 0.25 negative",
-      durationMinutes: 15,
+      durationMinutes: 25,
       negativeMarking: "0.25 mark deducted per wrong answer",
       badge: "Banker Track",
     },
     {
       id: "primary-ntrca-mock",
       title: "Primary Assistant Teacher & NTRCA Mock",
-      subtitle: "NCTB Bangla grammar, English, arithmetic & BD Liberation War core",
+      subtitle: "NCTB Bangla grammar, English, arithmetic, Pedagogy & Liberation War",
       examTrack: "Primary & NTRCA",
       subject: "All",
       availableQuestions: trackCountMap["Primary & NTRCA"] || 0,
-      questionLimit: Math.min(20, Math.max(5, trackCountMap["Primary & NTRCA"] || 10)),
+      questionLimit: Math.min(30, Math.max(10, trackCountMap["Primary & NTRCA"] || 10)),
       officialPattern: "DPE 75–80 MCQ / NTRCA 100 MCQ (40% pass mark)",
-      durationMinutes: 15,
+      durationMinutes: 25,
       negativeMarking: "0.25–0.50 mark depending on DPE / NTRCA",
       badge: "Teaching Track",
     },
@@ -82,9 +141,9 @@ function buildModelTestCatalog(trackCountMap, subjectCountMap, totalMcqCount) {
       examTrack: "Grade 11-20",
       subject: "All",
       availableQuestions: trackCountMap["Grade 11-20"] || 0,
-      questionLimit: Math.min(20, Math.max(5, trackCountMap["Grade 11-20"] || 10)),
+      questionLimit: Math.min(25, Math.max(10, trackCountMap["Grade 11-20"] || 10)),
       officialPattern: "Ministry Standard: 70–100 MCQ + Practical Typing Test",
-      durationMinutes: 15,
+      durationMinutes: 20,
       negativeMarking: "Check individual circular notice (0 or 0.25)",
       badge: "Ministry Track",
     },
@@ -95,31 +154,127 @@ function buildModelTestCatalog(trackCountMap, subjectCountMap, totalMcqCount) {
       examTrack: "Govt Rules 2026",
       subject: "All",
       availableQuestions: trackCountMap["Govt Rules 2026"] || 0,
-      questionLimit: Math.min(15, Math.max(5, trackCountMap["Govt Rules 2026"] || 10)),
+      questionLimit: Math.min(25, Math.max(10, trackCountMap["Govt Rules 2026"] || 10)),
       officialPattern: "Viva Voce & Current Governance Hot-Topics",
-      durationMinutes: 10,
+      durationMinutes: 20,
       negativeMarking: "Self-paced conceptual mastery check",
       badge: "2026 Viva & Policy",
     },
-    {
-      id: "ict-science-sprint",
-      title: "Computer, Cyber & General Science Sprint",
-      subtitle: "Essential for all Bank, ICT Directorate, Computer Operator & BCS exams",
-      examTrack: "All",
-      subject: "General Science & ICT",
-      availableQuestions: subjectCountMap["General Science & ICT"] || 0,
-      questionLimit: Math.min(
-        20,
-        Math.max(5, subjectCountMap["General Science & ICT"] || 10)
-      ),
-      officialPattern: "High-scoring technical & daily science section",
-      durationMinutes: 12,
-      negativeMarking: "Standard 0.50 benchmark",
-      badge: "Subject Focus",
-    },
   ];
 
+  for (const cfg of SUBJECT_SPRINT_CONFIGS) {
+    const count = subjectCountMap[cfg.subject] || 0;
+    const questionLimit = Math.min(25, Math.max(5, count || 10));
+    presets.push({
+      id: cfg.id,
+      title: cfg.title,
+      subtitle: cfg.subtitle,
+      examTrack: "All",
+      subject: cfg.subject,
+      availableQuestions: count,
+      questionLimit,
+      officialPattern: cfg.officialPattern,
+      durationMinutes: Math.max(10, Math.round(questionLimit * 0.75)),
+      negativeMarking: "Standard 0.50 benchmark",
+      badge: cfg.badge,
+    });
+  }
+
   return presets;
+}
+
+const STUDY_BATCH_DEFINITIONS = [
+  {
+    id: "bcs-cadre-batch",
+    title: "BCS Preliminary & Written Master Batch (46th–50th)",
+    badge: "Cadre Foundation Batch",
+    trackKey: "BCS",
+    examTrack: "BCS Preliminary",
+    weeklyHours: "14 hrs / week",
+    targetExam: "BPSC Cadre & Non-Cadre (200 MCQ + Written)",
+    syllabusSummary:
+      "Complete 9-subject BPSC roadmap combining Bangla, English, Math, BD & Intl Affairs, Science/ICT, Ethics and Geography lecture sheets with past BCS MCQ archives.",
+    recommendedModelTestId: "bcs-prelims-mock",
+    featuredSeries: ["46th BCS Preliminary Archive", "45th BCS Preliminary Archive", "44th BCS Preliminary Archive"],
+  },
+  {
+    id: "combined-bank-batch",
+    title: "Bangladesh Bank AD & Combined Bank SO/Officer Batch",
+    badge: "Banker Track Batch",
+    trackKey: "Bank & Financial",
+    examTrack: "Bank Combined",
+    weeklyHours: "12 hrs / week",
+    targetExam: "BB AD, Sonali, Rupali, Agrani & Combined Bank",
+    syllabusSummary:
+      "Structured BSC preliminary + 200-mark written blueprint: English focus writing, step-by-step Bank written math, DBMS/networking ICT, and Bangladesh Bank monetary policy.",
+    recommendedModelTestId: "bank-combined-mock",
+    featuredSeries: ["Sonali & Combined Bank SO Archive", "Bangladesh Bank AD Archive"],
+  },
+  {
+    id: "primary-ntrca-batch",
+    title: "Primary Assistant Teacher & NTRCA Rapid Batch",
+    badge: "Teaching Track Batch",
+    trackKey: "Primary & NTRCA",
+    examTrack: "Primary & NTRCA",
+    weeklyHours: "10 hrs / week",
+    targetExam: "DPE Primary Teacher & NTRCA College/School",
+    syllabusSummary:
+      "High-retention NCTB Class 5–10 foundation: Bangla grammar, English basics, short-cut arithmetic, Liberation War, classroom pedagogy and 40%+ qualifying drills.",
+    recommendedModelTestId: "primary-ntrca-mock",
+    featuredSeries: ["18th NTRCA & Primary Master Archive", "Primary Assistant Teacher Archive"],
+  },
+  {
+    id: "ministry-grade-batch",
+    title: "Ministry Grade 11–20 & Computer Operator Batch",
+    badge: "Secretariat & Office Batch",
+    trackKey: "Grade 11-20",
+    examTrack: "Grade 11-20",
+    weeklyHours: "8 hrs / week",
+    targetExam: "Secretariat, DG Food, LGED, BRTA & Railway",
+    syllabusSummary:
+      "Focused non-cadre prep for Computer Operator, Office Assistant & Auditor exams: MS Office/shortcuts, Bangla spelling, English prepositions, math & 2026 Pay Scale/Quota rules.",
+    recommendedModelTestId: "grade-11-20-mock",
+    featuredSeries: ["Ministry Grade 11-20 Archive"],
+  },
+];
+
+function buildStudyBatches(topics, trackCountMap, pastPapers) {
+  const pastSeriesSet = new Set(pastPapers.map((p) => p.examSeries));
+  return STUDY_BATCH_DEFINITIONS.map((batch) => {
+    const matchedTopics = topics.filter(
+      (t) => Array.isArray(t.targetTracks) && t.targetTracks.includes(batch.trackKey)
+    );
+    const orderedTopics = (matchedTopics.length ? matchedTopics : topics.slice(0, 8)).slice(0, 14);
+    const totalEstimatedMinutes = orderedTopics.reduce(
+      (sum, t) => sum + (Number(t.estimatedMinutes) || 15),
+      0
+    );
+
+    return {
+      id: batch.id,
+      title: batch.title,
+      badge: batch.badge,
+      trackKey: batch.trackKey,
+      examTrack: batch.examTrack,
+      weeklyHours: batch.weeklyHours,
+      targetExam: batch.targetExam,
+      syllabusSummary: batch.syllabusSummary,
+      recommendedModelTestId: batch.recommendedModelTestId,
+      mcqPoolCount: trackCountMap[batch.examTrack] || 0,
+      totalLessons: orderedTopics.length,
+      totalEstimatedMinutes,
+      matchingArchives: batch.featuredSeries.filter((s) => pastSeriesSet.has(s)),
+      lessons: orderedTopics.map((t, index) => ({
+        step: index + 1,
+        slug: t.slug,
+        title: t.title,
+        subject: t.subject,
+        unit: t.unit,
+        estimatedMinutes: t.estimatedMinutes || 15,
+        chaptersCount: Array.isArray(t.chapters) ? t.chapters.length : 0,
+      })),
+    };
+  });
 }
 
 export async function getStudyOverview(_req, res, next) {
@@ -192,6 +347,7 @@ export async function getStudyOverview(_req, res, next) {
     }));
 
     const routine = buildGuidedRoutine(topics, "BCS");
+    const studyBatches = buildStudyBatches(topics, trackCountMap, pastPapers);
 
     res.json({
       success: true,
@@ -204,6 +360,7 @@ export async function getStudyOverview(_req, res, next) {
         pastPapers,
         routine,
         modelTests,
+        studyBatches,
         stats: {
           affairsCount,
           booksCount: books.length,
@@ -211,6 +368,7 @@ export async function getStudyOverview(_req, res, next) {
           pastPapersCount: pastPapers.length,
           mcqCount,
           affairsFeedCount: affairsSources.filter((s) => s.enabled).length,
+          batchesCount: studyBatches.length,
         },
       },
     });
@@ -352,9 +510,14 @@ export async function getStudyTopicBySlug(req, res, next) {
       return res.status(404).json({ success: false, message: "Topic sheet not found" });
     }
 
-    const relatedQuestions = await McqQuestion.find({
-      subject: topic.mcqSubjectFilter || topic.subject,
-    })
+    const subjectFilter =
+      topic.mcqSubjectFilter && topic.mcqSubjectFilter !== "All"
+        ? topic.mcqSubjectFilter
+        : topic.subject;
+
+    const relatedQuestions = await McqQuestion.find(
+      subjectFilter && subjectFilter !== "All" ? { subject: subjectFilter } : {}
+    )
       .limit(8)
       .lean();
 

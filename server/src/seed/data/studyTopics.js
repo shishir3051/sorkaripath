@@ -3,6 +3,8 @@ import { englishTopics } from "./topics/englishTopics.js";
 import { mathTopics } from "./topics/mathTopics.js";
 import { bdAndIntlTopics } from "./topics/bdAndIntlTopics.js";
 import { scienceIctTopics } from "./topics/scienceIctTopics.js";
+import { ethicsGeoRulesTopics } from "./topics/ethicsGeoRulesTopics.js";
+import { extraCoreTopics } from "./topics/extraCoreTopics.js";
 
 export const studyTopicsData = [
   ...banglaTopics,
@@ -10,4 +12,6 @@ export const studyTopicsData = [
   ...mathTopics,
   ...bdAndIntlTopics,
   ...scienceIctTopics,
+  ...ethicsGeoRulesTopics,
+  ...extraCoreTopics,
 ];

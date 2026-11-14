@@ -210,6 +210,17 @@ export function classifyGeminiError(err) {
   const msg = String(err?.message || "").toLowerCase();
 
   if (
+    status === 429 ||
+    msg.includes("resource_exhausted") ||
+    msg.includes("quota") ||
+    msg.includes("rate limit") ||
+    msg.includes("too many requests") ||
+    msg.includes("limit: 0")
+  ) {
+    return "quota_limit";
+  }
+
+  if (
     status === 401 ||
     status === 403 ||
     msg.includes("api_key_invalid") ||
@@ -223,17 +234,6 @@ export function classifyGeminiError(err) {
     msg.includes("billing")
   ) {
     return "key_invalid";
-  }
-
-  if (
-    status === 429 ||
-    msg.includes("resource_exhausted") ||
-    msg.includes("quota") ||
-    msg.includes("rate limit") ||
-    msg.includes("too many requests") ||
-    msg.includes("limit: 0")
-  ) {
-    return "quota_limit";
   }
 
   if (

@@ -14,6 +14,7 @@ import {
   ExternalLink,
   FileCheck2,
   Globe,
+  GraduationCap,
   Layers,
   Lightbulb,
   Newspaper,
@@ -31,6 +32,7 @@ import {
   getOrCreateSessionId,
   safeExternalHref,
 } from "@/lib/api";
+import { TopicAiLab } from "@/components/study/TopicAiLab";
 import type {
   CurrentAffairsItem,
   LearnerProgress,
@@ -48,7 +50,13 @@ interface AffairsListResponse {
   totalPages: number;
 }
 
-type StudyTab = "topics" | "routine" | "affairs" | "books" | "model-tests";
+type StudyTab =
+  | "topics"
+  | "batches"
+  | "routine"
+  | "affairs"
+  | "books"
+  | "model-tests";
 
 const AFFAIRS_TOPICS = [
   "All",
@@ -68,6 +76,9 @@ const TOPIC_SUBJECTS = [
   "Bangladesh Affairs",
   "International Affairs",
   "General Science & ICT",
+  "Ethics & Governance",
+  "Geography & Environment",
+  "Govt Job Rules & Banking",
 ];
 
 const STUDY_TRACKS = [
@@ -119,6 +130,7 @@ const CORE_SUBJECT_PILLARS = [
 function resolveInitialTab(param: string | null): StudyTab {
   if (
     param === "topics" ||
+    param === "batches" ||
     param === "routine" ||
     param === "affairs" ||
     param === "books" ||
@@ -392,13 +404,14 @@ export function StudyHub({
         </div>
       </div>
 
-      {/* 5-Tab All-in-One Switcher */}
+      {/* 6-Tab All-in-One Switcher */}
       <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-slate-200 bg-white p-2 shadow-sm print:hidden">
         {[
           { id: "topics", label: "Topic Guru Notes", icon: Layers },
+          { id: "batches", label: "Course Batches & Classes", icon: GraduationCap },
           { id: "routine", label: "30-Day Routine", icon: CalendarCheck },
           { id: "affairs", label: "Live Current Affairs", icon: Newspaper },
-          { id: "books", label: "Books & Syllabus", icon: BookOpen },
+          { id: "books", label: "Books, PDFs & Syllabus", icon: BookOpen },
           {
             id: "model-tests",
             label: "Model Tests & Past Papers",
@@ -626,32 +639,43 @@ export function StudyHub({
                 </div>
               )}
 
-              <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 print:hidden">
-                <p className="text-xs text-slate-500 font-medium">
-                  Done reading this sheet? Immediately test your retention on{" "}
-                  <strong>{selectedTopic.mcqSubjectFilter}</strong> MCQs.
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  <Link
-                    href={`/practice?mode=search&subject=${encodeURIComponent(
-                      selectedTopic.mcqSubjectFilter
-                    )}`}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-800 hover:bg-slate-100"
-                  >
-                    <Search className="h-3.5 w-3.5" />
-                    <span>Smart Search Topic Qs</span>
-                  </Link>
-                  <Link
-                    href={`/practice?subject=${encodeURIComponent(
-                      selectedTopic.mcqSubjectFilter
-                    )}&limit=15&autostart=1`}
-                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-800"
-                  >
-                    <Play className="h-3.5 w-3.5" />
-                    <span>Quiz {selectedTopic.mcqSubjectFilter} Now</span>
-                  </Link>
-                </div>
-              </div>
+              <TopicAiLab key={selectedTopic.slug} topic={selectedTopic} />
+
+              {(() => {
+                const quizSubject =
+                  selectedTopic.mcqSubjectFilter &&
+                  selectedTopic.mcqSubjectFilter !== "All"
+                    ? selectedTopic.mcqSubjectFilter
+                    : selectedTopic.subject;
+                return (
+                  <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 print:hidden">
+                    <p className="text-xs text-slate-500 font-medium">
+                      Done reading this sheet? Immediately test your retention on{" "}
+                      <strong>{quizSubject}</strong> MCQs.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <Link
+                        href={`/practice?mode=search&subject=${encodeURIComponent(
+                          quizSubject
+                        )}`}
+                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-800 hover:bg-slate-100"
+                      >
+                        <Search className="h-3.5 w-3.5" />
+                        <span>Smart Search Topic Qs</span>
+                      </Link>
+                      <Link
+                        href={`/practice?subject=${encodeURIComponent(
+                          quizSubject
+                        )}&limit=15&autostart=1`}
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-800"
+                      >
+                        <Play className="h-3.5 w-3.5" />
+                        <span>Quiz {quizSubject} Now</span>
+                      </Link>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           )}
 
@@ -776,8 +800,10 @@ export function StudyHub({
                     </button>
                     <Link
                       href={`/practice?subject=${encodeURIComponent(
-                        item.mcqSubjectFilter
-                      )}&limit=10&autostart=1`}
+                        item.mcqSubjectFilter && item.mcqSubjectFilter !== "All"
+                          ? item.mcqSubjectFilter
+                          : item.subject
+                      )}&limit=15&autostart=1`}
                       className="text-xs font-bold text-slate-600 hover:text-slate-900"
                     >
                       Quiz &rarr;
@@ -790,7 +816,172 @@ export function StudyHub({
         </section>
       )}
 
-      {/* TAB 2: GUIDED 30-DAY STUDY ROUTINE */}
+      {/* TAB 2: COURSE BATCHES & STRUCTURED CLASSES */}
+      {activeTab === "batches" && (
+        <section className="space-y-6">
+          <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-2">
+            <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+              <GraduationCap className="h-5 w-5 text-emerald-700" />
+              Structured Govt Job Course Batches &amp; Class Roadmaps
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600">
+              Step-by-step track courses modeled after Biddabari &amp; Live MCQ batch
+              plans. Open every class lecture sheet, track your mastery bar, and
+              launch full-length mock tests for your target recruitment.
+            </p>
+          </div>
+
+          <div className="grid gap-6 lg:grid-cols-2">
+            {(overview?.studyBatches ?? []).map((batch) => {
+              const completedInBatch = batch.lessons.filter((l) =>
+                completedTopicsSet.has(l.slug)
+              ).length;
+              const pct = batch.totalLessons
+                ? Math.round((completedInBatch / batch.totalLessons) * 100)
+                : 0;
+              const hoursLabel = `${(batch.totalEstimatedMinutes / 60).toFixed(1)} hrs`;
+
+              return (
+                <article
+                  key={batch.id}
+                  className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm flex flex-col justify-between gap-5"
+                >
+                  <div className="space-y-4">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-extrabold text-emerald-900">
+                        {batch.badge}
+                      </span>
+                      <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-bold text-slate-700">
+                        {batch.weeklyHours} &bull; {hoursLabel} Sheets
+                      </span>
+                    </div>
+
+                    <div>
+                      <h3 className="text-lg font-extrabold text-slate-900">
+                        {batch.title}
+                      </h3>
+                      <p className="text-xs font-semibold text-emerald-800 mt-0.5">
+                        Target: {batch.targetExam}
+                      </p>
+                      <p className="text-xs text-slate-600 leading-relaxed mt-2">
+                        {batch.syllabusSummary}
+                      </p>
+                    </div>
+
+                    {/* Batch completion progress bar */}
+                    <div className="rounded-xl border border-slate-200 bg-slate-50 p-3 space-y-1.5">
+                      <div className="flex items-center justify-between text-xs font-bold text-slate-700">
+                        <span>
+                          Batch Sheet Progress: {completedInBatch} / {batch.totalLessons}
+                        </span>
+                        <span className="text-emerald-700">{pct}%</span>
+                      </div>
+                      <div className="h-2 w-full rounded-full bg-slate-200 overflow-hidden">
+                        <div
+                          className="h-full rounded-full bg-emerald-600 transition-all"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <p className="text-[11px] text-slate-500">
+                        Question Bank Ready: <strong>{batch.mcqPoolCount}</strong>{" "}
+                        {batch.examTrack} MCQs
+                      </p>
+                    </div>
+
+                    {/* Ordered Class / Sheet list */}
+                    <div className="space-y-1.5 max-h-72 overflow-y-auto pr-1">
+                      <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                        Class &amp; Lecture Sequence
+                      </p>
+                      {batch.lessons.map((lesson) => {
+                        const isDone = completedTopicsSet.has(lesson.slug);
+                        const matchedSheet = overview?.topics.find(
+                          (t) => t.slug === lesson.slug
+                        );
+                        return (
+                          <button
+                            key={lesson.slug}
+                            type="button"
+                            disabled={!matchedSheet}
+                            onClick={() => matchedSheet && openLectureSheet(matchedSheet)}
+                            className="w-full flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 text-left text-xs hover:border-emerald-400 hover:bg-emerald-50/40 transition-colors cursor-pointer disabled:opacity-60"
+                          >
+                            <div className="flex items-center gap-2.5 min-w-0">
+                              <span
+                                className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-extrabold ${
+                                  isDone
+                                    ? "bg-emerald-600 text-white"
+                                    : "bg-slate-100 text-slate-700"
+                                }`}
+                              >
+                                {isDone ? "✓" : lesson.step}
+                              </span>
+                              <div className="min-w-0">
+                                <p className="font-bold text-slate-900 truncate">
+                                  {lesson.title}
+                                </p>
+                                <p className="text-[11px] text-slate-500 truncate">
+                                  {lesson.subject} &bull; {lesson.chaptersCount} ch &bull;{" "}
+                                  {lesson.estimatedMinutes}m
+                                </p>
+                              </div>
+                            </div>
+                            <ArrowRight className="h-3.5 w-3.5 shrink-0 text-emerald-700" />
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {batch.matchingArchives.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[11px] font-bold text-slate-500">
+                          Past Archives:
+                        </span>
+                        {batch.matchingArchives.map((series) => (
+                          <Link
+                            key={series}
+                            href={`/practice?mode=archive&examSeries=${encodeURIComponent(
+                              series
+                            )}`}
+                            className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:border-emerald-400 hover:text-emerald-800"
+                          >
+                            {series}
+                          </Link>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 flex flex-wrap gap-2">
+                    <Link
+                      href={`/practice?examTrack=${encodeURIComponent(
+                        batch.examTrack
+                      )}&limit=30&autostart=1`}
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2.5 text-xs font-bold text-white hover:bg-emerald-800"
+                    >
+                      <Play className="h-3.5 w-3.5" />
+                      <span>Start Batch Mock Test</span>
+                    </Link>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setActiveTab("routine");
+                        handleSelectRoutineTrack(batch.trackKey);
+                      }}
+                      className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-xs font-bold text-slate-800 hover:bg-slate-50 cursor-pointer"
+                    >
+                      <CalendarCheck className="h-3.5 w-3.5" />
+                      <span>30-Day Plan</span>
+                    </button>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* TAB 3: GUIDED 30-DAY STUDY ROUTINE */}
       {activeTab === "routine" && (
         <section className="space-y-6">
           <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm space-y-4">

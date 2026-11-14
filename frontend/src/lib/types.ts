@@ -294,6 +294,33 @@ export interface StudyRoutineData {
   days: RoutineDayItem[];
 }
 
+export interface StudyBatchLesson {
+  step: number;
+  slug: string;
+  title: string;
+  subject: string;
+  unit: string;
+  estimatedMinutes: number;
+  chaptersCount: number;
+}
+
+export interface StudyBatch {
+  id: string;
+  title: string;
+  badge: string;
+  trackKey: string;
+  examTrack: string;
+  weeklyHours: string;
+  targetExam: string;
+  syllabusSummary: string;
+  recommendedModelTestId: string;
+  mcqPoolCount: number;
+  totalLessons: number;
+  totalEstimatedMinutes: number;
+  matchingArchives: string[];
+  lessons: StudyBatchLesson[];
+}
+
 export interface StudyOverviewData {
   currentAffairs: CurrentAffairsItem[];
   affairsTopics: Array<{ topic: string; count: number }>;
@@ -303,6 +330,7 @@ export interface StudyOverviewData {
   pastPapers: PastPaperSummary[];
   routine: StudyRoutineData;
   modelTests: ModelTestPreset[];
+  studyBatches?: StudyBatch[];
   stats: {
     affairsCount: number;
     booksCount: number;
@@ -310,5 +338,6 @@ export interface StudyOverviewData {
     pastPapersCount: number;
     mcqCount: number;
     affairsFeedCount: number;
+    batchesCount?: number;
   };
 }

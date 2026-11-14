@@ -1,3 +1,5 @@
+import { extraMcqQuestions } from "./extraMcqQuestions.js";
+
 export const mcqQuestionsData = [
   // --- Govt Job Rules & Banking (2026 Rules) ---
   {
@@ -1169,4 +1171,5 @@ export const mcqQuestionsData = [
     examSeries: "Ministry Grade 11-20 Archive",
     tags: ["constitution", "article-29", "grade-11-20"],
   },
+  ...extraMcqQuestions,
 ];
