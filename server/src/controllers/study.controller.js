@@ -205,6 +205,8 @@ const STUDY_BATCH_DEFINITIONS = [
       "30th-34th BCS Preliminary Archive",
       "20th-29th BCS Preliminary Archive",
       "10th-19th BCS Preliminary Archive",
+      "PSC Non-Cadre, NBR, Tax & Customs Archive",
+      "Constitution & Civil Service Viva Archive",
       "Geography & Intl Affairs Master Archive",
     ],
   },
@@ -262,6 +264,8 @@ const STUDY_BATCH_DEFINITIONS = [
       "DG Food, CGA Auditor & Ministry Archive",
       "Computer Operator & Steno-Typist Archive",
       "2026 Govt Rules & Constitution Archive",
+      "Constitution & Civil Service Viva Archive",
+      "PSC Non-Cadre, NBR, Tax & Customs Archive",
     ],
   },
 ];

@@ -13,6 +13,9 @@ import { ntrca1stTo18thArchiveMcqs } from "./mcqs/ntrca1stTo18thArchiveMcqs.js";
 import { bangladeshBankAdArchiveMcqs } from "./mcqs/bangladeshBankAdArchiveMcqs.js";
 import { combinedBankSoOfficerMcqs } from "./mcqs/combinedBankSoOfficerMcqs.js";
 import { combinedBankOfficerCashIctMcqs } from "./mcqs/combinedBankOfficerCashIctMcqs.js";
+import { govtRules2026QuotaServiceActMcqs } from "./mcqs/govtRules2026QuotaServiceActMcqs.js";
+import { constitutionGovernanceVivaMcqs } from "./mcqs/constitutionGovernanceVivaMcqs.js";
+import { pscNonCadreNbrCustomsAccMcqs } from "./mcqs/pscNonCadreNbrCustomsAccMcqs.js";
 import { primaryNtrcaArchiveMcqs } from "./mcqs/primaryNtrcaArchiveMcqs.js";
 import { bankAndRulesArchiveMcqs } from "./mcqs/bankAndRulesArchiveMcqs.js";
 import { deepCoverageArchiveMcqs } from "./mcqs/deepCoverageArchiveMcqs.js";
@@ -1203,6 +1206,9 @@ export const mcqQuestionsData = [
   ...bangladeshBankAdArchiveMcqs,
   ...combinedBankSoOfficerMcqs,
   ...combinedBankOfficerCashIctMcqs,
+  ...govtRules2026QuotaServiceActMcqs,
+  ...constitutionGovernanceVivaMcqs,
+  ...pscNonCadreNbrCustomsAccMcqs,
   ...primaryNtrcaArchiveMcqs,
   ...bankAndRulesArchiveMcqs,
   ...deepCoverageArchiveMcqs,
