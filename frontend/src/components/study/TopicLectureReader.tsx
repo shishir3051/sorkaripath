@@ -17,10 +17,11 @@ import {
   Play,
   Printer,
   Search,
+  Sparkles,
   Table2,
   X,
 } from "lucide-react";
-import { TopicAiLab } from "@/components/study/TopicAiLab";
+import { TopicAiLab, type TopicAiLabHandle } from "@/components/study/TopicAiLab";
 import type { StudyChapter, StudyTopic } from "@/lib/types";
 
 interface TopicLectureReaderProps {
@@ -142,6 +143,7 @@ export function TopicLectureReader({
   const [focusMode, setFocusMode] = useState(true);
   const [activeChapterIdx, setActiveChapterIdx] = useState(0);
   const chapterTopRef = useRef<HTMLDivElement | null>(null);
+  const aiLabRef = useRef<TopicAiLabHandle | null>(null);
 
   function selectFocusChapter(nextIdx: number) {
     setActiveChapterIdx(nextIdx);
@@ -331,9 +333,23 @@ export function TopicLectureReader({
                 >
                   {/* Section Title & Elaborate Concept Walkthrough */}
                   <div className="space-y-3">
-                    <span className="inline-block rounded-full bg-slate-900 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
-                      Section {idx + 1} of {chapters.length}
-                    </span>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="inline-block rounded-full bg-slate-900 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                        Section {idx + 1} of {chapters.length}
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          aiLabRef.current?.focusWithPrompt(
+                            `Explain "${ch.heading}" (${topic.title}) in simple steps with extra exam shortcuts and common traps.`
+                          )
+                        }
+                        className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-white px-2.5 py-1 text-[11px] font-bold text-indigo-800 transition-colors duration-200 ease-in-out hover:bg-indigo-50 cursor-pointer print:hidden"
+                      >
+                        <Sparkles className="h-3 w-3 text-indigo-600" />
+                        <span>Ask AI on this section</span>
+                      </button>
+                    </div>
                     <h3 className="text-base sm:text-xl font-extrabold text-slate-900 font-bangla">
                       {ch.heading}
                     </h3>
@@ -606,7 +622,7 @@ export function TopicLectureReader({
         </div>
       )}
 
-      <TopicAiLab key={topic.slug} topic={topic} />
+      <TopicAiLab key={topic.slug} topic={topic} ref={aiLabRef} />
 
       <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 print:hidden">
         <p className="text-xs text-slate-500 font-medium">

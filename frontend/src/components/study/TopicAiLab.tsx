@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useImperativeHandle, useRef, useState } from "react";
+import type { Ref } from "react";
 import {
   CheckCircle2,
   HelpCircle,
@@ -40,7 +41,19 @@ interface GeneratedQuizResult {
   };
 }
 
-export function TopicAiLab({ topic }: { topic: StudyTopic }) {
+export interface TopicAiLabHandle {
+  focusWithPrompt: (prompt: string) => void;
+}
+
+export function TopicAiLab({
+  topic,
+  ref,
+}: {
+  topic: StudyTopic;
+  ref?: Ref<TopicAiLabHandle>;
+}) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const questionInputRef = useRef<HTMLInputElement>(null);
   const [question, setQuestion] = useState("");
   const [askingTutor, setAskingTutor] = useState(false);
   const [tutorError, setTutorError] = useState<string | null>(null);
@@ -50,6 +63,14 @@ export function TopicAiLab({ topic }: { topic: StudyTopic }) {
   const [quizError, setQuizError] = useState<string | null>(null);
   const [quizData, setQuizData] = useState<GeneratedQuizResult | null>(null);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
+
+  useImperativeHandle(ref, () => ({
+    focusWithPrompt(prompt: string) {
+      setQuestion(prompt);
+      containerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      window.setTimeout(() => questionInputRef.current?.focus(), 220);
+    },
+  }));
 
   async function handleAskTutor(customQuestion?: string) {
     const qText = (customQuestion ?? question).trim();
@@ -109,7 +130,10 @@ export function TopicAiLab({ topic }: { topic: StudyTopic }) {
     : 0;
 
   return (
-    <div className="rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50/70 via-white to-emerald-50/50 p-5 space-y-4 print:hidden">
+    <div
+      ref={containerRef}
+      className="rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50/70 via-white to-emerald-50/50 p-5 space-y-4 print:hidden"
+    >
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h4 className="text-sm font-extrabold text-indigo-950 flex items-center gap-2">
@@ -161,6 +185,7 @@ export function TopicAiLab({ topic }: { topic: StudyTopic }) {
         className="flex flex-col sm:flex-row gap-2"
       >
         <input
+          ref={questionInputRef}
           type="text"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}

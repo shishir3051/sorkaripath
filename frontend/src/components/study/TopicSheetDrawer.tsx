@@ -17,6 +17,7 @@ const WIDE_DRAWER_WIDTH = 1140;
 const MIN_DRAWER_WIDTH = 420;
 const VIEWPORT_MARGIN = 36;
 const DRAWER_TRANSITION_MS = 300;
+const DRAWER_WIDTH_STORAGE_KEY = "sorkaripath:topic-drawer-width";
 
 function clampDrawerWidth(width: number): number {
   const maxWidth =
@@ -24,6 +25,14 @@ function clampDrawerWidth(width: number): number {
       ? WIDE_DRAWER_WIDTH
       : Math.max(480, window.innerWidth - VIEWPORT_MARGIN);
   return Math.round(Math.min(Math.max(width, MIN_DRAWER_WIDTH), maxWidth));
+}
+
+function persistDrawerWidth(width: number): void {
+  try {
+    window.localStorage.setItem(DRAWER_WIDTH_STORAGE_KEY, String(width));
+  } catch {
+    // Ignore storage quota / privacy mode failures
+  }
 }
 
 export function TopicSheetDrawer({
@@ -94,7 +103,19 @@ export function TopicSheetDrawer({
   }, [isOpen]);
 
   useEffect(() => {
+    const restoreRaf = window.requestAnimationFrame(() => {
+      try {
+        const raw = window.localStorage.getItem(DRAWER_WIDTH_STORAGE_KEY);
+        const parsed = raw ? Number(raw) : NaN;
+        if (Number.isFinite(parsed) && parsed >= MIN_DRAWER_WIDTH) {
+          setDrawerWidth(clampDrawerWidth(parsed));
+        }
+      } catch {
+        // Ignore storage read failures
+      }
+    });
     return () => {
+      window.cancelAnimationFrame(restoreRaf);
       if (closeTimerRef.current !== null) {
         window.clearTimeout(closeTimerRef.current);
       }
@@ -135,7 +156,11 @@ export function TopicSheetDrawer({
           : Math.max(WIDE_DRAWER_WIDTH, Math.round(window.innerWidth * 0.88))
       );
       const isCurrentlyWide = current >= targetWide - 40;
-      return isCurrentlyWide ? clampDrawerWidth(DEFAULT_DRAWER_WIDTH) : targetWide;
+      const next = isCurrentlyWide
+        ? clampDrawerWidth(DEFAULT_DRAWER_WIDTH)
+        : targetWide;
+      persistDrawerWidth(next);
+      return next;
     });
   }, []);
 
@@ -154,9 +179,11 @@ export function TopicSheetDrawer({
       document.body.style.userSelect = "none";
       setIsResizing(true);
 
+      let latestWidth = startWidth;
       const handlePointerMove = (moveEvent: PointerEvent) => {
         const delta = startX - moveEvent.clientX;
-        setDrawerWidth(clampDrawerWidth(startWidth + delta));
+        latestWidth = clampDrawerWidth(startWidth + delta);
+        setDrawerWidth(latestWidth);
       };
 
       const stopResize = () => {
@@ -166,6 +193,7 @@ export function TopicSheetDrawer({
         document.body.style.cursor = prevCursor;
         document.body.style.userSelect = prevUserSelect;
         setIsResizing(false);
+        persistDrawerWidth(latestWidth);
         dragCleanupRef.current = null;
       };
 
@@ -184,22 +212,32 @@ export function TopicSheetDrawer({
       const step = event.shiftKey ? 96 : 40;
       if (event.key === "ArrowLeft") {
         event.preventDefault();
-        setDrawerWidth((w) => clampDrawerWidth(w + step));
+        setDrawerWidth((w) => {
+          const next = clampDrawerWidth(w + step);
+          persistDrawerWidth(next);
+          return next;
+        });
       } else if (event.key === "ArrowRight") {
         event.preventDefault();
-        setDrawerWidth((w) => clampDrawerWidth(w - step));
+        setDrawerWidth((w) => {
+          const next = clampDrawerWidth(w - step);
+          persistDrawerWidth(next);
+          return next;
+        });
       } else if (event.key === "Home") {
         event.preventDefault();
-        setDrawerWidth(clampDrawerWidth(MIN_DRAWER_WIDTH));
+        const next = clampDrawerWidth(MIN_DRAWER_WIDTH);
+        persistDrawerWidth(next);
+        setDrawerWidth(next);
       } else if (event.key === "End") {
         event.preventDefault();
-        setDrawerWidth(
-          clampDrawerWidth(
-            typeof window === "undefined"
-              ? WIDE_DRAWER_WIDTH
-              : window.innerWidth - VIEWPORT_MARGIN
-          )
+        const next = clampDrawerWidth(
+          typeof window === "undefined"
+            ? WIDE_DRAWER_WIDTH
+            : window.innerWidth - VIEWPORT_MARGIN
         );
+        persistDrawerWidth(next);
+        setDrawerWidth(next);
       }
     },
     []

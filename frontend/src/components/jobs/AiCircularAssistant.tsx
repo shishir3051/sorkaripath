@@ -8,12 +8,14 @@ import {
   BookOpen,
   Bot,
   CheckCircle2,
+  ChevronDown,
   ExternalLink,
   FileText,
   Globe,
   GraduationCap,
   HelpCircle,
   Loader2,
+  Maximize2,
   MessageSquare,
   Mic,
   MicOff,
@@ -287,6 +289,7 @@ export function AiCircularAssistant() {
     pathname.startsWith("/practice");
 
   const [open, setOpen] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(false);
   const [selectedMode, setSelectedMode] = useState<AssistantMode | null>(null);
   const [input, setInput] = useState("");
   const [liveRefresh, setLiveRefresh] = useState(true);
@@ -304,9 +307,19 @@ export function AiCircularAssistant() {
     selectedMode ?? (isStudyRoute ? "tutor" : "circular");
 
   const scrollBodyRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const seqRef = useRef(0);
+
+  const syncTextareaHeight = useCallback(
+    (target?: HTMLTextAreaElement | null) => {
+      const el = target ?? inputRef.current;
+      if (!el) return;
+      el.style.height = "auto";
+      el.style.height = `${Math.min(el.scrollHeight, 112)}px`;
+    },
+    []
+  );
 
   const nextId = () => {
     seqRef.current += 1;
@@ -382,6 +395,9 @@ export function AiCircularAssistant() {
       };
       setMessages((prev) => [...prev, userMsg]);
       setInput("");
+      if (inputRef.current) {
+        inputRef.current.style.height = "auto";
+      }
       setVoiceNotice(null);
       setLoading(true);
 
@@ -491,6 +507,7 @@ export function AiCircularAssistant() {
       }
       const trimmed = combined.trim();
       setInput(trimmed);
+      window.requestAnimationFrame(() => syncTextareaHeight());
       if (isFinal && trimmed.length >= 2 && !submitted) {
         submitted = true;
         finalTranscript = trimmed;
@@ -528,7 +545,7 @@ export function AiCircularAssistant() {
       setIsListening(false);
       setVoiceNotice("Could not start microphone. Please retry.");
     }
-  }, [liveRefresh, loading, runDiscover, stopSpeaking, voiceLang]);
+  }, [liveRefresh, loading, runDiscover, stopSpeaking, syncTextareaHeight, voiceLang]);
 
   useEffect(() => {
     return () => {
@@ -557,10 +574,15 @@ export function AiCircularAssistant() {
   useEffect(() => {
     if (!open) return;
     function onKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
+      if (
+        e.key === "Escape" &&
+        !document.querySelector('[role="dialog"][aria-modal="true"]')
+      ) {
+        setOpen(false);
+      }
     }
     window.addEventListener("keydown", onKeyDown);
-    const focusTimer = setTimeout(() => inputRef.current?.focus(), 80);
+    const focusTimer = setTimeout(() => inputRef.current?.focus(), 140);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
       clearTimeout(focusTimer);
@@ -578,13 +600,22 @@ export function AiCircularAssistant() {
     void runDiscover(input, liveRefresh);
   }
 
-  if (!open) {
-    return (
+  const activePresets = activeMode === "tutor" ? TUTOR_PRESETS : CIRCULAR_PRESETS;
+
+  return (
+    <>
+      {/* Floating Launcher Pill */}
       <button
         type="button"
         onClick={() => setOpen(true)}
+        aria-hidden={open}
+        tabIndex={open ? -1 : 0}
         aria-label="Open Gemini AI Live Circular and Study Chat"
-        className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-emerald-700 to-teal-800 px-4 py-3 text-white shadow-xl shadow-emerald-950/25 ring-2 ring-white/80 hover:from-emerald-800 hover:to-teal-900 hover:scale-[1.03] active:scale-[0.98] transition-all cursor-pointer"
+        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 inline-flex items-center gap-2.5 rounded-full bg-gradient-to-r from-emerald-700 to-teal-800 px-4 py-3 text-white shadow-xl shadow-emerald-950/25 ring-2 ring-white/80 hover:from-emerald-800 hover:to-teal-900 hover:scale-[1.03] active:scale-[0.98] transition-all duration-300 ease-in-out motion-reduce:transition-none cursor-pointer print:hidden ${
+          open
+            ? "invisible pointer-events-none scale-90 translate-y-2 opacity-0"
+            : "visible pointer-events-auto scale-100 translate-y-0 opacity-100"
+        }`}
       >
         <span className="relative flex h-6 w-6 items-center justify-center rounded-full bg-white/15">
           <MessageSquare className="h-3.5 w-3.5 text-emerald-100" />
@@ -599,16 +630,21 @@ export function AiCircularAssistant() {
           </span>
         )}
       </button>
-    );
-  }
 
-  const activePresets = activeMode === "tutor" ? TUTOR_PRESETS : CIRCULAR_PRESETS;
-
-  return (
-    <section
-      aria-label="Gemini AI Study and Live Circular Chat"
-      className="fixed inset-x-3 bottom-3 z-50 flex h-[min(82dvh,640px)] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/25 sm:inset-x-auto sm:bottom-6 sm:right-6 sm:w-[440px] sm:max-w-[calc(100vw-3rem)]"
-    >
+      {/* Smooth Open/Minimize & Expandable Chat Panel */}
+      <section
+        aria-label="Gemini AI Study and Live Circular Chat"
+        aria-hidden={!open}
+        className={`fixed inset-x-3 bottom-3 z-50 flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl shadow-slate-900/25 origin-bottom-right transition-[opacity,transform,width,height,visibility] duration-300 ease-in-out motion-reduce:transition-none sm:inset-x-auto sm:bottom-6 sm:right-6 sm:max-w-[calc(100vw-3rem)] print:hidden ${
+          isExpanded
+            ? "h-[min(88dvh,780px)] sm:w-[min(680px,calc(100vw-3rem))]"
+            : "h-[min(82dvh,640px)] sm:w-[440px]"
+        } ${
+          open
+            ? "visible pointer-events-auto translate-y-0 scale-100 opacity-100"
+            : "invisible pointer-events-none translate-y-4 scale-95 opacity-0"
+        }`}
+      >
       {/* Floating Chat Header */}
       <div className="flex items-center justify-between gap-2 bg-gradient-to-r from-emerald-800 to-teal-900 px-4 py-3 text-white shrink-0">
         <div className="flex items-center gap-2.5 min-w-0">
@@ -634,7 +670,7 @@ export function AiCircularAssistant() {
             }}
             title={autoSpeakReplies ? "Auto-voice reply ON" : "Auto-voice reply OFF"}
             aria-label={autoSpeakReplies ? "Disable voice replies" : "Enable voice replies"}
-            className={`rounded-lg p-1.5 transition-colors cursor-pointer ${
+            className={`rounded-lg p-1.5 transition-colors duration-200 ease-in-out cursor-pointer ${
               autoSpeakReplies
                 ? "bg-white/20 text-white"
                 : "text-emerald-100/70 hover:bg-white/15 hover:text-white"
@@ -656,11 +692,24 @@ export function AiCircularAssistant() {
               disabled={loading}
               title="Clear chat"
               aria-label="Clear chat conversation"
-              className="rounded-lg p-1.5 text-emerald-100 hover:bg-white/15 hover:text-white disabled:opacity-50 cursor-pointer"
+              className="rounded-lg p-1.5 text-emerald-100 transition-colors duration-200 ease-in-out hover:bg-white/15 hover:text-white disabled:opacity-50 cursor-pointer"
             >
               <Trash2 className="h-4 w-4" />
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => setIsExpanded((prev) => !prev)}
+            title={isExpanded ? "Compact chat size" : "Expand chat wider"}
+            aria-label={isExpanded ? "Compact chat window" : "Expand chat window"}
+            className="hidden sm:inline-flex rounded-lg p-1.5 text-emerald-100 transition-colors duration-200 ease-in-out hover:bg-white/15 hover:text-white cursor-pointer"
+          >
+            {isExpanded ? (
+              <Minimize2 className="h-4 w-4" />
+            ) : (
+              <Maximize2 className="h-4 w-4" />
+            )}
+          </button>
           <button
             type="button"
             onClick={() => {
@@ -670,9 +719,9 @@ export function AiCircularAssistant() {
             }}
             title="Minimize chat"
             aria-label="Minimize chat window"
-            className="rounded-lg p-1.5 text-emerald-100 hover:bg-white/15 hover:text-white cursor-pointer"
+            className="rounded-lg p-1.5 text-emerald-100 transition-colors duration-200 ease-in-out hover:bg-white/15 hover:text-white cursor-pointer"
           >
-            <Minimize2 className="h-4 w-4 hidden sm:block" />
+            <ChevronDown className="h-4 w-4 hidden sm:block" />
             <X className="h-4 w-4 sm:hidden" />
           </button>
         </div>
@@ -1165,7 +1214,7 @@ export function AiCircularAssistant() {
       {/* Chat Composer */}
       <form
         onSubmit={handleSubmit}
-        className="flex items-center gap-1.5 border-t border-slate-200 bg-white p-3 shrink-0"
+        className="flex items-end gap-1.5 border-t border-slate-200 bg-white p-3 shrink-0"
       >
         <button
           type="button"
@@ -1173,8 +1222,13 @@ export function AiCircularAssistant() {
           onClick={() =>
             setVoiceLang((prev) => (prev === "en-US" ? "bn-BD" : "en-US"))
           }
-          title="Switch voice recognition language (English / বাংলা)"
-          className="h-9 shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-2 text-[10px] font-extrabold text-slate-700 hover:bg-slate-100 cursor-pointer"
+          title={`Voice recognition language: ${
+            voiceLang === "bn-BD" ? "বাংলা (tap to switch to English)" : "English (tap to switch to বাংলা)"
+          }`}
+          aria-label={`Voice language ${
+            voiceLang === "bn-BD" ? "Bangla" : "English"
+          }. Tap to toggle`}
+          className="h-9 shrink-0 rounded-xl border border-slate-200 bg-slate-50 px-2.5 text-[10px] font-extrabold text-slate-700 transition-colors duration-200 ease-in-out hover:bg-slate-100 cursor-pointer"
         >
           {voiceLang === "bn-BD" ? "বাংলা" : "EN"}
         </button>
@@ -1187,7 +1241,7 @@ export function AiCircularAssistant() {
           }
           title={isListening ? "Stop listening" : "Speak with Gemini AI"}
           aria-label={isListening ? "Stop voice input" : "Speak with Gemini AI"}
-          className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors cursor-pointer disabled:opacity-45 ${
+          className={`inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl transition-colors duration-200 ease-in-out cursor-pointer disabled:opacity-45 ${
             isListening
               ? "bg-rose-600 text-white animate-pulse"
               : "border border-indigo-200 bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
@@ -1200,23 +1254,34 @@ export function AiCircularAssistant() {
           )}
         </button>
 
-        <input
+        <textarea
           ref={inputRef}
-          type="text"
+          rows={1}
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={(e) => {
+            setInput(e.target.value);
+            syncTextareaHeight(e.currentTarget);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+              e.preventDefault();
+              if (!loading && input.trim().length >= 2) {
+                void runDiscover(input, liveRefresh);
+              }
+            }
+          }}
           placeholder={
             activeMode === "tutor"
               ? "Type or tap mic to ask study doubts..."
               : "Type or tap mic to ask about jobs & study..."
           }
-          className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:border-emerald-600 focus:bg-white focus:outline-none"
+          className="min-w-0 max-h-28 min-h-9 flex-1 resize-none overflow-y-auto rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs sm:text-sm leading-snug text-slate-900 placeholder:text-slate-400 transition-colors duration-200 ease-in-out focus:border-emerald-600 focus:bg-white focus:outline-none"
         />
         <button
           type="submit"
           disabled={loading || input.trim().length < 2}
           aria-label="Send message to Gemini AI"
-          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white hover:bg-emerald-800 disabled:opacity-45 cursor-pointer"
+          className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-700 text-white transition-colors duration-200 ease-in-out hover:bg-emerald-800 disabled:opacity-45 cursor-pointer"
         >
           {loading ? (
             <Loader2 className="h-4 w-4 animate-spin" />
@@ -1225,6 +1290,7 @@ export function AiCircularAssistant() {
           )}
         </button>
       </form>
-    </section>
+      </section>
+    </>
   );
 }
