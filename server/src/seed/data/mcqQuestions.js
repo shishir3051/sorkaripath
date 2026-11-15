@@ -4,6 +4,9 @@ import { bcs40to46ExpansionMcqs } from "./mcqs/bcs40to46ExpansionMcqs.js";
 import { bcs30to39ArchiveMcqs } from "./mcqs/bcs30to39ArchiveMcqs.js";
 import { bcs10to29ArchiveMcqs } from "./mcqs/bcs10to29ArchiveMcqs.js";
 import { ministryPostOfficeMcqs } from "./mcqs/ministryPostOfficeMcqs.js";
+import { postOfficeGrade11To20ExpansionMcqs } from "./mcqs/postOfficeGrade11To20ExpansionMcqs.js";
+import { directoratesFoodLgEdCgaMcqs } from "./mcqs/directoratesFoodLgEdCgaMcqs.js";
+import { computerOperatorTypistMcqs } from "./mcqs/computerOperatorTypistMcqs.js";
 import { primaryNtrcaArchiveMcqs } from "./mcqs/primaryNtrcaArchiveMcqs.js";
 import { bankAndRulesArchiveMcqs } from "./mcqs/bankAndRulesArchiveMcqs.js";
 import { deepCoverageArchiveMcqs } from "./mcqs/deepCoverageArchiveMcqs.js";
@@ -1185,6 +1188,9 @@ export const mcqQuestionsData = [
   ...bcs30to39ArchiveMcqs,
   ...bcs10to29ArchiveMcqs,
   ...ministryPostOfficeMcqs,
+  ...postOfficeGrade11To20ExpansionMcqs,
+  ...directoratesFoodLgEdCgaMcqs,
+  ...computerOperatorTypistMcqs,
   ...primaryNtrcaArchiveMcqs,
   ...bankAndRulesArchiveMcqs,
   ...deepCoverageArchiveMcqs,

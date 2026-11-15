@@ -252,6 +252,8 @@ const STUDY_BATCH_DEFINITIONS = [
     featuredSeries: [
       "Bangladesh Post Office & Directorate Archive",
       "Ministry Grade 11-20 Archive",
+      "DG Food, CGA Auditor & Ministry Archive",
+      "Computer Operator & Steno-Typist Archive",
       "2026 Govt Rules & Constitution Archive",
     ],
   },
