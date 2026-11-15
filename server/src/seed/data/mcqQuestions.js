@@ -7,6 +7,9 @@ import { ministryPostOfficeMcqs } from "./mcqs/ministryPostOfficeMcqs.js";
 import { postOfficeGrade11To20ExpansionMcqs } from "./mcqs/postOfficeGrade11To20ExpansionMcqs.js";
 import { directoratesFoodLgEdCgaMcqs } from "./mcqs/directoratesFoodLgEdCgaMcqs.js";
 import { computerOperatorTypistMcqs } from "./mcqs/computerOperatorTypistMcqs.js";
+import { dpePrimary2022To2024PhasesMcqs } from "./mcqs/dpePrimary2022To2024PhasesMcqs.js";
+import { dpePrimary2010To2019ArchiveMcqs } from "./mcqs/dpePrimary2010To2019ArchiveMcqs.js";
+import { ntrca1stTo18thArchiveMcqs } from "./mcqs/ntrca1stTo18thArchiveMcqs.js";
 import { primaryNtrcaArchiveMcqs } from "./mcqs/primaryNtrcaArchiveMcqs.js";
 import { bankAndRulesArchiveMcqs } from "./mcqs/bankAndRulesArchiveMcqs.js";
 import { deepCoverageArchiveMcqs } from "./mcqs/deepCoverageArchiveMcqs.js";
@@ -1191,6 +1194,9 @@ export const mcqQuestionsData = [
   ...postOfficeGrade11To20ExpansionMcqs,
   ...directoratesFoodLgEdCgaMcqs,
   ...computerOperatorTypistMcqs,
+  ...dpePrimary2022To2024PhasesMcqs,
+  ...dpePrimary2010To2019ArchiveMcqs,
+  ...ntrca1stTo18thArchiveMcqs,
   ...primaryNtrcaArchiveMcqs,
   ...bankAndRulesArchiveMcqs,
   ...deepCoverageArchiveMcqs,

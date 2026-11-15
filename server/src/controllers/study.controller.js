@@ -233,6 +233,8 @@ const STUDY_BATCH_DEFINITIONS = [
       "High-retention NCTB Class 5–10 foundation: Bangla grammar, English basics, short-cut arithmetic, Liberation War, classroom pedagogy and 40%+ qualifying drills.",
     recommendedModelTestId: "primary-ntrca-mock",
     featuredSeries: [
+      "DPE Primary Phase 1-3 (2022-2024) Archive",
+      "1st-17th NTRCA School & College Archive",
       "18th NTRCA & Primary Master Archive",
       "DPE Primary Teacher Master Archive",
       "Primary & NTRCA Archive",
