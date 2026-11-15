@@ -502,6 +502,11 @@ export async function getStudyTopics(req, res, next) {
         { "chapters.heading": rx },
         { "chapters.explanation": rx },
         { "chapters.points": rx },
+        { "chapters.workedExamples": rx },
+        { "chapters.commonMistakes": rx },
+        { "chapters.formulaBox.label": rx },
+        { "chapters.formulaBox.formula": rx },
+        { "chapters.practiceProblems.question": rx },
       ];
     }
 

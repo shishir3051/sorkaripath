@@ -8,6 +8,7 @@ import { extraCoreTopics } from "./topics/extraCoreTopics.js";
 import { nctbBanglaTopics } from "./topics/nctbBanglaTopics.js";
 import { nctbEnglishTopics } from "./topics/nctbEnglishTopics.js";
 import { nctbMathAndCoreTopics } from "./topics/nctbMathAndCoreTopics.js";
+import { nctbMathDeepTopics } from "./topics/nctbMathDeepTopics.js";
 
 export const studyTopicsData = [
   ...banglaTopics,
@@ -20,4 +21,5 @@ export const studyTopicsData = [
   ...nctbBanglaTopics,
   ...nctbEnglishTopics,
   ...nctbMathAndCoreTopics,
+  ...nctbMathDeepTopics,
 ];

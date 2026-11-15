@@ -1,91 +1,220 @@
 export const scienceIctTopics = [
   {
-    title: "General Science: Physics, Optics, Electricity, Human Biology & Vitamins",
+    title: "সাধারণ বিজ্ঞান: পদার্থবিদ্যা, আলোকবিজ্ঞান, তড়িৎ, মানবদেহ ও ভিটামিন (NCTB ২০২৬ বাংলা ভার্সন)",
     slug: "science-physics-biology-vitamins",
     subject: "General Science & ICT",
     unit: "দৈনন্দিন বিজ্ঞান ও জীববিজ্ঞান",
     targetTracks: ["BCS", "Primary & NTRCA", "Grade 11-20"],
-    estimatedMinutes: 40,
+    estimatedMinutes: 50,
     highYieldSummary:
-      "Complete 2026 NCTB Class 9–10 aligned General Science syllabus (Ch 1, 3, 4, 5, 10, 11) for BCS Preliminary (15 marks), Primary Teacher, and Ministry jobs: Newton's Laws, Fundamental Forces & Frictions, Mirrors/Lenses/Eye Defects, Household Electricity & BOT Units (IPS vs UPS), Food Preservation & BMI, Blood/ABO-Rh, XY Sex Determination, and Vitamins.",
+      "২০২৬ NCTB নবম-দশম শ্রেণির সাধারণ বিজ্ঞান (অধ্যায় ১, ৩, ৪, ৫, ১০, ১১)-এর আলোকে নিউটনের গতিসূত্র, ৪টি মৌলিক বল ও ঘর্ষণ, দর্পণ-লেন্স ও চোখের ত্রুটি (মায়োপিয়া-হাইপারমেট্রোপিয়া), বাসাবাড়ির সমান্তরাল বর্তনী ও তড়িৎ বিল (BOT ইউনিট), IPS বনাম UPS, ফরমালিন ঝুঁকি, BMI, রক্ত ও Rh ফ্যাক্টর, XY লিঙ্গ নির্ধারণ এবং ভিটামিন-অণুজীব ঘাটতির পূর্ণ বাংলা ভার্সন পাঠ্যলেকচার।",
     keyFacts: [
-      "Force & Motion (NCTB Ch 10): 4 Fundamental Forces (Weakest -> Strongest): Gravitational < Weak Nuclear < Electromagnetic < Strong Nuclear. 4 Frictions: Static, Sliding, Rolling (smallest solid friction), Fluid. Newton's 2nd Law: F = ma (1 N = 1 kg·m/s²); Mass measures Inertia.",
-      "Optics & Human Eye (NCTB Ch 5): Lens Power P = 1 / f(m) in Dioptre (D). Normal eye least distance of distinct vision = 25 cm. Myopia (হ্রস্বদৃষ্টি) -> Concave (অবতল) lens (-D); Hypermetropia (দীর্ঘদৃষ্টি) -> Convex (উত্তল) lens (+D).",
-      "Electricity & Energy (NCTB Ch 11): 1 kWh (BOT Unit) = 3.6 × 10⁶ J. Billing Formula: Unit = (Watt × Hour × Days) / 1000. Household wiring is ALWAYS Parallel (220V, 50Hz); UPS switchover (<10 ms) protects computer data unlike slower IPS.",
-      "Blood, BMI & Genetics (NCTB Ch 1, 3, 4): BMI = Weight(kg) / [Height(m)]² (Normal: 18.5–24.9). Blood = 55% Plasma + 45% Corpuscles (RBC 4.5–5.5M, WBC 4k–11k, Platelets 1.5–4L per mm³). Universal donor = O-, recipient = AB+ (check ABO + Rh factor). XY Sex Determination: Father's Y sperm determines male child (XY); X sperm gives female (XX).",
-      "Vitamins & Deficiency: Fat-soluble = A, D, E, K ('KEDA'); Water-soluble = B-Complex & C. Vit A -> Night blindness; B1 -> Beriberi; B3 -> Pellagra; C -> Scurvy; D -> Rickets/Osteomalacia; K -> Delayed blood clotting; Iron -> Anemia; Iodine -> Goiter.",
+      "বল ও গতি (NCTB অধ্যায় ১০): প্রকৃতির ৪টি মৌলিক বল (দুর্বলতম → সবলতম): মহাকর্ষ < দুর্বল নিউক্লীয় < তড়িৎচৌম্বক < সবল নিউক্লীয়। ৪ প্রকার ঘর্ষণের মধ্যে আবর্ত ঘর্ষণ (Rolling friction) সবচেয়ে কম!",
+      "আলো ও চোখের ত্রুটি (NCTB অধ্যায় ৫): লেন্সের ক্ষমতা P = 1 / f (মিটারে), একক ডায়াপ্টার (D)। সুস্থ চোখের স্পষ্ট দর্শনের ন্যূনতম দূরত্ব ২৫ সেমি। হ্রস্বদৃষ্টি (Myopia) → অবতল (-) লেন্স; দীর্ঘদৃষ্টি (Hypermetropia) → উত্তল (+) লেন্স।",
+      "তড়িৎ ও বিদ্যুৎ বিল (NCTB অধ্যায় ১১): 1 kWh (১ BOT ইউনিট) = 3.6 × 10⁶ জুল। বাসাবাড়ির ওয়্যারিং সর্বদা সমান্তরাল (220V, 50Hz); সুইচ ও ফিউজ লাইভ তারের সাথে শ্রেণিতে যুক্ত।",
+      "BMI, রক্ত ও জেনেটিক্স (NCTB অধ্যায় ১, ৩, ৪): BMI = ওজন(কেজি) / [উচ্চতা(মি.)]² (স্বাভাবিক: ১৮.৫–২৪.৯)। সর্বজনীন দাতা O-, গ্রহীতা AB+। XY লিঙ্গ নির্ধারণে পিতার Y ক্রোমোজোমযুক্ত শুক্রাণুই পুত্র সন্তানের জৈবিক নির্ধারক।",
+      "ভিটামিন ও অভাবজনিত রোগ: চর্বিতে দ্রবণীয় = A, D, E, K ('কেডা'); পানিতে দ্রবণীয় = B-কমপ্লেক্স ও C। ভিটামিন A → রাতকানা, B1 → বেরিবেরি, C → স্কার্ভি, D → রিকেটস, K → রক্ত জমাট বাঁধায় বিলম্ব।",
     ],
     memoryTricks: [
-      "Remember 'Greenhouse Gases': CO₂ (major warming), Methane (CH₄ — rice fields/cattle), Nitrous Oxide (N₂O), Water Vapor, CFCs (also destroy Ozone O₃ layer -> banned by 1987 Montreal Protocol).",
-      "pH Scale < 7 = Acidic (Lemon/Citric, Vinegar/Acetic, Stomach/HCl); pH 7 = Pure Water; pH > 7 = Alkaline/Base (Human blood slightly alkaline: 7.35–7.45).",
-      "Myopia vs Hypermetropia: 'Short-sighted (Myopia) uses Concave (-); Long-sighted (Hypermetropia) uses Convex (+)'.",
+      "চোখের ত্রুটি মনে রাখার সোজা নিয়ম: 'হ্রস্বদৃষ্টি (Myopia) = কাছ দেখে, দূরে ঝাপসা → অবতল (-) লেন্স'; 'দীর্ঘদৃষ্টি (Hypermetropia) = দূর দেখে, কাছে ঝাপসা → উত্তল (+) লেন্স'।",
+      "প্লাটিনাম ট্রিক — ৪° সেলসিয়াস তাপমাত্রায় পানির ঘনত্ব সর্বাধিক ও আয়তন সর্বনিম্ন; আর -40° তাপমাত্রায় সেলসিয়াস ও ফারেনহাইট স্কেল সমান পাঠ দেয়!",
+      "গ্রিনহাউস গ্যাস (তাপ বাড়ায়): কার্বন ডাই-অক্সাইড (CO₂), মিথেন (CH₄ — ধানক্ষেত/গবাদিপশু), নাইট্রাস অক্সাইড (N₂O), জলীয় বাষ্প ও CFC (যা ওজোন স্তর O₃ ধ্বংস করে)।",
     ],
     quickExamples: [
-      { label: "SI Units Rapid Check", detail: "Force = Newton; Work/Energy = Joule; Power = Watt (1 HP = 746W); Charge = Coulomb; Frequency = Hertz; Pressure = Pascal; Lens Power = Dioptre" },
-      { label: "Electricity Bill Formula", detail: "Five 60W bulbs × 5 hrs × 30 days = (5×60×5×30)/1000 = 45 Units (kWh)" },
-      { label: "Eye Least Distance & Lens", detail: "25 cm distinct vision; P = +2D convex lens => f = 1/2 = +0.5 m (+50 cm)" },
-      { label: "Dengue / Malaria Vectors", detail: "Dengue/Chikungunya = Aedes mosquito (viral, drops platelets); Malaria = Female Anopheles mosquito (protozoa Plasmodium)" },
+      { label: "মৌলিক SI একক দ্রুত রিভিশন", detail: "বল = নিউটন; কাজ/শক্তি = জুল; ক্ষমতা = ওয়াট (1 HP = 746W); তড়িৎ আধান = কুলম্ব; কম্পাঙ্ক = হার্টজ; চাপ = প্যাসকেল; লেন্স ক্ষমতা = ডায়াপ্টার" },
+      { label: "বিদ্যুৎ বিল হিসাব", detail: "৫টি ৬০ ওয়াটের বাল্ব দৈনিক ৫ ঘণ্টা করে ৩০ দিন জ্বললে = (৫×৬০×৫×৩০)/১০০০ = ৪৫ ইউনিট" },
+      { label: "লেন্সের ফোকাস দূরত্ব", detail: "+2D উত্তল লেন্স ⇒ ফোকাস দূরত্ব f = +1/2 = +0.5 মিটার (+50 সেমি)" },
+      { label: "ডেঙ্গু বনাম ম্যালেরিয়া", detail: "ডেঙ্গু = ভাইরাস (এডিস মশা, দিনে কামড়ায়, অণুচক্রিকা কমে); ম্যালেরিয়া = প্রোটোজোয়া (স্ত্রী অ্যানোফিলিস, রাতে কামড়ায়)" },
     ],
     chapters: [
       {
-        heading: "Chapter 1: Mechanics, Fundamental Forces, Friction, Heat, Sound & Optics (Ch 5, 10)",
+        heading: "অধ্যায় ১: বলবিদ্যা, ঘর্ষণ, তাপ, শব্দ ও আলোকবিজ্ঞান (NCTB অধ্যায় ৫ ও ১০)",
         explanation:
-          "Covers 2026 NCTB General Science Ch 5 (Light for Vision) & Ch 10 (Force), plus classical physical quantities, heat anomalies, sound waves, and scientific measuring instruments.",
+          "দৈনন্দিন পদার্থবিজ্ঞান থেকে প্রতি বছর বিসিএস, প্রাইমারি ও মন্ত্রণালয় পরীক্ষায় মৌলিক সূত্র, ঘর্ষণ ও চোখের দৃষ্টির ত্রুটি থেকে প্রশ্ন আসে। নিউটনের ১ম সূত্র আমাদের 'জড়তা' (Inertia) শেখায়—চলন্ত বাস হঠাৎ থামলে যাত্রী সামনে ঝুঁকে পড়ে 'গতিজড়তা'র কারণে, আর থেমে থাকা বাস হঠাৎ চললে পেছনে হেলে পড়ে 'স্থিতিজড়তা'র কারণে। মনে রাখবেন, বস্তুর ভরই হলো তার জড়তার পরিমাপ।\n\nNCTB ২০২৬ অধ্যায় ৫-এ আলো ও দৃষ্টি বিষয়ে চোখের দুটি প্রধান ত্রুটির বৈজ্ঞানিক কারণ খুব সুন্দরভাবে দেওয়া আছে: হ্রস্বদৃষ্টি বা মায়োপিয়া হলে দূরের বস্তুর প্রতিবিম্ব রেটিনার সামনেই তৈরি হয়ে যায়—তাই অবতল (Concave, ঋণাত্মক ক্ষমতা '-') লেন্স ব্যবহার করে রশ্মিগুলোকে সামান্য ছড়িয়ে রেটিনায় ফেলতে হয়। অন্যদিকে দীর্ঘদৃষ্টি বা হাইপারমেট্রোপিয়ায় কাছের বস্তুর প্রতিবিম্ব রেটিনার পেছনে চলে যায়—তাই উত্তল (Convex, ধনাত্মক ক্ষমতা '+') লেন্স দিয়ে রশ্মি অভিসারী করে রেটিনায় আনা হয়।",
+        formulaBox: [
+          {
+            label: "নিউটনের ২য় সূত্র ও লেন্স ক্ষমতা",
+            formula: "F = m·a  (1 N = 1 kg·m/s²)   |   P = 1 / f (মিটারে)",
+            note: "১ হর্সপাওয়ার (HP) = ৭৪৬ ওয়াট; লেন্স ক্ষমতার একক ডায়াপ্টার (D)",
+          },
+          {
+            label: "তাপমাত্রা রূপান্তর সূত্র",
+            formula: "C / 5 = (F - 32) / 9 = (K - 273) / 5",
+            note: "মানুষের স্বাভাবিক তাপমাত্রা 98.4°F / 98.6°F (37°C); -40°-এ C ও F সমান",
+          },
+          {
+            label: "স্বাভাবিক চোখের দৃষ্টিসীমা",
+            formula: "স্পষ্ট দর্শনের ন্যূনতম দূরত্ব = ২৫ সেমি; দূরবিন্দু = অসীম (∞)",
+            note: "অভিসারী উত্তল লেন্স (+) এবং অপসারী অবতল লেন্স (-)",
+          },
+        ],
+        comparisonTable: {
+          title: "চোখের দৃষ্টির ত্রুটি, দর্পণ ও ঘর্ষণের পূর্ণ তুলনামূলক ছক",
+          headers: ["ত্রুটি / বিষয়", "মূল কারণ ও লক্ষণ", "সঠিক প্রতিকার / উদাহরণ"],
+          rows: [
+            ["হ্রস্বদৃষ্টি (Myopia)", "দূরের বস্তু ঝাপসা দেখে; প্রতিবিম্ব রেটিনার সামনে গঠিত হয়", "অবতল লেন্স (-D ক্ষমতার চশমা)"],
+            ["দীর্ঘদৃষ্টি (Hypermetropia)", "কাছের বই পড়তে কষ্ট হয়; প্রতিবিম্ব রেটিনার পেছনে গঠিত হয়", "উত্তল লেন্স (+D ক্ষমতার চশমা)"],
+            ["চালসে (Presbyopia) ও বিষমদৃষ্টি", "বয়সজনিত নমনীয়তা হ্রাস / কর্নিয়ার বক্রতার ত্রুটি", "বাইফোকাল লেন্স (চালসে); সিলিন্ড্রিক্যাল (বিষমদৃষ্টি)"],
+            ["অবতল দর্পণ বনাম উত্তল দর্পণ", "অবতল = বড় প্রতিবিম্ব দেয়; উত্তল = বিস্তৃত ও সোজা প্রতিবিম্ব দেয়", "দাঁতের ডাক্তার ও হেডলাইটে অবতল; গাড়ির লুকিং গ্লাসে উত্তল"],
+            ["৪ প্রকার ঘর্ষণ", "স্থিতি, পিছলানো (Sliding), আবর্ত (Rolling), প্রবাহী (Fluid)", "কঠিন ঘর্ষণের মধ্যে আবর্ত ঘর্ষণ (চাকা/বল-বিয়ারিং) সবচেয়ে কম"],
+          ],
+        },
         points: [
-          "1. Newton's 3 Laws & Inertia: 1st Law defines Inertia (Static inertia: bus starts suddenly -> passenger leans back; Dynamic inertia: moving bus brakes -> passenger leans forward; Mass is the measure of inertia). 2nd Law: F = ma (rate of change of momentum). 3rd Law: Action = -Reaction (equal & opposite on two DIFFERENT bodies: walking, swimming, rocket launch).",
-          "2. 4 Fundamental Forces & 4 Frictions: Forces (weakest to strongest): (a) Gravitational (infinite range, weakest), (b) Weak Nuclear (beta decay, ~10⁻¹⁸ m), (c) Electromagnetic (charged particles), (d) Strong Nuclear (binds protons/neutrons in nucleus, strongest). Frictions: Static (at rest), Sliding, Rolling (SMALLEST solid friction -> wheels/ball bearings!), Fluid (air/water drag -> streamlined shape).",
-          "3. Scalar vs Vector & Heat Anomaly: Vector = Velocity, Displacement, Force, Acceleration, Weight, Momentum; Scalar = Mass, Speed, Work, Energy, Power, Time, Temperature. Water has MAXIMUM density & MINIMUM volume at 4°C. Clinical Thermometer: 95°F–110°F (Normal human temp = 98.4°F / 98.6°F = 37°C). Relation: C/5 = (F-32)/9 (identical at -40°!).",
-          "4. Mirrors, Lenses & Optical Phenomena: Concave Mirror (অবতল) = dentist, shaving, headlight; Convex Mirror (উত্তল) = vehicle rear-view mirror (wide erect diminished view). Lens Power P = 1 / f(m) in Dioptre (D): Convex lens (+f, +P, converging), Concave lens (-f, -P, diverging). Mirage, sparkling diamond & optical fiber rely on Total Internal Reflection (পূর্ণ অভ্যন্তরীণ প্রতিফলন); sky looks blue due to Rayleigh Scattering; primary light colors = Red, Green, Blue (RGB).",
-          "5. Human Eye & Vision Defects (NCTB Ch 5): Least distance of distinct vision for normal eye = 25 cm (far point = ∞). Myopia / Short-sightedness (হ্রস্বদৃষ্টি: sees near, blurry far; image forms in FRONT of retina) -> Concave (অবতল) lens. Hypermetropia / Long-sightedness (দীর্ঘদৃষ্টি: sees far, blurry near; image forms BEHIND retina) -> Convex (উত্তল) lens. Astigmatism -> Cylindrical lens; Presbyopia -> Bifocal lens.",
-          "6. Sound & Measuring Instruments: Longitudinal mechanical wave (cannot travel in vacuum; speed fastest in Solid > Liquid > Gas; air at 0°C ≈ 332 m/s). Audible range = 20 Hz–20,000 Hz (>20 kHz = Ultrasound for bats & SONAR); echo requires min ~16.6–17 m. Instruments: Barometer (pressure), Hygrometer (humidity), Anemometer (wind speed), Lactometer (milk purity), Seismograph (earthquake), Fathometer (ocean depth).",
+          "১. ৪টি মৌলিক বল (দুর্বলতম → সবলতম): মহাকর্ষ বল (অসীম পাল্লা, কিন্তু সবচেয়ে দুর্বল) < দুর্বল নিউক্লীয় বল (বিটা ক্ষয়, ~10⁻¹⁸ মি.) < তড়িৎচৌম্বক বল (আধানযুক্ত কণায় কাজ করে) < সবল নিউক্লীয় বল (প্রোটন ও নিউট্রনকে নিউক্লিয়াসে আটকে রাখে, সবচেয়ে শক্তিশালী)।",
+          "২. পূর্ণ অভ্যন্তরীণ প্রতিফলন ও আলো: মরীচিকা, হীরকের উজ্জ্বলতা এবং অপটিক্যাল ফাইবারে ডেটা পরিবহন—সবই পূর্ণ অভ্যন্তরীণ প্রতিফলন (Total Internal Reflection)-এর উদাহরণ। আকাশ নীল দেখায় র‍্যালে আলোক বিচ্ছুরণের (Rayleigh Scattering) কারণে। মৌলিক আলোক বর্ণ ৩টি: লাল, সবুজ, নীল (RGB)।",
+          "৩. শব্দ ও প্রতিধ্বনি: শব্দ একটি অনুদৈর্ঘ্য যান্ত্রিক তরঙ্গ, যা শূন্য মাধ্যমে (মহাকাশে) চলতে পারে না। শব্দের বেগ কঠিন > তরল > বায়বীয় (০° সে.-এ বাতাসে ~৩৩২ মি/সে)। শ্রাব্যতা সীমা ২০ Hz – ২০,০০০ Hz (>২০ kHz = শব্দোত্তর বা আল্ট্রাসাউন্ড, বাদুড় ও SONAR-এ ব্যবহৃত হয়)। প্রতিধ্বনি শোনার ন্যূনতম দূরত্ব ~১৬.৬–১৭ মিটার।",
+          "৪. প্রয়োজনীয় পরিমাপক যন্ত্র: ব্যারোমিটার (বায়ুচাপ), হাইগ্রোমিটার (বায়ুর আর্দ্রতা), অ্যানিমোমিটার (বায়ুর গতিবেগ), ল্যাকটোমিটার (দুধের বিশুদ্ধতা), সিসমোগ্রাফ (ভূমিকম্প), ফ্যাদোমিটার (সমুদ্রের গভীরতা)।",
         ],
         workedExamples: [
-          "Example 1 (Lens Power): A student wears spectacles of power -2.5 D. Identify the lens and focal length. Step: Negative power => Concave lens (for Myopia). f = 1 / (-2.5) = -0.4 m = -40 cm.",
-          "Example 2 (Weight on Moon vs Earth): Moon gravity is 1/6th of Earth's. A 60 kg mass person STILL has 60 kg MASS on the Moon, while their WEIGHT drops to 1/6th (~98 N instead of ~588 N).",
+          "উদাহরণ ১ (লেন্সের অঙ্ক): একজন শিক্ষার্থী -2.5 D ক্ষমতার চশমা ব্যবহার করেন। তাঁর চোখের ত্রুটি কী এবং লেন্সের ফোকাস দূরত্ব কত?\nধাপ ১: যেহেতু ক্ষমতা ঋণাত্মক (-), তাই এটি অবতল (Concave) লেন্স এবং শিক্ষার্থী হ্রস্বদৃষ্টি বা মায়োপিয়ায় (Myopia) ভুগছেন।\nধাপ ২: ফোকাস দূরত্ব f = 1 / P = 1 / (-2.5) = -0.4 মিটার = -40 সেমি।\nউত্তর: অবতল লেন্স, হ্রস্বদৃষ্টি, ফোকাস দূরত্ব -40 সেমি।",
+          "উদাহরণ ২ (ভর বনাম ওজন — চাঁদ ও পৃথিবী): পৃথিবীতে কোনো ব্যক্তির ভর 60 কেজি হলে চাঁদে তাঁর ভর ও ওজন কত হবে?\nধাপ ১: ভর পদার্থের মৌলিক ধর্ম, স্থানভেদে কখনো বদলায় না ⇒ চাঁদে ভর = 60 কেজিই থাকবে।\nধাপ ২: চাঁদের অভিকর্ষজ ত্বরণ পৃথিবীর 1/6 ভাগ হওয়ায় ওজন 1/6 গুণ হবে (পৃথিবীতে 60×9.8 = 588 N; চাঁদে 588/6 = 98 N)।",
+        ],
+        commonMistakes: [
+          "অনেকে 'ভর' ও 'ওজন'-কে এক ভাবেন। চাঁদে গেলে ওজন ৬ ভাগের ১ ভাগ হয়, কিন্তু ভর ৬০ কেজিই থাকে!",
+          "আরেকটি প্রচলিত ফাঁদ: গাড়ির লুকিং গ্লাসে বা রিয়ার-ভিউ মিররে উত্তল দর্পণ ব্যবহৃত হয় (লেন্স নয়!), কারণ এটি পেছনের বিস্তৃত এলাকার সোজা ও ছোট প্রতিবিম্ব দেখায়।",
+        ],
+        practiceProblems: [
+          {
+            question: "একজন রোগী +2D ক্ষমতার চশমা পরেন। তাঁর লেন্সের ধরন ও ফোকাস দূরত্ব কত?",
+            hint: "ধনাত্মক (+) চিহ্ন মানে উত্তল লেন্স; f (মিটার) = 1 / P।",
+            solution: "ধনাত্মক ক্ষমতা হওয়ায় এটি উত্তল (Convex) লেন্স (দীর্ঘদৃষ্টির জন্য)। ফোকাস দূরত্ব f = 1 / 2 = +0.5 মিটার = +50 সেমি।",
+            answer: "উত্তল লেন্স, +50 সেমি",
+          },
+          {
+            question: "কত ডিগ্রি তাপমাত্রায় সেলসিয়াস ও ফারেনহাইট স্কেল একই পাঠ প্রদর্শন করে এবং কত ডিগ্রি সেলসিয়াস তাপমাত্রায় পানির ঘনত্ব সর্বাধিক?",
+            hint: "C = F = x ধরে C/5 = (F-32)/9 সমাধান করুন। পানির ব্যতিক্রমী প্রসারণ ঘটে ৪° সে.-এ।",
+            solution: "x/5 = (x - 32)/9 ⇒ 9x = 5x - 160 ⇒ 4x = -160 ⇒ x = -40°। আর পানির ঘনত্ব সর্বাধিক ৪° সেলসিয়াসে।",
+            answer: "-40° তাপমাত্রায় সমান; ৪° সে.-এ পানির ঘনত্ব সর্বাধিক",
+          },
         ],
       },
       {
-        heading: "Chapter 2: Electricity, Household Wiring, Electroplating, BOT Units & IPS/UPS (Ch 11)",
+        heading: "অধ্যায় ২: তড়িৎ বর্তনী, তড়িৎ প্রলেপন, বিদ্যুৎ বিল (BOT ইউনিট) ও IPS বনাম UPS (NCTB অধ্যায় ১১)",
         explanation:
-          "Based on 2026 NCTB General Science Ch 11 (Electricity in Everyday Life): understand parallel domestic circuits, electrolysis/electroplating, electric bill math, and why computers need UPS.",
+          "২০২৬ NCTB সাধারণ বিজ্ঞান অধ্যায় ১১-তে প্রাত্যহিক জীবনে তড়িতের ব্যবহার অত্যন্ত বাস্তবভিত্তিকভাবে আলোচনা করা হয়েছে। আমাদের বাসাবাড়িতে ২২0 ভোল্ট (50 Hz) এসি (AC) বিদ্যুৎ সরবরাহ করা হয় এবং ঘরের সব লাইট, ফ্যান ও সকেট সর্বদা 'সমান্তরাল বর্তনী' (Parallel Circuit)-তে সংযুক্ত থাকে। কেন শ্রেণি বর্তনী নয়? কারণ সমান্তরাল বর্তনীতে প্রতিটি যন্ত্র পূর্ণ ২২০ ভোল্ট পায়, আলাদা সুইচে চালানো যায় এবং একটি বাল্ব নষ্ট হলেও ঘরের অন্য সব যন্ত্র চালু থাকে। তবে নিরাপত্তার জন্য ফিউজ বা সার্কিট ব্রেকার সবসময় জীবন্ত বা ফেজ (Live) তারের সাথে 'শ্রেণি'তে লাগানো হয়।\n\nএ অধ্যায়ে বিদ্যুৎ বিল হিসাব করার অঙ্ক প্রতিটি নিয়োগ পরীক্ষায় কমন থাকে: ১ BOT (Board of Trade) ইউনিট = ১ কিলোওয়াট-ঘণ্টা (kWh) = ১০০০ ওয়াট-ঘণ্টা। আর কম্পিউটার ও ইলেকট্রনিক্স রক্ষায় IPS ও UPS-এর পার্থক্য বোঝা জরুরি: IPS বিদ্যুৎ চলে গেলে প্রায় ১৫–৫০ মিলিসেকেন্ড সময় নিয়ে ব্যাকআপ দেয়—তাই কম্পিউটার রিস্টার্ট হয়ে যায়; অথচ UPS ১০ মিলিসেকেন্ডেরও কম সময়ে ব্যাকআপ চালু করে ডেস্কটপ কম্পিউটারের তথ্য রক্ষা করে।",
+        formulaBox: [
+          {
+            label: "১ BOT ইউনিট (১ kWh)",
+            formula: "1 kWh = 1000 W × 3600 s = 3.6 × 10⁶ জুল",
+            note: "বাণিজ্যিক বিদ্যুৎ বিলের একককে ইউনিট বা kWh বলে",
+          },
+          {
+            label: "বিদ্যুৎ বিল নির্ণয়ের সূত্র",
+            formula: "মোট ইউনিট = (যন্ত্রসংখ্যা × ওয়াট × দৈনিক ঘণ্টা × দিন) / ১০০০",
+            note: "তারপর মোট ইউনিট × প্রতি ইউনিটের মূল্য (টাকা) = মোট বিল",
+          },
+        ],
+        comparisonTable: {
+          title: "গৃহস্থালী তড়িৎ ও তড়িৎ বিশ্লেষণ/প্রলেপন ছক",
+          headers: ["বিষয়", "সঠিক অবস্থান / সংযোগ", "বৈজ্ঞানিক কারণ"],
+          rows: [
+            ["বাসার বাতি ও ফ্যান", "সমান্তরাল বর্তনী (Parallel)", "প্রতিটি যন্ত্র আলাদাভাবে ২২০V পায়; একটি নষ্ট হলে অন্যগুলো বন্ধ হয় না"],
+            ["ফিউজ তার ও সুইচ", "জীবন্ত (Live) তারের সাথে শ্রেণিতে (Series)", "অতিরিক্ত প্রবাহ বা সুইচ বন্ধে সংযোগ সম্পূর্ণ বিচ্ছিন্ন করতে"],
+            ["তড়িৎ প্রলেপন (Electroplating)", "আবরণ দেওয়ার বস্তু ক্যাথোডে (-), প্রলেপের ধাতু অ্যানোডে (+)", "ক্যাথোডে বিজারণ ঘটে এবং প্রলেপী ধাতু (Ni/Cr/Ag) লোহার ওপর জমা হয়"],
+            ["IPS বনাম UPS", "IPS = ফ্যান/বাতি (~15–50 ms); UPS = কম্পিউটার (<10 ms)", "UPS অতি দ্রুত সুইচিং করে ভোল্টেজ ও চলমান কাজ রক্ষা করে"],
+          ],
+        },
         points: [
-          "1. Series vs Parallel Household Wiring: Domestic homes ALWAYS use Parallel circuits (Bangladesh supply = 220V AC, 50 Hz) because every appliance receives full 220V independently and one faulty device does not cut power to others. Series is used in decorative string lights. Safety Fuse / Circuit Breaker & Switch are ALWAYS connected in series on the Live (Phase) wire!",
-          "2. Electrolysis & Electroplating: Electrolysis decomposes an electrolyte using DC current (Anode +, Cathode -). In Electroplating (তড়িৎ প্রলেপন), the metal object to be coated (e.g., iron spoon) is placed at the CATHODE (-), the coating metal (Ni, Cr, Ag, Au) at the ANODE (+), inside a salt solution of the coating metal.",
-          "3. Electrical Energy & Billing Formula: SI unit of Energy = Joule; Commercial unit = 1 kWh = 1 BOT (Board of Trade) Unit = 1000 W × 3600 s = 3.6 × 10⁶ J. Consumption formula: Unit (kWh) = (Watt × Hour × Days) / 1000 (multiply by number of identical devices).",
-          "4. IPS vs UPS: IPS (Instant Power Supply) runs fans/lights during load-shedding but has a slower switchover (~15–50 ms), causing computers to reboot. UPS (Uninterruptible Power Supply) has ultra-fast switchover (<10 ms) protecting desktop computer data and preventing voltage spikes!",
+          "১. ফিউজ তারের উপাদান: টিন (Sn) ও সিসা (Pb)-এর সংকর ধাতু, যার গলনাঙ্ক খুব কম এবং রোধ বেশি।",
+          "২. শ্রেণি বর্তনী কোথায় হয়?: বিয়েবাড়ির বা অনুষ্ঠানের আলোকসজ্জার মরিচবাতিতে শ্রেণি সংযোগ ব্যবহৃত হয়—তাই একটি বাল্ব কাটলে পুরো সারি নিভে যায়!",
         ],
         workedExamples: [
-          "Example (Electricity Bill): A home runs four 50W fans for 10 hours/day and one 1000W iron for 1 hour/day in April (30 days) at ৳6/unit. Total Watt-hours/day = (4×50×10) + (1×1000×1) = 3,000 Wh = 3 Units/day -> 30 days = 90 Units -> Bill = 90 × 6 = ৳540.",
+          "উদাহরণ (বিদ্যুৎ বিল নির্ণয়): একটি বাসায় ৫০ ওয়াটের ৪টি ফ্যান প্রতিদিন ১০ ঘণ্টা এবং ১০০০ ওয়াটের ১টি ইস্ত্রি প্রতিদিন ১ ঘণ্টা করে এপ্রিল মাসে (৩০ দিন) চালানো হয়। প্রতি ইউনিট বিদ্যুৎ ৬ টাকা হলে এপ্রিল মাসের বিল কত?\nধাপ ১: ফ্যানের দৈনিক খরচ = ৪ × ৫০ × ১০ = ২০০০ ওয়াট-ঘণ্টা।\nধাপ ২: ইস্ত্রির দৈনিক খরচ = ১ × ১০০০ × ১ = ১০০০ ওয়াট-ঘণ্টা।\nধাপ ৩: মোট দৈনিক খরচ = ২০০০ + ১০০০ = ৩০০০ ওয়াট-ঘণ্টা = ৩০০০ / ১০০০ = ৩ ইউনিট/দিন।\nধাপ ৪: ৩০ দিনের মোট ইউনিট = ৩ × ৩০ = ৯০ ইউনিট।\nধাপ ৫: মোট বিল = ৯০ × ৬ = ৫৪০ টাকা।\nউত্তর: ৫৪০ টাকা।",
+        ],
+        commonMistakes: [
+          "বিদ্যুৎ বিলের অঙ্কে মাসের দিনসংখ্যা না তাকিয়েই ৩০ দিন ধরে নেওয়া—জানুয়ারি/মার্চ/জুলাই বললে ৩১ দিন এবং অধিবর্ষ না হলে ফেব্রুয়ারি ২৮ দিন ধরতে হবে!",
+          "তড়িৎ প্রলেপনে যে লোহার চামচে সোনার প্রলেপ দেব, সেই চামচকে ক্যাথোড (ঋণাত্মক তড়িৎদ্বার) বানাতে হবে—অ্যানোড নয়!",
+        ],
+        practiceProblems: [
+          {
+            question: "১০০ ওয়াটের ৫টি বাতি দৈনিক ৬ ঘণ্টা করে মে মাসে (৩১ দিন) জ্বালালে কত ইউনিট বিদ্যুৎ খরচ হবে?",
+            hint: "সূত্র: (সংখ্যা × ওয়াট × ঘণ্টা × ৩১) / ১০০০।",
+            solution: "ইউনিট = (5 × 100 × 6 × 31) / 1000 = (3000 × 31) / 1000 = 3 × 31 = 93 ইউনিট।",
+            answer: "৯৩ ইউনিট (kWh)",
+          },
         ],
       },
       {
-        heading: "Chapter 3: Everyday Chemistry, Food Preservation & Environment",
+        heading: "অধ্যায় ৩: দৈনন্দিন রসায়ন, নিরাপদ খাদ্য সংরক্ষণ ও বায়ুমণ্ডল (NCTB অধ্যায় ১ সহ)",
         explanation:
-          "High-yield chemistry topics covering food/industrial acids, metals/alloys, hard water, safe food preservation vs toxic Formalin (NCTB Ch 1), and atmospheric layers.",
+          "দৈনন্দিন জীবনে ব্যবহৃত জৈব এসিড, সংকর ধাতু, খাদ্য সংরক্ষণে বৈধ উপায় বনাম বিষাক্ত ফরমালিন (২০২৬ NCTB অধ্যায় ১) এবং বায়ুমণ্ডলের স্তরসমূহ থেকে নিয়মিত প্রশ্ন হয়। লেবুতে সাইট্রিক, তেঁতুলে টারটারিক এবং ভিনেগারে ৪–৮% অ্যাসিটিক এসিড থাকে—এই প্রাকৃতিক এসিডগুলো জীবাণুর বংশবিস্তার রোধ করে নিরাপদে আচার ও খাদ্য সংরক্ষণ করে। অথচ অসাধু ব্যবসায়ীরা মাছ, ফল ও দুধে ৪০% ফরমালডিহাইডের জলীয় দ্রবণ 'ফরমালিন' মেশান, যা মূলত ল্যাবরেটরিতে জৈব নমুনা সংরক্ষণের বিষাক্ত রাসায়নিক—এবং মানবদেহে ক্যান্সার, কিডনি ও যকৃত নষ্ট করে।\n\nএছাড়া পানির খরতা দুটি প্রকারের: ক্যালসিয়াম বা ম্যাগনেশিয়ামের বাইকার্বনেট দ্রবীভূত থাকলে তা 'অস্থায়ী খরতা', যা কেবল পানি ফোটালেই দূর হয়; আর ক্লোরাইড বা সালফেট থাকলে তা 'স্থায়ী খরতা', যা দূর করতে সোডিয়াম কার্বনেট (কাপড় কাচার সোডা) বা পারমুটিট প্রণালি লাগে।",
+        comparisonTable: {
+          title: "প্রাকৃতিক এসিড, সংকর ধাতু ও খাদ্য সংরক্ষণ সারণি",
+          headers: ["উপাদান / বিষয়", "মূল রাসায়নিক / উপাদান", "পরীক্ষার গুরুত্বপূর্ণ তথ্য"],
+          rows: [
+            ["লেবু, কমলা ও আমলকী", "সাইট্রিক এসিড (আমলকীতে অ্যাসকরবিক/Vit-C প্রচুর)", "ভিনেগারে ৪–৮% অ্যাসিটিক এসিড থাকে"],
+            ["তেঁতুল, পিঁপড়ার কামড় ও দুধ", "তেঁতুলে টারটারিক; পিঁপড়ায় ফরমিক; দইয়ে ল্যাকটিক", "টমেটোতে অক্সালিক এসিড; কোমল পানীয়তে কার্বনিক এসিড"],
+            ["পিতল (Brass) বনাম কাঁসা (Bronze)", "পিতল = তামা + দস্তা (Cu+Zn); কাঁসা = তামা + টিন (Cu+Sn)", "স্টেইনলেস স্টিল = লোহা + ক্রোমিয়াম + নিকেল + কার্বন"],
+            ["নিরাপদ খাদ্য সংরক্ষণ (NCTB Ch 1)", "লবণ, চিনি (অভিস্রবণ প্রক্রিয়া), ভিনেগার, হিমায়ন", "ফরমালিন (৪০% HCHO জলীয় দ্রবণ) সম্পূর্ণ নিষিদ্ধ ও ক্যান্সারকারী"],
+            ["বায়ুমণ্ডলের স্তর (নিচ → উপর)", "ট্রপোমণ্ডল → স্ট্র্যাটোমণ্ডল → মেসো → থার্মো → এক্সো", "ট্রপোমণ্ডলে ঝড়-বৃষ্টি; স্ট্র্যাটোমণ্ডলে ওজোন (O₃) স্তর UV রোধ করে"],
+          ],
+        },
         points: [
-          "1. Natural Acids & Bases: Lemon/Orange = Citric; Tamarind (তেঁতুল) = Tartaric; Vinegar = Acetic acid (4–8% solution); Tomato = Oxalic; Sour Milk/Curd = Lactic; Ant/Bee sting = Formic (Methanoic); Soft drinks = Carbonic; Car battery = Sulfuric (H₂SO₄); Stomach = Hydrochloric (HCl).",
-          "2. Metals, Non-metals & Alloys: Only liquid metal = Mercury; Only liquid non-metal = Bromine; Hardest natural substance = Diamond (Carbon); Best electrical conductor = Silver; Soft metals cut by knife = Na, K; Pure Gold = 24 Carat; Bulb filament = Tungsten (~3400°C). Alloys: Brass (পিতল) = Cu + Zn; Bronze (কাঁসা) = Cu + Sn; Stainless Steel = Fe + Cr + Ni + C; Solder = Pb + Sn.",
-          "3. Food Preservation — Safe vs Formalin Hazard (NCTB Ch 1): Safe methods include Salt (ilish/fish), Sugar (jams/jellies via osmosis), Vinegar (pickles/আচার), Drying & Refrigeration. Formalin (40% aqueous Formaldehyde, HCHO) is a toxic preservative meant ONLY for biological specimens — using it on fish/fruits/milk causes kidney/liver damage, respiratory illness & cancer (strictly illegal!).",
-          "4. Atmosphere & Water Hardness: Dry Air = N₂ 78.08%, O₂ 20.95%, Ar 0.93%, CO₂ ~0.04%. Layers (Bottom-Up): Troposphere (weather) -> Stratosphere (Ozone O₃ shields UV-B) -> Mesosphere (coldest, meteors burn) -> Thermosphere/Ionosphere (radio wave reflection) -> Exosphere. Temporary water hardness (Ca/Mg bicarbonates) -> Boiling; Permanent hardness (Ca/Mg chlorides/sulfates) -> Washing Soda (Na₂CO₃) / Permutit.",
+          "১. ধাতু ও অধাতুর ব্যতিক্রম: একমাত্র তরল ধাতু = পারদ (Mercury); একমাত্র তরল অধাতু = ব্রোমিন; প্রকৃতির কঠিনতম পদার্থ = হীরক (কার্বনের রূপভেদ); তড়িতের শ্রেষ্ঠ পরিবাহী = রূপা; ছুরি দিয়ে কাটা যায় এমন নরম ধাতু = সোডিয়াম ও পটাশিয়াম; বিশুদ্ধ সোনা = ২৪ ক্যারেট; বৈদ্যুতিক বাল্বের ফিলামেন্ট = টাংস্টেন (~৩৪০০° সে.)।",
+          "২. pH স্কেল: pH < 7 = অম্লীয় (পাকস্থলীর HCl, লেবু); pH = 7 = নিরপেক্ষ বিশুদ্ধ পানি; pH > 7 = ক্ষারীয় (মানুষের রক্ত সামান্য ক্ষারীয়: ৭.৩৫–৭.৪৫)।",
+          "৩. শুষ্ক বায়ুর উপাদান: নাইট্রোজেন (N₂) ৭৮.০৮%, অক্সিজেন (O₂) ২০.৯৫%, আর্গন ০.৯৩% এবং কার্বন ডাই-অক্সাইড ~০.০৪%।",
         ],
         workedExamples: [
-          "Food Safety Check: Vinegar (4–8% Acetic acid) lowers pH safely to inhibit bacterial growth in pickles, whereas Formalin (40% Formaldehyde) is a prohibited carcinogenic chemical.",
+          "উদাহরণ: কেন আচার বা জ্যাম-জেলি লবণ বা ঘন চিনির সিরায় পচে না, আর কেন ফরমালিন ভয়াবহ?\nসমাধান: লবণ ও ঘন চিনির দ্রবণে বহিঃঅভিস্রবণ (Exosmosis) প্রক্রিয়ায় ব্যাকটেরিয়ার কোষ থেকে পানি বেরিয়ে মারা যায়—যা সম্পূর্ণ নিরাপদ। কিন্তু ফরমালিন (৪০% ফরমালডিহাইড) কোষের প্রোটিন জমাট বেঁধে মানবদেহে কিডনি বিকল ও ক্যান্সার সৃষ্টি করে।",
+        ],
+        practiceProblems: [
+          {
+            question: "পিতল (Brass) ও কাঁসা (Bronze)-র উপাদান কী কী এবং বায়ুমণ্ডলের কোন স্তরে ওজোন গ্যাস সূর্যের অতিবেগুনি রশ্মি শোষণ করে?",
+            hint: "পিতলে দস্তা (Zn) থাকে আর কাঁসায় টিন (Sn) থাকে। স্তরটি ট্রপোমণ্ডলের ঠিক ওপরে।",
+            solution: "পিতল = তামা + দস্তা (Cu + Zn); কাঁসা = তামা + টিন (Cu + Sn)। ওজোন স্তর অবস্থিত স্ট্র্যাটোমণ্ডলে (Stratosphere)।",
+            answer: "পিতল (Cu+Zn), কাঁসা (Cu+Sn); স্ট্র্যাটোমণ্ডল",
+          },
         ],
       },
       {
-        heading: "Chapter 4: Human Biology — BMI, Blood/Rh, XY Genetics, Vitamins & Pathogens",
+        heading: "অধ্যায় ৪: মানবদেহ — BMI, রক্ত/Rh ফ্যাক্টর, XY লিঙ্গ নির্ধারণ, ভিটামিন ও অণুজীব (NCTB অধ্যায় ১, ৩, ৪)",
         explanation:
-          "Integrates 2026 NCTB General Science Ch 1 (BMI & Nutrition), Ch 3 (Blood, ABO/Rh & Heart), and Ch 4 (XY Sex Determination) with classic BCS Microbiology.",
+          "২০২৬ NCTB সাধারণ বিজ্ঞানের অধ্যায় ১ (BMI ও পুষ্টি), অধ্যায় ৩ (রক্ত, ABO-Rh গ্রুপ ও হৃৎপিণ্ড) এবং অধ্যায় ৪ (XY ক্রোমোজোম দ্বারা সন্তানের লিঙ্গ নির্ধারণ) অংশ থেকে সর্বাধিক প্রশ্ন হয়। BMI হলো শরীরের উচ্চতার অনুপাতে ওজন সঠিক কি না তার সূচক: BMI = ওজন (কেজি) ÷ [উচ্চতা (মিটার)]²। আদর্শ বা স্বাভাবিক সীমা ১৮.৫ থেকে ২৪.৯।\n\nঅধ্যায় ৪-এর সবচেয়ে বড় সামাজিক ও বৈজ্ঞানিক শিক্ষা হলো: মানবদেহে ২৩ জোড়া (৪৬টি) ক্রোমোজোমের মধ্যে ২২ জোড়া অটোজোম ও ১ জোড়া সেক্স ক্রোমোজোম। মায়ের ডিম্বাণুতে সবসময় কেবল X ক্রোমোজোম থাকে; পক্ষান্তরে পিতার শুক্রাণুতে অর্ধেক X এবং অর্ধেক Y থাকে। পিতার X যুক্ত শুক্রাণু মিলিত হলে কন্যা (XX) এবং Y যুক্ত শুক্রাণু মিলিত হলে পুত্র (XY) জন্ম নেয়। তাই সন্তানের লিঙ্গ নির্ধারণে সম্পূর্ণ জৈবিক ভূমিকা পিতার ক্রোমোজোমের, মায়ের নয়!",
+        formulaBox: [
+          {
+            label: "BMI (Body Mass Index)",
+            formula: "BMI = ওজন (kg) / [উচ্চতা (m)]²",
+            note: "<১৮.৫ (কম ওজন), ১৮.৫–২৪.৯ (স্বাভাবিক), ২৫–২৯.৯ (অতিরিক্ত), ≥৩০ (স্থূলতা)",
+          },
+          {
+            label: "XY লিঙ্গ নির্ধারণ",
+            formula: "মা (XX) → শুধু X   |   পিতা (XY) → X (কন্যা XX) অথবা Y (পুত্র XY)",
+            note: "৪৬টি ক্রোমোজোম = ৪৪ অটোজোম + ২ সেক্স ক্রোমোজোম",
+          },
+        ],
+        comparisonTable: {
+          title: "রক্তকণিকা, ভিটামিন ও প্রধান অণুজীব রোগের সারসংক্ষেপ",
+          headers: ["কণিকা / ভিটামিন / রোগ", "প্রধান বৈশিষ্ট্য / অভাবের রোগ", "উৎস / বাহক / পরীক্ষার তথ্য"],
+          rows: [
+            ["লোহিত কণিকা (RBC)", "৪৫–৫৫ লক্ষ/মি.মি.³; আয়ু ~১২০ দিন; O₂ পরিবহন", "পূর্ণবয়স্ক মানুষের RBC-তে নিউক্লিয়াস থাকে না"],
+            ["শ্বেত কণিকা (WBC)", "৪–১১ হাজার/মি.মি.³; ফ্যাগোসাইটোসিসে রোগ প্রতিরোধ", "অণুচক্রিকা (১.৫–৪ লক্ষ) রক্ত জমাট বাঁধায় (ডেঙ্গুতে কমে যায়)"],
+            ["সর্বজনীন রক্তদাতা ও গ্রহীতা", "সর্বজনীন দাতা = O- ; সর্বজনীন গ্রহীতা = AB+", "Rh- মায়ের গর্ভে Rh+ শিশু হলে প্রথম প্রসবের পর Anti-D প্রয়োজন"],
+            ["ভিটামিন A, D, E, K", "A: রাতকানা; D: রিকেটস; E: প্রজনন; K: রক্তক্ষরণ", "A, D, E, K চর্বিতে দ্রবণীয় ('KEDA')"],
+            ["ভিটামিন B ও C", "B1: বেরিবেরি; B3: পেলেগ্রা; B12: অ্যানিমিয়া; C: স্কার্ভি", "B ও C পানিতে দ্রবণীয়; আয়োডিনে গলগণ্ড ও লোহায় রক্তশূন্যতা"],
+            ["ভাইরাস বনাম ব্যাকটেরিয়া/প্রোটোজোয়া", "ভাইরাস: ডেঙ্গু, হেপাটাইটিস, পোলিও, এইডস; ব্যাকটেরিয়া: যক্ষ্মা, কলেরা, টাইফয়েড", "ডেঙ্গু = এডিস মশা (দিনে); ম্যালেরিয়া = প্রোটোজোয়া (স্ত্রী অ্যানোফিলিস)"],
+          ],
+        },
         points: [
-          "1. Cell, BMI & Endocrine System: Mitochondria = Powerhouse (ATP); Ribosome = Protein factory; Lysosome = Suicidal bag; DNA double helix = Watson & Crick (1953). BMI = Weight (kg) / [Height (m)]² (<18.5 Underweight, 18.5–24.9 Normal, 25.0–29.9 Overweight, ≥30 Obese). Endocrine: Pituitary (Master gland), Thyroid (Thyroxine — needs Iodine), Pancreas Beta cells (Insulin lowers blood sugar), Adrenal (Adrenaline fight-or-flight).",
-          "2. Blood Composition & Counts (NCTB Ch 3): Blood = 55% Plasma (fluid) + 45% Corpuscles: (a) RBC (4.5–5.5 million/mm³, no nucleus in mature humans, Hemoglobin carries O₂, ~120d lifespan); (b) WBC (4,000–11,000/mm³, nucleated, phagocytosis/immunity); (c) Platelets (1.5–4 lakh/mm³, blood clotting; drops sharply in Dengue). Normal BP = 120/80 mmHg. Pulmonary Artery is the ONLY artery carrying deoxygenated blood; Pulmonary Vein carries oxygenated blood!",
-          "3. ABO & Rh Factor (Karl Landsteiner): ABO groups = A, B, AB, O. O- = Universal Donor (no A/B/Rh antigens); AB+ = Universal Recipient (no anti-A/B antibodies). Rh Factor compatibility is critical in transfusions and pregnancy: an Rh- mother carrying an Rh+ fetus requires Anti-D injection after first birth to prevent RBC destruction (Erythroblastosis fetalis) in subsequent pregnancies.",
-          "4. XY Sex Chromosome & Myth Debunking (NCTB Ch 4): Human body cells have 46 chromosomes (23 pairs): 22 pairs Autosomes + 1 pair Sex Chromosomes (Female = XX, Male = XY). Female ova ALWAYS carry X; Male sperm carry either X (50%) or Y (50%). Therefore the FATHER'S Y sperm determines a male child (XY), while X sperm produces a female (XX) — blaming mothers for a child's gender is completely unscientific!",
-          "5. Vitamins, Minerals & Pathogens: Fat-soluble (A, D, E, K): Vit A Retinol (Night blindness), Vit D Calciferol (Rickets/Osteomalacia), Vit E Tocopherol (Antioxidant/fertility), Vit K Phylloquinone (Blood clotting). Water-soluble: B1 Thiamine (Beriberi), B2 Riboflavin (Mouth sores), B3 Niacin (Pellagra), B12 Cobalamin (Pernicious anemia), Vit C Ascorbic Acid (Scurvy). Minerals: Iron (Anemia), Iodine (Goiter). Pathogens: Viral (Dengue/Chikungunya via Aedes, COVID-19, Hepatitis, Polio, Rabies, HIV); Bacterial (TB — BCG vaccine, Cholera, Typhoid, Tetanus); Protozoan (Malaria via Female Anopheles, Kala-azar via Sandfly); Fungal (Ringworm).",
+          "১. কোষ ও অন্তঃক্ষরা গ্রন্থি: মাইটোকন্ড্রিয়া = কোষের পাওয়ার হাউস (ATP উৎপাদন); রাইবোজোম = প্রোটিন ফ্যাক্টরি; লাইসোজোম = আত্মঘাতী থলি; DNA দ্বিসূত্রক মডেল = ওয়াটসন ও ক্রিক (১৯৫৩)। হরমোন: পিটুইটারি = প্রভু গ্রন্থি (Master gland); থাইরয়েড = থাইরক্সিন (আয়োডিন প্রয়োজন); অগ্ন্যাশয়ের বিটা কোষ = ইনসুলিন (ডায়াবেটিস নিয়ন্ত্রণ); অ্যাড্রেনাল = অ্যাড্রেনালিন (জরুরি হরমোন)।",
+          "২. হৃৎপিণ্ডের রক্ত সংবহনের ব্যতিক্রম: শরীরের সব ধমনি অক্সিজেনযুক্ত রক্ত বহন করে—একমাত্র ব্যতিক্রম 'ফুসফুসীয় ধমনি' (Pulmonary Artery), যা কার্বন ডাই-অক্সাইডযুক্ত রক্ত ফুসফুসে নেয়। আবার সব শিরা কার্বন ডাই-অক্সাইডযুক্ত রক্ত বহন করে—একমাত্র ব্যতিক্রম 'ফুসফুসীয় শিরা', যা অক্সিজেনযুক্ত রক্ত হৃৎপিণ্ডে আনে! সুস্থ মানুষের রক্তচাপ ১২০/৮০ mmHg।",
         ],
         workedExamples: [
-          "Example 1 (BMI Check): A person weighs 54 kg and is 1.5 m tall. BMI = 54 / (1.5)² = 54 / 2.25 = 24.0 kg/m² -> Falls in Normal/Ideal range (18.5–24.9)!",
-          "Example 2 (Dengue vs Malaria): Dengue = VIRUS spread by daytime-biting Aedes mosquito (causes platelet count drop below 1.5 lakh/mm³); Malaria = PROTOZOA (Plasmodium) spread by nighttime-biting Female Anopheles mosquito.",
+          "উদাহরণ ১ (BMI নির্ণয়): একজন ব্যক্তির ওজন 54 কেজি এবং উচ্চতা 1.5 মিটার। তাঁর BMI কত এবং স্বাস্থ্য অবস্থা কী?\nধাপ ১: (উচ্চতা)² = (1.5)² = 2.25 বর্গমিটার।\nধাপ ২: BMI = 54 / 2.25 = 24.0 kg/m²।\nধাপ ৩: যেহেতু 24.0 মানটি ১৮.৫–২৪.৯ সীমার মধ্যে, তাই এটি 'স্বাভাবিক/আদর্শ ওজন'।\nউত্তর: BMI ২৪.০ (স্বাভাবিক ওজন)।",
+          "উদাহরণ ২ (রক্তের গ্রুপ ফাঁদ): শুধু O গ্রুপ না O- কোনটি সর্বজনীন দাতা?\nসমাধান: Rh ফ্যাক্টর (-) না থাকলে O+ রক্তের Rh অ্যান্টিজেন Rh- গ্রহীতার শরীরে বিরূপ প্রতিক্রিয়া তৈরি করে। তাই প্রকৃত সর্বজনীন দাতা হলো O- (O নেগেটিভ), আর প্রকৃত সর্বজনীন গ্রহীতা AB+ (AB পজিটিভ)।",
+        ],
+        practiceProblems: [
+          {
+            question: "৭২ কেজি ওজনের একজন ব্যক্তির উচ্চতা ১.৬ মিটার হলে তাঁর BMI কত এবং তিনি কোন শ্রেণিতে পড়েন?",
+            hint: "১.৬² = ২.৫৬ দিয়ে ৭২-কে ভাগ করুন।",
+            solution: "BMI = 72 / (1.6)² = 72 / 2.56 = 28.125 kg/m²। এটি ২৫.০–২৯.৯ সীমার মধ্যে হওয়ায় 'অতিরিক্ত ওজন (Overweight)'।",
+            answer: "BMI ২৮.১২৫ (অতিরিক্ত ওজন)",
+          },
+          {
+            question: "কোন ধমনি দূষিত (কার্বন ডাই-অক্সাইডসমৃদ্ধ) রক্ত বহন করে এবং ডেঙ্গু রোগীর রক্তে দ্রুত কী কমে যায়?",
+            hint: "ধমনির একমাত্র ব্যতিক্রম ফুসফুসের সাথে যুক্ত; আর ডেঙ্গু রক্ত জমাট বাঁধায় সহায়ক কণিকা কমিয়ে দেয়।",
+            solution: "ফুসফুসীয় ধমনি (Pulmonary Artery) কার্বন ডাই-অক্সাইডসমৃদ্ধ রক্ত বহন করে। ডেঙ্গু জ্বরে রক্তের অণুচক্রিকা বা প্লেটলেট (Platelets) দ্রুত কমে যায়।",
+            answer: "ফুসফুসীয় ধমনি; অণুচক্রিকা (Platelets)",
+          },
         ],
       },
     ],
@@ -93,90 +222,196 @@ export const scienceIctTopics = [
     order: 15,
   },
   {
-    title: "Computer & ICT: Pioneers, E-Governance, Number Systems, Logic Gates & Cyber Security",
+    title: "কম্পিউটার ও তথ্যপ্রযুক্তি: ই-সেবা, সংখ্যা পদ্ধতি, লজিক গেইট ও সাইবার নিরাপত্তা (NCTB ২০২৬ বাংলা ভার্সন)",
     slug: "ict-number-systems-network-cyber",
     subject: "General Science & ICT",
     unit: "কম্পিউটার, নেটওয়ার্ক ও তথ্যপ্রযুক্তি",
     targetTracks: ["BCS", "Bank & Financial", "Grade 11-20"],
-    estimatedMinutes: 45,
+    estimatedMinutes: 50,
     highYieldSummary:
-      "Covers 15 full BCS marks plus Bank & Computer Operator ICT topics aligned with 2026 NCTB Class 9–10 ICT (Ch 1–3): ICT Pioneers & Quantum Computing, Bangladesh E-Services (e-Purjee, EMTS, e-Porcha, Bangladesh Satellite-1) & 2024 ITU IDI / UN EGDI Indices, System Maintenance & Cyber Laws (BSA, RTI Act 2009), Number Systems & 2's Complement, Boolean Logic Gates, OSI 7 Layers, and DBMS.",
+      "২০২৬ NCTB নবম-দশম শ্রেণির ICT (অধ্যায় ১–৩) এবং বিসিএস (১৫ নম্বর) ও ব্যাংক কম্পিউটার প্রস্তুতির সম্পূর্ণ বাংলা ভার্সন গাইড: তথ্যপ্রযুক্তির পথিকৃৎ ও কোয়ান্টাম কম্পিউটিং (Qubit), বাংলাদেশের ই-সেবা (ই-পুর্জি, EMTS, ই-পর্চা, বাংলাদেশ স্যাটেলাইট-১) ও ২০২৪ ITU IDI / UN EGDI সূচক, রক্ষণাবেক্ষণ ও তথ্য অধিকার আইন ২০০৯, সংখ্যা পদ্ধতি ও ২-এর পরিপূরক, বুলিয়ান লজিক গেইট, OSI ৭ স্তর এবং ডেটাবেস SQL।",
     keyFacts: [
-      "2026 NCTB ICT Milestones & Bangladesh 2024 Indices: Jagadish Chandra Bose (1895 first wireless microwave transmission), Ray Tomlinson (1971 email), Sir Tim Berners-Lee (1989 HTTP, 1990 WorldWideWeb browser), Facebook (4 Feb 2004). Bangladesh Satellite-1 (12 May 2018, 57th country — updated 2026 textbook name); ITU IDI 2024 Bangladesh score = 62/100; UN EGDI 2024 rank = 100th/193.",
-      "Bangladesh E-Services & Cyber Laws: e-Purjee (SMS permit for 15 sugar mills), EMTS (Postal transfer up to ৳50,000 in 1 min), e-Porcha (online land record), Right to Information Act 2009 (তথ্য অধিকার আইন ২০০৯), BSA (monitors Software Piracy).",
-      "Number Systems & Units: Binary (base 2), Octal (base 8), Decimal (base 10), Hexadecimal (base 16: 0–9, A–F). 1 Byte = 8 bits; 1 Nibble = 4 bits; 1 KB = 1024 Bytes. 2's Complement = 1's complement (invert bits) + 1.",
-      "Boolean Logic Gates: Basic gates = AND, OR, NOT; Universal Gates = NAND & NOR (can construct ANY logic circuit!); XOR outputs 1 when inputs differ. De Morgan's Theorems: (A+B)' = A'·B' and (A·B)' = A'+B'.",
-      "OSI 7 Layers & DBMS: 1. Physical (Bits/Hub) -> 2. Data Link (Frames/MAC/Switch) -> 3. Network (Packets/IP/Router) -> 4. Transport (Segments/TCP & UDP) -> 5. Session -> 6. Presentation (Encryption) -> 7. Application (HTTP/SMTP/DNS/FTP). URL has 3 parts: Protocol + Domain/Host + Path.",
+      "২০২৬ NCTB ICT মাইলফলক ও ২০২৪ সূচক: স্যার জগদীশ চন্দ্র বসু (১৮৯৫ — প্রথম বেতার মাইক্রোওয়েভ সংকেত প্রেরণ), রে টমলিনসন (১৯৭১ ই-মেইল), টিম বার্নার্স-লি (১৯৮৯ HTTP, ১৯৯০ WorldWideWeb ব্রাউজার)। 'বাংলাদেশ স্যাটেলাইট-১' (১২ মে ২০১৮, ৫৭তম দেশ — ২০২৬ বইয়ের আপডেট নাম); ২০২৪ ITU IDI স্কোর = ৬২/১০০; UN EGDI ২০২৪ অবস্থান = ১০০তম/১৯৩।",
+      "বাংলাদেশের ই-সেবা ও আইন: ই-পুর্জি (১৫টি চিনিকলে SMS আখ বিক্রির অনুমতি), EMTS (ডাক বিভাগে ১ মিনিটে ৳৫০,০০০ পর্যন্ত পাঠানো), ই-পর্চা (অনলাইনে জমির খতিয়ান), তথ্য অধিকার আইন ২০০৯, BSA (সফটওয়্যার পাইরেসি রোধ)।",
+      "সংখ্যা পদ্ধতি: বাইনারি (ভিত্তি ২), অক্টাল (ভিত্তি ৮), ডেসিমাল (ভিত্তি ১০), হেক্সাডেসিমাল (ভিত্তি ১৬: 0–9, A–F)। ১ বাইট = ৮ বিট; ১ নিবল = ৪ বিট; ১ KB = ১০২৪ বাইট। ২-এর পরিপূরক = ১-এর পরিপূরক (বিট উল্টানো) + ১।",
+      "লজিক গেইট ও ডি মরগান: মৌলিক গেইট = AND, OR, NOT; সার্বজনীন গেইট = NAND ও NOR; XOR-এ ইনপুট ভিন্ন হলে আউটপুট ১। ডি মরগানের উপপাদ্য: (A+B)' = A'·B' এবং (A·B)' = A'+B'।",
+      "OSI ৭ স্তর: Physical (বিট/হাব) → Data Link (ফ্রেম/MAC/সুইচ) → Network (প্যাকেট/IP/রাউটার) → Transport (সেগমেন্ট/TCP-UDP) → Session → Presentation (এনক্রিপশন) → Application (HTTP/SMTP/DNS)। URL-এর ৩ অংশ: প্রোটোকল + ডোমেইন + পাথ।",
     ],
     memoryTricks: [
-      "OSI Mnemonic (Bottom-Up 1 to 7): 'Please Do Not Throw Sausage Pizza Away' (Physical, Data Link, Network, Transport, Session, Presentation, Application).",
-      "Common Ports: HTTP = 80, HTTPS = 443, FTP = 20/21, SSH = 22, SMTP (send email) = 25, DNS = 53.",
-      "Maintenance Trap: Always UNINSTALL programs cleanly (Settings/Control Panel) rather than just hitting DELETE — Delete leaves orphan Registry entries (inspect via Win+R -> regedit)!",
+      "OSI ৭ স্তরের নিচ থেকে ওপর মনে রাখার ছড়া: 'Please Do Not Throw Sausage Pizza Away' (Physical → Data Link → Network → Transport → Session → Presentation → Application)।",
+      "৩-বিট ও ৪-বিট জাদু: বাইনারি থেকে ডানে ৩ বিট করে গ্রুপিং করলে অক্টাল (৪-২-১ কোড) আর ৪ বিট করে গ্রুপিং করলে হেক্সাডেসিমাল (৮-৪-২-১ কোড) সরাসরি বের হয়!",
+      "কম্পিউটার থেকে সফটওয়্যার Delete নয় Uninstall করুন: Delete করলে কেবল ফোল্ডার যায়, কিন্তু রেজিস্ট্রি (Win+R → regedit) ও অকেজো ফাইল থেকে পিসি স্লো হয়ে যায়।",
     ],
     quickExamples: [
-      { label: "Binary 1011 to Decimal", detail: "1×8 + 0×4 + 1×2 + 1×1 = 11" },
-      { label: "URL 3 Parts Dissected", detail: "https:// (Protocol) + www.sorkaripath.gov.bd (Domain/Host) + /notice.pdf (Path/Resource)" },
-      { label: "Phishing vs Ransomware", detail: "Phishing = fake email/login tricking user; Ransomware = encrypts files & demands money" },
-      { label: "Compiler vs Interpreter", detail: "Compiler translates whole code at once (C/C++); Interpreter executes line-by-line (Python)" },
+      { label: "বাইনারি ১০১১ → ডেসিমাল", detail: "1×8 + 0×4 + 1×2 + 1×1 = 8 + 2 + 1 = ১১" },
+      { label: "URL-এর ৩টি অংশ", detail: "https:// (প্রোটোকল) + www.sorkaripath.gov.bd (ডোমেইন/হোস্ট) + /notice.pdf (পাথ)" },
+      { label: "ফিশিং বনাম র‍্যানসমওয়্যার", detail: "ফিশিং = ভুয়া লিংক/মেইলে পাসওয়ার্ড চুরি; র‍্যানসমওয়্যার = ফাইল লক করে মুক্তিপণ দাবি" },
+      { label: "কম্পাইলার বনাম ইন্টারপ্রিটার", detail: "কম্পাইলার পুরো কোড একসাথে অনুবাদ করে (C/C++); ইন্টারপ্রিটার লাইন-বাই-লাইন চালায় (Python)" },
     ],
     chapters: [
       {
-        heading: "Chapter 1: ICT Pioneers, Bangladesh E-Services & 2024 Indices (2026 NCTB Ch 1)",
+        heading: "অধ্যায় ১: তথ্যপ্রযুক্তির পথিকৃৎ, বাংলাদেশের ই-সেবা ও ২০২৪ বৈশ্বিক সূচক (NCTB ২০২৬ অধ্যায় ১)",
         explanation:
-          "Master the updated 2026 NCTB Class 9–10 ICT Chapter 1 timeline of computing/communication pioneers, Quantum Computing, flagship Bangladesh digital services, and 2024 global ICT rankings.",
+          "২০২৬ সালের নবম-দশম ICT বইয়ের প্রথম অধ্যায়ে একদিকে যেমন বিজ্ঞানী চার্লস ব্যাবেজ, অ্যাডা লাভলেস, জগদীশ চন্দ্র বসু ও টিম বার্নার্স-লির অবদান রয়েছে, তেমনি কোয়ান্টাম কম্পিউটিংয়ের আধুনিক 'কিউবিট' (Qubit — যা একসাথে ০ ও ১-এর উপরিপাতন বা Superposition অবস্থায় থাকতে পারে) যুক্ত হয়েছে।\n\nপরীক্ষার জন্য আরেকটি অত্যন্ত গুরুত্বপূর্ণ অংশ হলো সরকারি ই-সেবাসমূহ (ই-পুর্জি, ই-পর্চা, EMTS) এবং ২০২৬ সংস্করণের নতুন নামকরণ 'বাংলাদেশ স্যাটেলাইট-১' (উৎক্ষেপণ ১২ মে ২০১৮, ৫৭তম দেশ)। পাশাপাশি ITU IDI ২০২৪-এ বাংলাদেশের স্কোর (৬২/১০০) এবং জাতিসংঘের UN EGDI ২০২৪ র‍্যাংক (১৯৩ দেশের মধ্যে ১০০তম) হুবহু MCQ-তে আসার মতো তথ্য।",
+        comparisonTable: {
+          title: "২০২৬ NCTB অধ্যায় ১ — বাংলাদেশের ই-সেবা ও প্রযুক্তি মাইলফলক",
+          headers: ["ই-সেবা / পথিকৃৎ", "মূল কাজ / সাল", "পরীক্ষার গুরুত্বপূর্ণ তথ্য"],
+          rows: [
+            ["স্যার জগদীশ চন্দ্র বসু", "১৮৯৫ (কলকাতা)", "প্রথম তারবিহীন মাইক্রোওয়েভ তরঙ্গ প্রেরণ (মার্কনির আগেই)"],
+            ["রে টমলিনসন ও টিম বার্নার্স-লি", "১৯৭১ (ই-মেইল); ১৯৮৯–৯০ (WWW)", "টিম বার্নার্স-লি HTTP ও প্রথম ব্রাউজার 'WorldWideWeb' তৈরি করেন"],
+            ["ই-পুর্জি (e-Purjee)", "চিনি ও খাদ্য শিল্প কর্পোরেশন", "১৫টি রাষ্ট্রায়ত্ত চিনিকলের আখচাষিরা SMS-এ বিক্রির অনুমতি পান"],
+            ["EMTS (ইলেকট্রনিক মানি ট্রান্সফার)", "বাংলাদেশ ডাক বিভাগ", "মোবাইলের মাধ্যমে ১ মিনিটে সর্বোচ্চ ৳৫০,০০০ টাকা পাঠানো যায়"],
+            ["ই-পর্চা (e-Porcha)", "ভূমি মন্ত্রণালয়", "অনলাইনে জমির খতিয়ান ও মালিকানা রেকর্ড সংগ্রহের ডিজিটাল সেবা"],
+            ["বাংলাদেশ স্যাটেলাইট-১ ও সূচক ২০২৪", "১২ মে ২০১৮ (৫৭তম দেশ)", "ITU IDI ২০২৪ স্কোর = ৬২/১০০; UN EGDI ২০২৪ অবস্থান = ১০০তম/১৯৩"],
+          ],
+        },
         points: [
-          "1. Communication & Computing Pioneers: Charles Babbage (Father of Computer) & Ada Lovelace (first programmer); James Clerk Maxwell (Electromagnetic wave theory); Sir Jagadish Chandra Bose (1895 — first wireless microwave transmission in Kolkata); Guglielmo Marconi (long-distance wireless radio telegraphy); Ray Tomlinson (1971 — first network email & '@' symbol).",
-          "2. Personal Computing, Web & Quantum Era: Apple Computer founded 1976 (Steve Jobs, Steve Wozniak, Ronald Wayne); Microsoft supplied MS-DOS in 1981 as the OS for IBM PC; Sir Tim Berners-Lee invented HTTP (1989) and created the first web browser 'WorldWideWeb' (1990); Facebook launched 4 February 2004. Quantum Computing uses 'qubit' (exists in 0, 1, or superposition of BOTH 0 and 1 simultaneously!).",
-          "3. Flagship Bangladesh E-Services: e-Purjee (ই-পুর্জি) sends automated SMS sugarcane supply permits across 15 state sugar mills; EMTS (Electronic Money Transfer System) by Bangladesh Post Office sends up to ৳50,000 via mobile within 1 minute; e-Porcha (ই-পর্চা) delivers online land ownership records (খতিয়ান).",
-          "4. Space & 2024 Global ICT Indices (2026 Textbook Updates): Bangladesh Satellite-1 (officially updated name in 2026 NCTB textbook, launched 12 May 2018 — 57th satellite-owning country); ITU ICT Development Index (IDI) 2024 Bangladesh score = 62 / 100; UN E-Government Development Index (EGDI) 2024 Bangladesh rank = 100th out of 193 countries.",
+          "১. কম্পিউটারের প্রথম যুগ: চার্লস ব্যাবেজ (কম্পিউটারের জনক — ডিফারেন্স ও অ্যানালিটিক্যাল ইঞ্জিন) এবং অ্যাডা লাভলেস (বিশ্বের প্রথম কম্পিউটার প্রোগ্রামার)।",
+          "২. অ্যাপল ও মাইক্রোসফট: ১৯৭৬ সালে অ্যাপল কম্পিউটার প্রতিষ্ঠিত হয় (স্টিভ জবস, স্টিভ ওজনিয়াক, রোনাল্ড ওয়েন); আর ১৯৮১ সালে IBM পিসির জন্য অপারেটিং সিস্টেম MS-DOS সরবরাহ করে মাইক্রোসফট। ফেসবুক চালু হয় ৪ ফেব্রুয়ারি ২০০৪।",
+          "৩. কোয়ান্টাম কম্পিউটিং (২০২৬ সংযোজন): সাধারণ কম্পিউটার বিট (০ বা ১) ব্যবহার করে, কিন্তু কোয়ান্টাম কম্পিউটার কিউবিট (Qubit) ব্যবহার করে, যা একই সাথে ০ এবং ১-এর সমবায়ে জটিল গণনা প্রচণ্ড গতিতে করতে পারে।",
         ],
         workedExamples: [
-          "2026 NCTB Exam Traps: (1) Who first transmitted wireless microwaves in 1895? -> Jagadish Chandra Bose (before Marconi's transatlantic radio). (2) First web browser (1990)? -> WorldWideWeb by Tim Berners-Lee. (3) Bangladesh's 2024 UN EGDI rank & ITU IDI score? -> 100th/193 and 62/100.",
+          "উদাহরণ: ২০২৬ NCTB বই অনুযায়ী স্যাটেলাইট-১-এর নতুন নাম কী এবং ২০২৪ সালের UN E-Government Index-এ বাংলাদেশের অবস্থান কত?\nসমাধান: নাম = 'বাংলাদেশ স্যাটেলাইট-১' (উৎক্ষেপণ ১২ মে ২০১৮, ৫৭তম দেশ); UN EGDI ২০২৪ অবস্থান = ১০০তম (১৯৩টি দেশের মধ্যে) এবং ITU IDI স্কোর = ৬২/১০০।",
+        ],
+        practiceProblems: [
+          {
+            question: "বাংলাদেশের কোন ই-সেবায় ১৫টি সরকারি চিনিকলের চাষিরা SMS-এ অনুমতি পান এবং কোন সালে স্যার জগদীশ চন্দ্র বসু বেতার তরঙ্গ প্রেরণ করেন?",
+            hint: "আখ বিক্রির অনুমোদনপত্র হলো ই-পুর্জি; ১৮৯৫ সালে কলকাতায় মাইক্রোওয়েভ পরীক্ষা হয়।",
+            solution: "ই-পুর্জি (e-Purjee)-তে ১৫টি চিনিকলের আখচাষিরা SMS-এ অনুমতিপত্র পান। ১৮৯৫ সালে স্যার জগদীশ চন্দ্র বসু প্রথম তারবিহীন মাইক্রোওয়েভ প্রেরণ করেন।",
+            answer: "ই-পুর্জি; ১৮৯৫ সালে",
+          },
         ],
       },
       {
-        heading: "Chapter 2: Maintenance, Software Ethics, RTI Act & Cyber Security (NCTB Ch 2–3)",
+        heading: "অধ্যায় ২: রক্ষণাবেক্ষণ, তথ্য অধিকার আইন, পাইরেসি ও সাইবার নিরাপত্তা (NCTB অধ্যায় ২–৩)",
         explanation:
-          "Covers 2026 NCTB ICT Ch 2 (Computer Maintenance & Software Cleanup) and Ch 3 (Cyber Threats, URL Structure, Piracy & Information Rights).",
+          "কম্পিউটার ধীরে কাজ করলে বা প্রোগ্রাম অস্থিতিশীল হলে কীভাবে রক্ষণাবেক্ষণ করতে হবে তা অধ্যায় ২-এর মূল বিষয়। সমস্যা হওয়ার আগে পিসি পরিষ্কার রাখা, অ্যান্টিভাইরাস আপডেট করা ও অস্থায়ী (Temp) ফাইল মোছাকে 'প্রতিরোধমূলক রক্ষণাবেক্ষণ (Preventive Maintenance)' বলে; আর হার্ডওয়্যার নষ্ট বা উইন্ডোজ ক্র্যাশ করার পর মেরামত করাকে 'সংশোধনমূলক রক্ষণাবেক্ষণ (Corrective Maintenance)' বলে।\n\nঅধ্যায় ৩-এ রয়েছে সাইবার নিরাপত্তা, সফটওয়্যার পাইরেসি এবং URL কাঠামো। প্রতিটি ওয়েব ঠিকানা বা URL-এর ৩টি মৌলিক অংশ থাকে: (১) প্রোটোকল (https://), (২) ডোমেইন বা হোস্ট নাম (www.bangladesh.gov.bd) এবং (৩) পাথ বা নির্দিষ্ট ফাইল (/notice.pdf)। এছাড়া রাষ্ট্রীয় স্বচ্ছতায় জনগণের তথ্য পাওয়ার অধিকার নিশ্চিত করে 'তথ্য অধিকার আইন ২০০৯' এবং কপিরাইট লঙ্ঘন বা পাইরেসি নজরদারি করে BSA (Business Software Alliance)।",
+        comparisonTable: {
+          title: "রক্ষণাবেক্ষণ, ম্যালওয়্যার ও হ্যাকার শ্রেণিবিভাগ",
+          headers: ["শ্রেণি / হুমকি", "বৈশিষ্ট্য ও কাজের ধরন", "সতর্কতা / উদাহরণ"],
+          rows: [
+            ["Uninstall বনাম Delete", "Delete শুধু আইকন/ফোল্ডার সরায়; Uninstall পুরো সফটওয়্যার ও রেজিস্ট্রি মুছে ফেলে", "Win+R → `regedit` দিয়ে রেজিস্ট্রি এডিটর দেখা যায়"],
+            ["ভাইরাস বনাম ওয়ার্ম বনাম ট্রোজান", "ভাইরাস ফাইলের সাথে যুক্ত হয়; ওয়ার্ম নিজেই নেটওয়ার্কে ছড়ায়; ট্রোজান ভালো অ্যাপের ছদ্মবেশ নেয়", "র‍্যানসমওয়্যার ডেটা এনক্রিপ্ট করে মুক্তিপণ চায়"],
+            ["ফিশিং (Phishing)", "ভুয়া ই-মেইল বা নকল লগইন পেজ পাঠিয়ে পাসওয়ার্ড/OTP চুরি", "DDoS অসংখ্য ভুয়া রিকোয়েস্ট পাঠিয়ে সার্ভার ডাউন করে"],
+            ["হ্যাকারের ৩ ধরন", "White Hat (নিরাপত্তা যাচাইকারী), Black Hat (ক্ষতিকর), Grey Hat (অনুমতিহীন কিন্তু অ-বাণিজ্যিক)", "আইনত অনুমোদিত হলো কেবল White Hat / Ethical Hacker"],
+          ],
+        },
         points: [
-          "1. Preventive vs Corrective Maintenance: Preventive Maintenance (cleaning dust, updating OS/antivirus, running Disk Cleanup & Temp removal, taking backups BEFORE faults occur) vs Corrective Maintenance (repairing/replacing damaged hardware, restoring corrupted OS or removing malware AFTER failure).",
-          "2. Uninstall vs Delete & Registry Editor: 'Delete' only removes visible folder/shortcut files, leaving broken DLLs and leftover registry keys. 'Uninstall' removes the entire program and settings cleanly. Press Win + R and type 'regedit' to open Windows Registry Editor (advanced configuration database — edit cautiously!).",
-          "3. Software Piracy & Right to Information: BSA (Business Software Alliance) monitors global Software Piracy (unauthorized copying, cracking & unlicensed software use violating Copyright). Right to Information Act 2009 (তথ্য অধিকার আইন ২০০৯) empowers citizens to legally obtain public/government information for transparency and accountability.",
-          "4. Malware & Cyber Threats: Malware (malicious software) includes Virus (attaches to host file), Worm (self-replicates across networks without a host), Trojan Horse (disguised as useful app), Ransomware (encrypts data & demands ransom), and Spyware/Keylogger. Attacks: Phishing (fake emails/logins stealing passwords/OTPs), DDoS (flooding server availability), MITM, SQL Injection.",
-          "5. Hacking Types & URL 3 Parts: Hackers — White Hat (ethical/authorized defender), Black Hat (malicious cracker), Grey Hat (unauthorized testing without profit motive, still illegal). Every URL has 3 core parts: (1) Protocol (e.g., https://), (2) Domain Name / Host (e.g., www.bangladesh.gov.bd), (3) Path / Resource (e.g., /site/page/ict.html).",
+          "১. তথ্য অধিকার আইন ২০০৯ (Right to Information Act 2009): বাংলাদেশের সংবিধানের ৩৯ নং অনুচ্ছেদের চিন্তা ও বিবেকের স্বাধীনতার অংশ হিসেবে প্রণীত, যা নাগরিকদের সরকারি ও স্বায়ত্তশাসিত প্রতিষ্ঠান থেকে তথ্য পাওয়ার আইনি অধিকার দেয়।",
+          "২. BSA (Business Software Alliance): বিশ্বব্যাপী অনুমোদনহীন সফটওয়্যার নকল, ক্র্যাক ও কপিরাইট ভঙ্গ (Software Piracy) প্রতিরোধে কাজ করে।",
         ],
         workedExamples: [
-          "Maintenance & Law Check: Desktop slows down due to half-deleted apps -> Use Control Panel/Settings Uninstall + clear Temp files (Preventive), NOT manual folder Delete. Checking unauthorized software compliance in offices falls under BSA Copyright enforcement.",
+          "উদাহরণ: `https://sorkaripath.gov.bd/jobs/circular.pdf` URL-টির ৩টি অংশ আলাদা করে দেখান।\nউত্তর: প্রোটোকল = `https://`; ডোমেইন/হোস্ট = `sorkaripath.gov.bd`; পাথ/রিসোর্স = `/jobs/circular.pdf`।",
+        ],
+        practiceProblems: [
+          {
+            question: "বাংলাদেশে কবে 'তথ্য অধিকার আইন' পাস হয় এবং পিসির অপ্রয়োজনীয় সফটওয়্যার সম্পূর্ণ মুছতে Delete-এর বদলে কী করতে হয়?",
+            hint: "তথ্য অধিকার আইন ২০০৯ সাল; আর সফটওয়্যার সরাতে Settings/Control Panel থেকে Uninstall।",
+            solution: "তথ্য অধিকার আইন ২০০৯ সালে পাস হয়। সফটওয়্যার পরিপূর্ণভাবে অপসারণ ও রেজিস্ট্রি জঞ্জাল এড়াতে Uninstall করতে হয়।",
+            answer: "২০০৯ সালে; Uninstall",
+          },
         ],
       },
       {
-        heading: "Chapter 3: Number Systems, Conversions & 2's Complement Arithmetic",
+        heading: "অধ্যায় ৩: সংখ্যা পদ্ধতি, রূপান্তর ও ২-এর পরিপূরক (Number Systems & 2's Complement)",
         explanation:
-          "Almost every BCS & Bank ICT paper tests Binary/Octal/Decimal/Hexadecimal conversion, 1 byte = 8 bits, ASCII vs Unicode sizing, or 2's complement negative representation.",
+          "বিসিএস ও ব্যাংক প্রিলিমিনারিতে সংখ্যা পদ্ধতি থেকে প্রায় নিশ্চিতভাবে ১–২টি অঙ্ক আসে। কম্পিউটার কেবল ০ ও ১ (বাইনারি) বোঝে, কিন্তু মানুষ অভ্যস্ত ১০-ভিত্তিক ডেসিমাল সংখ্যায়। বড় বাইনারি সংখ্যা সংক্ষেপে লেখার জন্যই ৮-ভিত্তিক অক্টাল (প্রতি ডিজিট = ৩ বিট) এবং ১৬-ভিত্তিক হেক্সাডেসিমাল (প্রতি ডিজিট = ৪ বিট) ব্যবহৃত হয়।\n\nমনে রাখবেন, কম্পিউটারে সরাসরি ঋণাত্মক সংখ্যা বা বিয়োগ করার কোনো সার্কিট নেই—তাই কম্পিউটার '২-এর পরিপূরক' (2's Complement) পদ্ধতি ব্যবহার করে যোগের মাধ্যমেই বিয়োগের কাজ সারে। একটি ধনাত্মক বাইনারি সংখ্যার সবগুলো বিট উল্টে দিলে (০→১, ১→০) পাওয়া যায় '১-এর পরিপূরক', আর তার সাথে +১ যোগ করলেই পাওয়া যায় '২-এর পরিপূরক'!",
+        formulaBox: [
+          {
+            label: "বিট ও বাইটের হিসাব",
+            formula: "১ নিবল = ৪ বিট  |  ১ বাইট = ৮ বিট  |  ১ KB = ১০২৪ বাইট (2¹⁰)",
+            note: "ASCII-7 = ১২৮টি অক্ষর; Unicode (UTF-8/16)-এ বাংলাসহ সব ভাষা (U+0980–09FF)",
+          },
+          {
+            label: "২-এর পরিপূরক সূত্র",
+            formula: "2's Complement = 1's Complement (সব বিট উল্টানো) + 1",
+            note: "৮-বিটে বামদিকের সাইন বিট ০ হলে (+), ১ হলে (-) সংখ্যা",
+          },
+        ],
+        comparisonTable: {
+          title: "৪টি পজিশনাল সংখ্যা পদ্ধতির ভিত্তি ও দ্রুত রূপান্তর কৌশল",
+          headers: ["পদ্ধতি", "ভিত্তি (Base)", "প্রতীকসমূহ", "বাইনারি বিট সম্পর্ক"],
+          rows: [
+            ["বাইনারি (Binary)", "২", "0, 1", "১ ডিজিট = ১ বিট"],
+            ["অক্টাল (Octal)", "৮", "0, 1, 2, 3, 4, 5, 6, 7", "১ অক্টাল অঙ্ক = ৩ বাইনারি বিট (4-2-1 কোড)"],
+            ["ডেসিমাল (Decimal)", "১০", "0 থেকে 9", "পূর্ণসংখ্যাকে ২ দিয়ে ভাগ করে নিচ→উপরে ভাগশেষ"],
+            ["হেক্সাডেসিমাল (Hex)", "১৬", "0–9 এবং A(10), B(11), C(12), D(13), E(14), F(15)", "১ হেক্স অঙ্ক = ৪ বাইনারি বিট (8-4-2-1 কোড)"],
+          ],
+        },
         points: [
-          "1. Positional Weights & Bit Sizing: Decimal (base 10), Binary (base 2: 0,1), Octal (base 8: 0–7, 3 Binary bits/digit), Hexadecimal (base 16: 0–9, A=10..F=15, 4 Binary bits/digit). 1 Nibble = 4 bits; 1 Byte = 8 bits; 1 KB = 1024 Bytes.",
-          "2. Instant Binary <-> Octal/Hex Trick (4-2-1 & 8-4-2-1): Group Binary from right into 3 bits for Octal (e.g., 101101 -> 101 | 101 = 55₈), OR into 4 bits for Hex (101101 -> 0010 | 1101 = 2D₁₆)!",
-          "3. Decimal to Binary Method: Repeatedly divide integer by 2 and read REMAINDERS bottom-to-top (or use 128-64-32-16-8-4-2-1 subtraction). Fraction part: multiply by 2 repeatedly and take integer carries top-to-bottom.",
-          "4. Signed Negative Numbers (2's Complement): Flip every bit (1's complement), then add +1! E.g., -5 in 8-bit: +5 = 00000101 -> invert = 11111010 -> +1 = 11111011.",
-          "5. Character Encoding: ASCII-7 = 128 chars (7 bits), Extended ASCII = 8 bits; BCD = 4 bits per decimal digit; Unicode (UTF-8 / UTF-16) supports all world scripts including Bangla (U+0980–U+09FF).",
+          "১. ডেসিমাল → বাইনারি ১২৮-৬৪-৩২ শর্টকাট: যেমন ৪৫-কে বানাতে বড় থেকে কোন পাওয়ার অব ২ লাগে তা বেছে নিয়ে ১ বসান (৩২ + ৮ + ৪ + ১ = ৪৫) ⇒ ৩২(১) ১৬(০) ৮(১) ৪(১) ২(০) ১(১) = 101101₂!",
+          "২. বাইনারি ↔ অক্টাল ও হেক্স শর্টকাট: ডানদিক থেকে ৩ বিট করে বাঁধলে অক্টাল, আর ৪ বিট করে বাঁধলে হেক্সাডেসিমাল পাওয়া যায় (বামে বিট কম পড়লে ০ বসিয়ে নেবেন)।",
         ],
         workedExamples: [
-          "Convert Decimal 45 to Binary, Octal & Hex: 45 = 32 + 8 + 4 + 1 = 101101₂. Group in 3s: (101)(101) = 55₈. Group in 4s: (0010)(1101) = 2D₁₆!",
+          "উদাহরণ ১ (একসাথে সব রূপান্তর): ডেসিমাল 45-কে বাইনারি, অক্টাল ও হেক্সাডেসিমালে রূপান্তর করুন।\nধাপ ১ (বাইনারি): 45 = 32 + 8 + 4 + 1 ⇒ (32,16,8,4,2,1)-এর নিচে মান বসিয়ে = 101101₂।\nধাপ ২ (অক্টাল — ৩ বিট গ্রুপিং): ডানে ৩ বিট (101) ও বামে ৩ বিট (101) ⇒ 4+1=5, 4+1=5 ⇒ 55₈।\nধাপ ৩ (হেক্সাডেসিমাল — ৪ বিট গ্রুপিং): (0010)(1101) ⇒ 2 এবং (8+4+1 = 13 = D) ⇒ 2D₁₆।",
+          "উদাহরণ ২ (-5 এর ২-এর পরিপূরক, ৮-বিটে):\nধাপ ১: +5-এর ৮-বিট বাইনারি = 0000 0101।\nধাপ ২: সব বিট উল্টে ১-এর পরিপূরক = 1111 1010।\nধাপ ৩: +1 যোগ করে ২-এর পরিপূরক = 1111 1011।",
+        ],
+        commonMistakes: [
+          "হেক্সাডেসিমালে 10–15 সংখ্যাকে সরাসরি না লিখে অবশ্যই A=10, B=11, C=12, D=13, E=14, F=15 লিখতে হবে; এবং বিট গ্রুপিং সবসময় ডানদিক (দশমিকের দিক) থেকে বামে করতে হয় (ভগ্নাংশ হলে দশমিক থেকে ডানে)।",
+        ],
+        practiceProblems: [
+          {
+            question: "হেক্সাডেসিমাল (3F)₁₆ এর ডেসিমাল মান ও বাইনারি মান কত?",
+            hint: "3×16¹ + 15×16⁰ = ডেসিমাল; অথবা ৩ ও F(১৫)-কে ৪ বিট করে (0011)(1111) লিখুন।",
+            solution: "ডেসিমাল: 3×16 + 15 = 48 + 15 = 63। বাইনারি: 3 = 0011, F(15) = 1111 ⇒ 111111₂।",
+            answer: "ডেসিমাল ৬৩; বাইনারি ১১১১১১₂",
+          },
+          {
+            question: "অক্টাল (74)₈-কে হেক্সাডেসিমালে প্রকাশ করুন (এক ক্লিকে ৩ বিট → ৪ বিট)।",
+            hint: "প্রথমে অক্টালের প্রতিটি অঙ্ককে ৩ বিটে লিখুন (7=111, 4=100), তারপর ডান থেকে ৪ বিট গ্রুপ করে হেক্স বের করুন।",
+            solution: "74₈ = (111)(100)₂ = 111100₂। ডান থেকে ৪ বিটে সাজালে = (0011)(1100) = 3 এবং 12(C) = 3C₁₆।",
+            answer: "(3C)₁₆",
+          },
         ],
       },
       {
-        heading: "Chapter 4: Boolean Logic Gates, Architecture, OSI 7 Layers & DBMS",
+        heading: "অধ্যায় ৪: বুলিয়ান লজিক গেইট, মেমোরি, OSI ৭ স্তর ও ডেটাবেস (SQL)",
         explanation:
-          "Master Basic/Universal Logic Gates, CPU-Memory hierarchy, OSI vs TCP/IP networking layers, and RDBMS SQL keys.",
+          "ডিজিটাল ডিভাইসের সকল সার্কিট দাঁড়িয়ে আছে তিনটি মৌলিক লজিক গেইটের ওপর: AND (গুণ, সব ইনপুট ১ হলেই আউটপুট ১), OR (যোগ, যেকোনো একটি ইনপুট ১ হলেই আউটপুট ১) এবং NOT (বিপরীতকরণ)। আর NAND ও NOR-কে বলা হয় 'সার্বজনীন গেইট (Universal Gate)', কারণ শুধুমাত্র NAND বা শুধুমাত্র NOR গেইট দিয়েই দুনিয়ার যেকোনো ডিজিটাল সার্কিট বানানো সম্ভব।\n\nকম্পিউটার মেমোরি গতি অনুযায়ী ওপর থেকে নিচে সাজালে: CPU রেজিস্টার → ক্যাশ মেমোরি (SRAM — সবচেয়ে দ্রুত ক্যাশ, রিফ্রেশ লাগে না) → প্রধান RAM (DRAM — অস্থায়ী, রিফ্রেশ লাগে) → ROM (স্থায়ী BIOS) → SSD/HDD। আর নেটওয়ার্কে OSI মডেলের ৭টি স্তর ও IPv4 (৩২ বিট) বনাম IPv6 (১২৮ বিট) বনাম MAC অ্যাড্রেস (৪৮ বিট) পরীক্ষার একেবারে বাঁধা প্রশ্ন।",
+        formulaBox: [
+          {
+            label: "ডি মরগানের উপপাদ্য",
+            formula: "(A + B)' = A' · B'   এবং   (A · B)' = A' + B'",
+            note: "লজিক সমীকরণ সরলীকরণের মূল হাতিয়ার",
+          },
+          {
+            label: "অ্যাডার ও নেটওয়ার্ক অ্যাড্রেস বিট",
+            formula: "Half Adder: Sum = A ⊕ B, Carry = A·B  |  IPv4 = 32 bit, MAC = 48 bit, IPv6 = 128 bit",
+            note: "লুপব্যাক IP = 127.0.0.1; Mesh টপোলজি লিংক = n(n-1)/2",
+          },
+        ],
+        comparisonTable: {
+          title: "OSI ৭ স্তর, ডিভাইস, ডেটা একক ও প্রোটোকল পোর্ট",
+          headers: ["স্তর (নিচ → উপর)", "ডেটা একক", "নেটওয়ার্ক ডিভাইস / প্রোটোকল ও পোর্ট"],
+          rows: [
+            ["১. Physical Layer", "Bits (বিট)", "হাব (Hub), রিপিটার, ফাইবার অপটিক/UTP ক্যাবল"],
+            ["২. Data Link Layer", "Frames (ফ্রেম)", "সুইচ (Switch), ব্রিজ, ৪৮-বিট হেক্সাডেসিমাল MAC অ্যাড্রেস"],
+            ["৩. Network Layer", "Packets (প্যাকেট)", "রাউটার (Router), IPv4 (৩২-বিট) ও IPv6 (১২৮-বিট)"],
+            ["৪. Transport Layer", "Segments (সেগমেন্ট)", "TCP (নির্ভরযোগ্য/কানেকশন) ও UDP (দ্রুত স্ট্রিমিং)"],
+            ["৫–৬. Session ও Presentation", "ডেটা", "Presentation স্তরে এনক্রিপশন (SSL/TLS), কম্প্রেশন ও JPEG/MP3"],
+            ["৭. Application Layer", "মেসেজ/ডেটা", "HTTP (80), HTTPS (443), FTP (20/21), SSH (22), SMTP (25), DNS (53)"],
+          ],
+        },
         points: [
-          "1. Boolean Logic Gates & De Morgan's Laws: Basic Gates = AND (Y = A·B), OR (Y = A+B), NOT (Y = A'). Universal Gates = NAND [(A·B)'] & NOR [(A+B)'] — ANY logic circuit can be built using only NAND or only NOR! Derived Gates: XOR (1 when inputs DIFFER, used in Half/Full Adders) & XNOR (1 when inputs MATCH). De Morgan: (A + B)' = A'·B' and (A·B)' = A' + B'.",
-          "2. Von Neumann CPU Cycle & Memory Hierarchy: Fetch -> Decode -> Execute. Speed fastest-to-slowest: CPU Registers -> L1/L2/L3 Cache (SRAM: flip-flops, no refresh) -> Main RAM (DRAM: capacitors, needs refresh, volatile) -> ROM (non-volatile BIOS/UEFI) -> SSD/HDD. Translators: Assembler, Compiler (whole code: C/C++), Interpreter (line-by-line: Python/JS).",
-          "3. OSI 7 Layers & Devices: (1) Physical [Bits — Hub, Repeater, Fiber/UTP], (2) Data Link [Frames — Switch, Bridge, MAC 48-bit Hex], (3) Network [Packets — Router, IPv4 32-bit vs IPv6 128-bit], (4) Transport [Segments — TCP reliable vs UDP fast], (5) Session, (6) Presentation [SSL/TLS Encryption, JPEG/MP3], (7) Application [HTTP 80, HTTPS 443, FTP 20/21, SSH 22, SMTP 25, POP3 110 / IMAP 143, DNS 53]. Topologies: Bus, Star (central switch), Ring, Mesh [n(n-1)/2 links].",
-          "4. RDBMS Keys & SQL: Primary Key (unique + NOT NULL, one per table); Foreign Key enforces Referential Integrity. SQL: DDL (CREATE, ALTER, DROP, TRUNCATE), DML (SELECT, INSERT, UPDATE, DELETE), DCL (GRANT, REVOKE), TCL (COMMIT, ROLLBACK).",
+          "১. বিশেষ গেইট (XOR ও XNOR): XOR (⊕) গেইটে দুটি ইনপুট ভিন্ন (0 ও 1) হলে আউটপুট 1, আর সমান হলে 0। Half Adder-এ Sum নির্ণয়ে XOR এবং Carry নির্ণয়ে AND লাগে।",
+          "২. RDBMS ও SQL কী: Primary Key (অদ্বিতীয় ও কখনো NULL হতে পারে না, টেবিলে একটিই); Foreign Key দুটি টেবিলের মধ্যে সম্পর্ক (Referential Integrity) গড়ে। SQL কমান্ড: DDL (CREATE, ALTER, DROP, TRUNCATE), DML (SELECT, INSERT, UPDATE, DELETE), DCL (GRANT, REVOKE), TCL (COMMIT, ROLLBACK)।",
         ],
         workedExamples: [
-          "Example 1 (Logic & Adders): Half Adder adds 2 bits (A, B) -> Sum = A XOR B, Carry = A·B. Full Adder adds 3 bits (A, B, Cin).",
-          "Example 2 (IPv4 & Addresses): 127.0.0.1 is Loopback (localhost); Private IPv4 ranges: 10.0.0.0/8, 172.16.0.0–172.31.255.255, 192.168.0.0/16. IPv4 = 32 bits; IPv6 = 128 bits; MAC = 48 bits.",
+          "উদাহরণ: একটি রাউটার OSI মডেলের কোন স্তরে কাজ করে এবং কোনো টেবিলের দুটি ফিল্ডে যদি Primary Key নির্ধারণ করা হয় তবে কোন দুটি শর্ত মানতে হবে?\nসমাধান: রাউটার কাজ করে ৩য় স্তর Network Layer-এ (সুইচ ২য় স্তর Data Link, হাব ১ম স্তর Physical)। Primary Key অবশ্যই অদ্বিতীয় (Unique) এবং NOT NULL (শূন্য হতে পারবে না) হতে হবে।",
+        ],
+        practiceProblems: [
+          {
+            question: "কোন দুটি গেইটকে 'সার্বজনীন গেইট' বলা হয় এবং সুইচ ও রাউটার OSI মডেলের কোন কোন স্তরে কাজ করে?",
+            hint: "দুটি সার্বজনীন গেইট = NAND ও NOR; সুইচ ২য় ও রাউটার ৩য় স্তরে।",
+            solution: "সার্বজনীন গেইট = NAND ও NOR। সুইচ = ২য় স্তর (Data Link Layer, ফ্রেম ও MAC); রাউটার = ৩য় স্তর (Network Layer, প্যাকেট ও IP)।",
+            answer: "NAND ও NOR; সুইচ ২য় (Data Link), রাউটার ৩য় (Network) স্তরে",
+          },
+          {
+            question: "মেইল পাঠানোর প্রোটোকল SMTP-এর পোর্ট কত এবং IPv4 ও IPv6 যথাক্রমে কত বিটের?",
+            hint: "HTTP 80, SMTP 25, DNS 53; IPv4 ৩২ বিট, IPv6 ১২৮ বিট।",
+            solution: "SMTP পোর্ট = 25 (HTTPS = 443, DNS = 53)। IPv4 = ৩২ বিট (৪ বাইট) এবং IPv6 = ১২৮ বিট (১৬ বাইট)।",
+            answer: "SMTP পোর্ট 25; IPv4 = ৩২ বিট, IPv6 = ১২৮ বিট",
+          },
         ],
       },
     ],

@@ -246,11 +246,34 @@ export interface ModelTestPreset {
   badge: string;
 }
 
+export interface StudyFormulaItem {
+  label: string;
+  formula: string;
+  note?: string;
+}
+
+export interface StudyComparisonTable {
+  title?: string;
+  headers: string[];
+  rows: string[][];
+}
+
+export interface StudyPracticeProblem {
+  question: string;
+  hint?: string;
+  solution: string;
+  answer: string;
+}
+
 export interface StudyChapter {
   heading: string;
   explanation: string;
+  formulaBox?: StudyFormulaItem[];
+  comparisonTable?: StudyComparisonTable;
   points: string[];
   workedExamples: string[];
+  commonMistakes?: string[];
+  practiceProblems?: StudyPracticeProblem[];
 }
 
 export interface StudyTopic {

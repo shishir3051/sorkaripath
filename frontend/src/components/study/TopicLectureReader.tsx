@@ -1,0 +1,587 @@
+"use client";
+
+import Link from "next/link";
+import { useState } from "react";
+import {
+  AlertTriangle,
+  BookOpen,
+  Calculator,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Eye,
+  EyeOff,
+  HelpCircle,
+  Lightbulb,
+  Play,
+  Printer,
+  Search,
+  Table2,
+  X,
+} from "lucide-react";
+import { TopicAiLab } from "@/components/study/TopicAiLab";
+import type { StudyChapter, StudyTopic } from "@/lib/types";
+
+interface TopicLectureReaderProps {
+  topic: StudyTopic;
+  isCompleted: boolean;
+  onToggleComplete: (slug: string) => void;
+  onClose: () => void;
+}
+
+function splitParagraphs(text: string): string[] {
+  return text
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+}
+
+function ChapterPracticeCard({
+  index,
+  problem,
+}: {
+  index: number;
+  problem: NonNullable<StudyChapter["practiceProblems"]>[number];
+}) {
+  const [showHint, setShowHint] = useState(false);
+  const [showSolution, setShowSolution] = useState(false);
+
+  return (
+    <div className="rounded-xl border border-indigo-200/80 bg-white p-4 space-y-2.5 shadow-2xs">
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-xs sm:text-sm font-bold text-slate-900 leading-relaxed font-bangla">
+          <span className="mr-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-[11px] font-extrabold text-indigo-800">
+            {index + 1}
+          </span>
+          {problem.question}
+        </p>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-2 print:hidden">
+        {problem.hint && (
+          <button
+            type="button"
+            onClick={() => setShowHint((v) => !v)}
+            className="inline-flex items-center gap-1 rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-bold text-amber-900 hover:bg-amber-100 cursor-pointer"
+          >
+            <HelpCircle className="h-3.5 w-3.5" />
+            <span>{showHint ? "ইঙ্গিত লুকান" : "ইঙ্গিত দেখুন (Hint)"}</span>
+          </button>
+        )}
+        <button
+          type="button"
+          onClick={() => setShowSolution((v) => !v)}
+          className="inline-flex items-center gap-1 rounded-lg bg-indigo-700 px-3 py-1 text-[11px] font-bold text-white hover:bg-indigo-800 cursor-pointer"
+        >
+          {showSolution ? (
+            <>
+              <EyeOff className="h-3.5 w-3.5" />
+              <span>সমাধান লুকান</span>
+            </>
+          ) : (
+            <>
+              <Eye className="h-3.5 w-3.5" />
+              <span>ধাপে ধাপে সমাধান ও উত্তর দেখুন</span>
+            </>
+          )}
+        </button>
+      </div>
+
+      {showHint && problem.hint && (
+        <div className="rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2 text-xs text-amber-950 font-bangla">
+          <strong>ইঙ্গিত:</strong> {problem.hint}
+        </div>
+      )}
+
+      {showSolution && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 space-y-1.5 text-xs sm:text-sm text-emerald-950 font-bangla">
+          <div className="space-y-1 leading-relaxed">
+            {problem.solution.split("\n").map((line, lineIdx) => (
+              <p key={lineIdx}>{line}</p>
+            ))}
+          </div>
+          <p className="pt-1 border-t border-emerald-200 font-extrabold text-emerald-900">
+            সঠিক উত্তর: {problem.answer}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export function TopicLectureReader({
+  topic,
+  isCompleted,
+  onToggleComplete,
+  onClose,
+}: TopicLectureReaderProps) {
+  const chapters = topic.chapters ?? [];
+  const [focusMode, setFocusMode] = useState(false);
+  const [activeChapterIdx, setActiveChapterIdx] = useState(0);
+
+  const safeIdx = Math.min(activeChapterIdx, Math.max(0, chapters.length - 1));
+  const visibleChapters =
+    focusMode && chapters.length > 0
+      ? [{ chapter: chapters[safeIdx], idx: safeIdx }]
+      : chapters.map((chapter, idx) => ({ chapter, idx }));
+
+  const quizSubject =
+    topic.mcqSubjectFilter && topic.mcqSubjectFilter !== "All"
+      ? topic.mcqSubjectFilter
+      : topic.subject;
+
+  return (
+    <div className="rounded-2xl border-2 border-emerald-600/30 bg-white p-6 sm:p-8 shadow-md space-y-6">
+      {/* Header Bar */}
+      <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 pb-4">
+        <div className="space-y-1.5">
+          <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
+            <span className="rounded-full bg-emerald-100 px-3 py-0.5 text-emerald-800">
+              {topic.subject}
+            </span>
+            <span className="rounded-full bg-slate-100 px-3 py-0.5 text-slate-700 font-bangla">
+              {topic.unit}
+            </span>
+            {chapters.length > 0 && (
+              <span className="rounded-full bg-amber-100 px-3 py-0.5 text-amber-900">
+                {chapters.length} Full Chapters
+              </span>
+            )}
+            <span className="inline-flex items-center gap-1 text-slate-500">
+              <Clock className="h-3.5 w-3.5" />
+              {topic.estimatedMinutes} min read
+            </span>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 font-bangla">
+            {topic.title}
+          </h2>
+          <p className="text-sm text-slate-600 leading-relaxed font-bangla">
+            {topic.highYieldSummary}
+          </p>
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2 print:hidden">
+          <button
+            type="button"
+            onClick={() => onToggleComplete(topic.slug)}
+            className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold cursor-pointer ${
+              isCompleted
+                ? "bg-emerald-700 text-white"
+                : "border border-emerald-300 bg-emerald-50 text-emerald-900 hover:bg-emerald-100"
+            }`}
+          >
+            <CheckCircle2 className="h-4 w-4" />
+            <span>{isCompleted ? "Completed" : "Mark Complete"}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
+          >
+            <Printer className="h-4 w-4" />
+            <span>Print / PDF</span>
+          </button>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close lecture sheet"
+            className="inline-flex items-center justify-center rounded-xl border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 cursor-pointer"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Elaborate Chapters Lecture View */}
+      {chapters.length > 0 && (
+        <div className="space-y-5">
+          {/* Chapter Index & Reading Mode Bar */}
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4 space-y-3 print:hidden">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-extrabold uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
+                <BookOpen className="h-4 w-4 text-emerald-700" />
+                সম্পূর্ণ লেকচার সূচিপত্র ({chapters.length}টি অধ্যায় / সেকশন)
+              </p>
+
+              {chapters.length > 1 && (
+                <div className="inline-flex rounded-lg border border-emerald-200 bg-white p-0.5 text-[11px] font-bold">
+                  <button
+                    type="button"
+                    onClick={() => setFocusMode(false)}
+                    className={`rounded-md px-2.5 py-1 cursor-pointer ${
+                      !focusMode
+                        ? "bg-emerald-700 text-white"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    সব অধ্যায় একসাথে
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFocusMode(true)}
+                    className={`rounded-md px-2.5 py-1 cursor-pointer ${
+                      focusMode
+                        ? "bg-emerald-700 text-white"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    ১টি করে পড়ুন (Focus)
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {chapters.map((ch, idx) => {
+                const cleanTitle = ch.heading.replace(
+                  /^অধ্যায়\s+\S+:\s*|^Chapter\s+\d+:\s*/i,
+                  ""
+                );
+                const isActiveFocus = focusMode && safeIdx === idx;
+                if (focusMode) {
+                  return (
+                    <button
+                      key={ch.heading}
+                      type="button"
+                      onClick={() => setActiveChapterIdx(idx)}
+                      className={`rounded-lg border px-3 py-1.5 text-xs font-bold transition-colors cursor-pointer font-bangla ${
+                        isActiveFocus
+                          ? "border-emerald-700 bg-emerald-700 text-white"
+                          : "border-emerald-200 bg-white text-emerald-900 hover:bg-emerald-100"
+                      }`}
+                    >
+                      {idx + 1}. {cleanTitle}
+                    </button>
+                  );
+                }
+
+                return (
+                  <a
+                    key={ch.heading}
+                    href={`#topic-chapter-${idx}`}
+                    className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs font-bold text-emerald-900 hover:bg-emerald-700 hover:text-white transition-colors font-bangla"
+                  >
+                    {idx + 1}. {cleanTitle}
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="space-y-5">
+            {visibleChapters.map(({ chapter: ch, idx }) => {
+              const paragraphs = splitParagraphs(ch.explanation);
+
+              return (
+                <section
+                  key={ch.heading}
+                  id={`topic-chapter-${idx}`}
+                  className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 sm:p-6 space-y-5 scroll-mt-24"
+                >
+                  {/* Section Title & Elaborate Concept Walkthrough */}
+                  <div className="space-y-3">
+                    <span className="inline-block rounded-full bg-slate-900 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
+                      Section {idx + 1} of {chapters.length}
+                    </span>
+                    <h3 className="text-base sm:text-xl font-extrabold text-slate-900 font-bangla">
+                      {ch.heading}
+                    </h3>
+                    <div className="rounded-xl border border-slate-200/80 bg-white p-4 sm:p-5 space-y-3">
+                      {paragraphs.map((para, pIdx) => (
+                        <p
+                          key={pIdx}
+                          className="text-sm sm:text-[15px] text-slate-800 leading-[1.8] font-bangla"
+                        >
+                          {para}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Formula & Rule Matrix */}
+                  {ch.formulaBox && ch.formulaBox.length > 0 && (
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-4 space-y-3">
+                      <p className="text-xs font-extrabold uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
+                        <Calculator className="h-4 w-4 text-emerald-700" />
+                        মূল সূত্র ও সংক্ষিপ্ত নিয়মাবলি (Key Formulas &amp; Rules)
+                      </p>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        {ch.formulaBox.map((item) => (
+                          <div
+                            key={`${item.label}-${item.formula}`}
+                            className="rounded-xl border border-emerald-200/80 bg-white p-3.5 space-y-1"
+                          >
+                            <p className="text-xs font-extrabold text-emerald-800 font-bangla">
+                              {item.label}
+                            </p>
+                            <p className="text-sm font-bold text-slate-900 font-mono bg-slate-50 rounded-lg px-2.5 py-1.5 border border-slate-100">
+                              {item.formula}
+                            </p>
+                            {item.note && (
+                              <p className="text-[11px] text-slate-600 leading-relaxed font-bangla">
+                                {item.note}
+                              </p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Comparison Table */}
+                  {ch.comparisonTable && ch.comparisonTable.headers?.length > 0 && (
+                    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                      {ch.comparisonTable.title && (
+                        <div className="flex items-center gap-1.5 bg-slate-100 px-4 py-2.5 text-xs font-extrabold text-slate-900 font-bangla border-b border-slate-200">
+                          <Table2 className="h-4 w-4 text-emerald-700" />
+                          <span>{ch.comparisonTable.title}</span>
+                        </div>
+                      )}
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-left text-xs sm:text-sm font-bangla">
+                          <thead className="bg-emerald-900 text-white">
+                            <tr>
+                              {ch.comparisonTable.headers.map((header) => (
+                                <th
+                                  key={header}
+                                  className="px-4 py-2.5 font-bold whitespace-nowrap"
+                                >
+                                  {header}
+                                </th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-200">
+                            {ch.comparisonTable.rows.map((row, rIdx) => (
+                              <tr
+                                key={rIdx}
+                                className={rIdx % 2 === 1 ? "bg-slate-50/70" : "bg-white"}
+                              >
+                                {row.map((cell, cIdx) => (
+                                  <td
+                                    key={cIdx}
+                                    className={`px-4 py-2.5 leading-relaxed ${
+                                      cIdx === 0
+                                        ? "font-bold text-slate-900"
+                                        : "text-slate-700"
+                                    }`}
+                                  >
+                                    {cell}
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Core Detailed Points */}
+                  {ch.points && ch.points.length > 0 && (
+                    <div className="space-y-2">
+                      <p className="text-xs font-extrabold uppercase tracking-wider text-slate-700">
+                        বিস্তারিত নিয়ম ও ধাপে ধাপে আলোচনা (Concept Breakdown)
+                      </p>
+                      <ul className="space-y-2.5">
+                        {ch.points.map((pt) => (
+                          <li
+                            key={pt}
+                            className="rounded-xl border border-slate-200/80 bg-white p-3.5 sm:p-4 text-xs sm:text-sm text-slate-800 leading-[1.75] font-bangla"
+                          >
+                            {pt}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Step-by-step Worked Examples */}
+                  {ch.workedExamples && ch.workedExamples.length > 0 && (
+                    <div className="rounded-xl border border-teal-200 bg-teal-50/70 p-4 sm:p-5 space-y-3">
+                      <p className="text-xs font-extrabold uppercase tracking-wider text-teal-900">
+                        ধাপে ধাপে সমাধানসহ উদাহরণ (Worked Examples &amp; Exam Distinctions)
+                      </p>
+                      <div className="space-y-2.5">
+                        {ch.workedExamples.map((ex, exIdx) => (
+                          <div
+                            key={`${exIdx}-${ex.slice(0, 32)}`}
+                            className="rounded-xl border border-teal-200/80 bg-white p-3.5 text-xs sm:text-sm text-teal-950 leading-[1.75] space-y-1 font-bangla"
+                          >
+                            {ex.split("\n").map((line, lIdx) => (
+                              <p
+                                key={lIdx}
+                                className={lIdx === 0 ? "font-bold text-slate-900" : ""}
+                              >
+                                {line}
+                              </p>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Common Mistakes & Exam Traps */}
+                  {ch.commonMistakes && ch.commonMistakes.length > 0 && (
+                    <div className="rounded-xl border border-rose-200 bg-rose-50/70 p-4 space-y-2">
+                      <p className="text-xs font-extrabold uppercase tracking-wider text-rose-900 flex items-center gap-1.5">
+                        <AlertTriangle className="h-4 w-4 text-rose-600" />
+                        সতর্কতা: পরীক্ষায় সচরাচর ভুল ও ফাঁদ (Common Traps)
+                      </p>
+                      <ul className="space-y-1.5 text-xs sm:text-sm text-rose-950 leading-relaxed font-bangla">
+                        {ch.commonMistakes.map((mistake) => (
+                          <li key={mistake}>&bull; {mistake}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {/* Interactive Practice Problems */}
+                  {ch.practiceProblems && ch.practiceProblems.length > 0 && (
+                    <div className="rounded-xl border border-indigo-200 bg-indigo-50/60 p-4 sm:p-5 space-y-3">
+                      <div>
+                        <p className="text-xs font-extrabold uppercase tracking-wider text-indigo-950">
+                          নিজে সমাধান করুন — অধ্যায়ভিত্তিক অনুশীলনী (Try Yourself)
+                        </p>
+                        <p className="text-[11px] text-indigo-900/80 mt-0.5 font-bangla">
+                          আগে নিজে খাতায় সমাধান করুন, তারপর &ldquo;সমাধান ও উত্তর দেখুন&rdquo; বাটনে ক্লিক করে মিলিয়ে নিন।
+                        </p>
+                      </div>
+                      <div className="space-y-3">
+                        {ch.practiceProblems.map((prob, pIdx) => (
+                          <ChapterPracticeCard
+                            key={`${idx}-${pIdx}`}
+                            index={pIdx}
+                            problem={prob}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </section>
+              );
+            })}
+          </div>
+
+          {focusMode && chapters.length > 1 && (
+            <div className="flex items-center justify-between gap-3 pt-1 print:hidden">
+              <button
+                type="button"
+                disabled={safeIdx === 0}
+                onClick={() => setActiveChapterIdx(Math.max(0, safeIdx - 1))}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-800 hover:bg-slate-100 disabled:opacity-40 cursor-pointer"
+              >
+                <ChevronLeft className="h-4 w-4" />
+                <span>পূর্ববর্তী অধ্যায়</span>
+              </button>
+              <span className="text-xs font-bold text-slate-500">
+                Section {safeIdx + 1} / {chapters.length}
+              </span>
+              <button
+                type="button"
+                disabled={safeIdx >= chapters.length - 1}
+                onClick={() =>
+                  setActiveChapterIdx(Math.min(chapters.length - 1, safeIdx + 1))
+                }
+                className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-3.5 py-2 text-xs font-bold text-white hover:bg-emerald-800 disabled:opacity-40 cursor-pointer"
+              >
+                <span>পরবর্তী অধ্যায়</span>
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Core Exam Facts (Rapid Revision Summary) */}
+      {(topic.keyFacts?.length ?? 0) > 0 && (
+        <div className="space-y-3">
+          <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-900">
+            Rapid Revision Capsule &amp; High-Yield Facts
+          </h3>
+          <ul className="space-y-2.5">
+            {topic.keyFacts?.map((fact) => (
+              <li
+                key={fact}
+                className="flex items-start gap-2.5 rounded-xl bg-slate-50 border border-slate-100 p-3 text-sm text-slate-800 leading-relaxed font-bangla"
+              >
+                <CheckCircle2 className="h-4 w-4 text-emerald-700 shrink-0 mt-1" />
+                <span>{fact}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Memory Tricks & Traps */}
+      {(topic.memoryTricks?.length ?? 0) > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 sm:p-5 space-y-2.5">
+          <h3 className="text-sm font-extrabold text-amber-950 flex items-center gap-2">
+            <Lightbulb className="h-4 w-4 text-amber-600" />
+            Shortcuts, Memory Tricks &amp; Common Exam Traps
+          </h3>
+          <ul className="space-y-1.5 text-xs sm:text-sm text-amber-950/90 font-bangla">
+            {topic.memoryTricks?.map((trick) => (
+              <li key={trick} className="leading-relaxed">
+                &bull; {trick}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Quick Examples Table */}
+      {(topic.quickExamples?.length ?? 0) > 0 && (
+        <div className="space-y-2.5">
+          <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-900">
+            Quick Examples &amp; High-Frequency Pairs
+          </h3>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {topic.quickExamples?.map((ex) => (
+              <div
+                key={ex.label}
+                className="rounded-xl border border-slate-200 bg-white p-3.5"
+              >
+                <p className="text-xs font-extrabold text-emerald-800 font-bangla">
+                  {ex.label}
+                </p>
+                <p className="mt-1 text-xs sm:text-sm text-slate-700 leading-relaxed font-bangla">
+                  {ex.detail}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <TopicAiLab key={topic.slug} topic={topic} />
+
+      <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 print:hidden">
+        <p className="text-xs text-slate-500 font-medium">
+          Done reading this sheet? Immediately test your retention on{" "}
+          <strong>{quizSubject}</strong> MCQs.
+        </p>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href={`/practice?mode=search&subject=${encodeURIComponent(quizSubject)}`}
+            className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-800 hover:bg-slate-100"
+          >
+            <Search className="h-3.5 w-3.5" />
+            <span>Smart Search Topic Qs</span>
+          </Link>
+          <Link
+            href={`/practice?subject=${encodeURIComponent(
+              quizSubject
+            )}&limit=15&autostart=1`}
+            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-800"
+          >
+            <Play className="h-3.5 w-3.5" />
+            <span>Quiz {quizSubject} Now</span>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}

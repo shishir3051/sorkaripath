@@ -10,21 +10,17 @@ import {
   CalendarCheck,
   CheckCircle2,
   ClipboardCheck,
-  Clock,
   ExternalLink,
   FileCheck2,
   Globe,
   GraduationCap,
   Layers,
-  Lightbulb,
   Newspaper,
   Play,
-  Printer,
   RefreshCw,
   Search,
   Sparkles,
   Target,
-  X,
 } from "lucide-react";
 import {
   apiFetch,
@@ -32,7 +28,7 @@ import {
   getOrCreateSessionId,
   safeExternalHref,
 } from "@/lib/api";
-import { TopicAiLab } from "@/components/study/TopicAiLab";
+import { TopicLectureReader } from "@/components/study/TopicLectureReader";
 import type {
   CurrentAffairsItem,
   LearnerProgress,
@@ -162,42 +158,49 @@ export function StudyHub({
   const [topicSubject, setTopicSubject] = useState("All");
   const [topicTrack, setTopicTrack] = useState("All");
   const [topicQuery, setTopicQuery] = useState("");
-  const [topicResults, setTopicResults] = useState<StudyTopic[] | null>(null);
-  const [topicsLoading, setTopicsLoading] = useState(false);
+  const [topicSearchState, setTopicSearchState] = useState<{
+    key: string;
+    items: StudyTopic[];
+  } | null>(null);
+
+  const trimmedTopicQuery = topicQuery.trim();
+  const hasActiveTopicFilter =
+    Boolean(trimmedTopicQuery) || topicSubject !== "All" || topicTrack !== "All";
+  const activeFilterKey = hasActiveTopicFilter
+    ? `${trimmedTopicQuery}::${topicSubject}::${topicTrack}`
+    : "";
+  const topicsLoading =
+    hasActiveTopicFilter && topicSearchState?.key !== activeFilterKey;
 
   // Topic search runs on the server so it can match keyFacts and chapter text,
   // neither of which the trimmed list payload carries. Debounced so typing does
   // not fire a request per keystroke.
   useEffect(() => {
-    const q = topicQuery.trim();
-    if (!q && topicSubject === "All" && topicTrack === "All") {
-      setTopicResults(null);
-      setTopicsLoading(false);
-      return;
-    }
+    if (!hasActiveTopicFilter) return;
     let cancelled = false;
-    setTopicsLoading(true);
     const handle = setTimeout(async () => {
       try {
         const params = new URLSearchParams();
-        if (q) params.set("q", q);
+        if (trimmedTopicQuery) params.set("q", trimmedTopicQuery);
         if (topicSubject !== "All") params.set("subject", topicSubject);
         if (topicTrack !== "All") params.set("track", topicTrack);
         const res = await apiFetch<{ items: StudyTopic[] }>(
           `/study/topics?${params.toString()}`
         );
-        if (!cancelled) setTopicResults(res?.items ?? []);
+        if (!cancelled) {
+          setTopicSearchState({ key: activeFilterKey, items: res?.items ?? [] });
+        }
       } catch {
-        if (!cancelled) setTopicResults([]);
-      } finally {
-        if (!cancelled) setTopicsLoading(false);
+        if (!cancelled) {
+          setTopicSearchState({ key: activeFilterKey, items: [] });
+        }
       }
     }, 300);
     return () => {
       cancelled = true;
       clearTimeout(handle);
     };
-  }, [topicQuery, topicSubject, topicTrack]);
+  }, [hasActiveTopicFilter, activeFilterKey, trimmedTopicQuery, topicSubject, topicTrack]);
   const [selectedTopic, setSelectedTopic] = useState<StudyTopic | null>(() => {
     const slug = searchParams.get("topicSlug");
     if (!slug || !initialData?.topics) return null;
@@ -382,8 +385,12 @@ export function StudyHub({
 
   // Filtering happens on the server: the list payload no longer carries
   // keyFacts or chapter text, and /study/topics searches both. While no
-  // filter is active topicResults stays null and the overview list shows.
-  const filteredTopics: StudyTopic[] = topicResults ?? overview?.topics ?? [];
+  // filter is active (or while a new filtered fetch is debouncing) we fall back cleanly.
+  const filteredTopics: StudyTopic[] = hasActiveTopicFilter
+    ? topicSearchState?.key === activeFilterKey
+      ? topicSearchState.items
+      : overview?.topics ?? []
+    : overview?.topics ?? [];
 
   const booksList: StudyResource[] = (overview?.books ?? []).filter((b) => {
     const matchTrack =
@@ -494,240 +501,14 @@ export function StudyHub({
         <section className="space-y-6">
           {/* Active Lecture Sheet Reader */}
           {selectedTopic && (
-            <div
-              ref={readerRef}
-              className="rounded-2xl border-2 border-emerald-600 bg-white p-6 sm:p-8 shadow-md space-y-6"
-            >
-              <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 pb-4">
-                <div className="space-y-1.5">
-                  <div className="flex flex-wrap items-center gap-2 text-xs font-bold">
-                    <span className="rounded-full bg-emerald-100 px-3 py-0.5 text-emerald-800">
-                      {selectedTopic.subject}
-                    </span>
-                    <span className="rounded-full bg-slate-100 px-3 py-0.5 text-slate-700">
-                      {selectedTopic.unit}
-                    </span>
-                    {selectedTopic.chapters && selectedTopic.chapters.length > 0 && (
-                      <span className="rounded-full bg-amber-100 px-3 py-0.5 text-amber-900">
-                        {selectedTopic.chapters.length} Full Chapters
-                      </span>
-                    )}
-                    <span className="inline-flex items-center gap-1 text-slate-500">
-                      <Clock className="h-3.5 w-3.5" />
-                      {selectedTopic.estimatedMinutes} min read
-                    </span>
-                  </div>
-                  <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900">
-                    {selectedTopic.title}
-                  </h2>
-                  <p className="text-sm text-slate-600 leading-relaxed">
-                    {selectedTopic.highYieldSummary}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2 print:hidden">
-                  <button
-                    type="button"
-                    onClick={() => handleToggleTopicDone(selectedTopic.slug)}
-                    className={`inline-flex items-center gap-1.5 rounded-xl px-3.5 py-2 text-xs font-bold cursor-pointer ${
-                      completedTopicsSet.has(selectedTopic.slug)
-                        ? "bg-emerald-700 text-white"
-                        : "border border-emerald-300 bg-emerald-50 text-emerald-900 hover:bg-emerald-100"
-                    }`}
-                  >
-                    <CheckCircle2 className="h-4 w-4" />
-                    <span>
-                      {completedTopicsSet.has(selectedTopic.slug)
-                        ? "Completed"
-                        : "Mark Complete"}
-                    </span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => window.print()}
-                    className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 cursor-pointer"
-                  >
-                    <Printer className="h-4 w-4" />
-                    <span>Print / PDF</span>
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setSelectedTopic(null)}
-                    aria-label="Close lecture sheet"
-                    className="inline-flex items-center justify-center rounded-xl border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 cursor-pointer"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-                </div>
-              </div>
-
-              {/* Elaborate Chapters Lecture View */}
-              {selectedTopic.chapters && selectedTopic.chapters.length > 0 && (
-                <div className="space-y-5">
-                  <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4 space-y-2.5 print:hidden">
-                    <p className="text-xs font-extrabold uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
-                      <BookOpen className="h-4 w-4 text-emerald-700" />
-                      Complete Lecture Contents ({selectedTopic.chapters.length} Chapters)
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedTopic.chapters.map((ch, idx) => (
-                        <a
-                          key={ch.heading}
-                          href={`#topic-chapter-${idx}`}
-                          className="rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-xs font-bold text-emerald-900 hover:bg-emerald-700 hover:text-white transition-colors"
-                        >
-                          {idx + 1}. {ch.heading.replace(/^অধ্যায়\s+\S+:\s*|^Chapter\s+\d+:\s*/i, "")}
-                        </a>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="space-y-4">
-                    {selectedTopic.chapters.map((ch, idx) => (
-                      <section
-                        key={ch.heading}
-                        id={`topic-chapter-${idx}`}
-                        className="rounded-2xl border border-slate-200 bg-slate-50/60 p-5 sm:p-6 space-y-4 scroll-mt-24"
-                      >
-                        <div className="space-y-2">
-                          <span className="inline-block rounded-full bg-slate-900 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wider text-white">
-                            Section {idx + 1} of {selectedTopic.chapters?.length}
-                          </span>
-                          <h3 className="text-base sm:text-lg font-extrabold text-slate-900">
-                            {ch.heading}
-                          </h3>
-                          <p className="text-sm text-slate-700 leading-relaxed">
-                            {ch.explanation}
-                          </p>
-                        </div>
-
-                        {ch.points && ch.points.length > 0 && (
-                          <ul className="space-y-2">
-                            {ch.points.map((pt) => (
-                              <li
-                                key={pt}
-                                className="rounded-xl border border-slate-200/80 bg-white p-3.5 text-xs sm:text-sm text-slate-800 leading-relaxed"
-                              >
-                                {pt}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-
-                        {ch.workedExamples && ch.workedExamples.length > 0 && (
-                          <div className="rounded-xl border border-teal-200 bg-teal-50/70 p-4 space-y-2">
-                            <p className="text-xs font-extrabold uppercase tracking-wider text-teal-900">
-                              Worked Examples &amp; Exam Distinctions
-                            </p>
-                            <ul className="space-y-1.5 text-xs sm:text-sm text-teal-950 leading-relaxed">
-                              {ch.workedExamples.map((ex) => (
-                                <li key={ex}>&bull; {ex}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        )}
-                      </section>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Core Exam Facts (Rapid Revision Summary) */}
-              <div className="space-y-3">
-                <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-900">
-                  Rapid Revision Capsule &amp; High-Yield Facts
-                </h3>
-                <ul className="space-y-2.5">
-                  {selectedTopic.keyFacts?.map((fact) => (
-                    <li
-                      key={fact}
-                      className="flex items-start gap-2.5 rounded-xl bg-slate-50 border border-slate-100 p-3 text-sm text-slate-800 leading-relaxed"
-                    >
-                      <CheckCircle2 className="h-4 w-4 text-emerald-700 shrink-0 mt-1" />
-                      <span>{fact}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-
-              {/* Memory Tricks & Traps */}
-              {(selectedTopic.memoryTricks?.length ?? 0) > 0 && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 sm:p-5 space-y-2.5">
-                  <h3 className="text-sm font-extrabold text-amber-950 flex items-center gap-2">
-                    <Lightbulb className="h-4 w-4 text-amber-600" />
-                    Shortcuts, Memory Tricks &amp; Common Exam Traps
-                  </h3>
-                  <ul className="space-y-1.5 text-xs sm:text-sm text-amber-950/90">
-                    {selectedTopic.memoryTricks?.map((trick) => (
-                      <li key={trick} className="leading-relaxed">
-                        &bull; {trick}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              {/* Quick Examples Table */}
-              {(selectedTopic.quickExamples?.length ?? 0) > 0 && (
-                <div className="space-y-2.5">
-                  <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-900">
-                    Quick Examples &amp; High-Frequency Pairs
-                  </h3>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {selectedTopic.quickExamples?.map((ex) => (
-                      <div
-                        key={ex.label}
-                        className="rounded-xl border border-slate-200 bg-white p-3.5"
-                      >
-                        <p className="text-xs font-extrabold text-emerald-800">
-                          {ex.label}
-                        </p>
-                        <p className="mt-1 text-xs sm:text-sm text-slate-700 leading-relaxed">
-                          {ex.detail}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              <TopicAiLab key={selectedTopic.slug} topic={selectedTopic} />
-
-              {(() => {
-                const quizSubject =
-                  selectedTopic.mcqSubjectFilter &&
-                  selectedTopic.mcqSubjectFilter !== "All"
-                    ? selectedTopic.mcqSubjectFilter
-                    : selectedTopic.subject;
-                return (
-                  <div className="pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3 print:hidden">
-                    <p className="text-xs text-slate-500 font-medium">
-                      Done reading this sheet? Immediately test your retention on{" "}
-                      <strong>{quizSubject}</strong> MCQs.
-                    </p>
-                    <div className="flex flex-wrap gap-2">
-                      <Link
-                        href={`/practice?mode=search&subject=${encodeURIComponent(
-                          quizSubject
-                        )}`}
-                        className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-4 py-2 text-xs font-bold text-slate-800 hover:bg-slate-100"
-                      >
-                        <Search className="h-3.5 w-3.5" />
-                        <span>Smart Search Topic Qs</span>
-                      </Link>
-                      <Link
-                        href={`/practice?subject=${encodeURIComponent(
-                          quizSubject
-                        )}&limit=15&autostart=1`}
-                        className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-800"
-                      >
-                        <Play className="h-3.5 w-3.5" />
-                        <span>Quiz {quizSubject} Now</span>
-                      </Link>
-                    </div>
-                  </div>
-                );
-              })()}
+            <div ref={readerRef}>
+              <TopicLectureReader
+                key={selectedTopic.slug}
+                topic={selectedTopic}
+                isCompleted={completedTopicsSet.has(selectedTopic.slug)}
+                onToggleComplete={handleToggleTopicDone}
+                onClose={() => setSelectedTopic(null)}
+              />
             </div>
           )}
 

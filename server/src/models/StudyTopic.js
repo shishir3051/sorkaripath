@@ -8,12 +8,44 @@ const quickExampleSchema = new mongoose.Schema(
   { _id: false }
 );
 
+const formulaItemSchema = new mongoose.Schema(
+  {
+    label: { type: String, required: true },
+    formula: { type: String, required: true },
+    note: { type: String, default: "" },
+  },
+  { _id: false }
+);
+
+const comparisonTableSchema = new mongoose.Schema(
+  {
+    title: { type: String, default: "" },
+    headers: { type: [String], default: [] },
+    rows: { type: [[String]], default: [] },
+  },
+  { _id: false }
+);
+
+const practiceProblemSchema = new mongoose.Schema(
+  {
+    question: { type: String, required: true },
+    hint: { type: String, default: "" },
+    solution: { type: String, required: true },
+    answer: { type: String, required: true },
+  },
+  { _id: false }
+);
+
 const chapterSchema = new mongoose.Schema(
   {
     heading: { type: String, required: true },
     explanation: { type: String, required: true },
+    formulaBox: { type: [formulaItemSchema], default: [] },
+    comparisonTable: { type: comparisonTableSchema, default: undefined },
     points: { type: [String], default: [] },
     workedExamples: { type: [String], default: [] },
+    commonMistakes: { type: [String], default: [] },
+    practiceProblems: { type: [practiceProblemSchema], default: [] },
   },
   { _id: false }
 );
