@@ -22,8 +22,7 @@ export function Footer() {
             </h3>
             <p className="mt-2 text-sm text-slate-400 leading-relaxed">
               An A-to-Z Bangladesh government career learning academy and live
-              official notice aggregator built with Next.js, Tailwind CSS,
-              Node.js, Express &amp; MongoDB.
+              official notice aggregator.
             </p>
             <p className="mt-3 text-xs text-emerald-400">
               Updated with 2026 Pay Scale, 32-Year Age Limit &amp; 93/7 Quota Rules.
