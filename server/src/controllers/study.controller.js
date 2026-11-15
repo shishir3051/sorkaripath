@@ -195,7 +195,13 @@ const STUDY_BATCH_DEFINITIONS = [
     syllabusSummary:
       "Complete 9-subject BPSC roadmap combining Bangla, English, Math, BD & Intl Affairs, Science/ICT, Ethics and Geography lecture sheets with past BCS MCQ archives.",
     recommendedModelTestId: "bcs-prelims-mock",
-    featuredSeries: ["46th BCS Preliminary Archive", "45th BCS Preliminary Archive", "44th BCS Preliminary Archive"],
+    featuredSeries: [
+      "46th BCS Preliminary Archive",
+      "45th BCS Preliminary Archive",
+      "44th BCS Preliminary Archive",
+      "43rd & 41st BCS Archive",
+      "Geography & Intl Affairs Master Archive",
+    ],
   },
   {
     id: "combined-bank-batch",
@@ -221,20 +227,28 @@ const STUDY_BATCH_DEFINITIONS = [
     syllabusSummary:
       "High-retention NCTB Class 5–10 foundation: Bangla grammar, English basics, short-cut arithmetic, Liberation War, classroom pedagogy and 40%+ qualifying drills.",
     recommendedModelTestId: "primary-ntrca-mock",
-    featuredSeries: ["18th NTRCA & Primary Master Archive", "Primary Assistant Teacher Archive"],
+    featuredSeries: [
+      "18th NTRCA & Primary Master Archive",
+      "DPE Primary Teacher Master Archive",
+      "Primary & NTRCA Archive",
+    ],
   },
   {
     id: "ministry-grade-batch",
-    title: "Ministry Grade 11–20 & Computer Operator Batch",
+    title: "Post Office, Ministry Grade 11–20 & Computer Operator Batch",
     badge: "Secretariat & Office Batch",
     trackKey: "Grade 11-20",
     examTrack: "Grade 11-20",
     weeklyHours: "8 hrs / week",
-    targetExam: "Secretariat, DG Food, LGED, BRTA & Railway",
+    targetExam: "Post Office, Secretariat, DG Food, DC Office, BRTA & Railway",
     syllabusSummary:
-      "Focused non-cadre prep for Computer Operator, Office Assistant & Auditor exams: MS Office/shortcuts, Bangla spelling, English prepositions, math & 2026 Pay Scale/Quota rules.",
+      "Focused non-cadre prep for Post Office, Computer Operator, Office Assistant & Auditor exams: MS Office/shortcuts, Bangla spelling, English prepositions, math & 2026 Pay Scale/Quota rules.",
     recommendedModelTestId: "grade-11-20-mock",
-    featuredSeries: ["Ministry Grade 11-20 Archive"],
+    featuredSeries: [
+      "Bangladesh Post Office & Directorate Archive",
+      "Ministry Grade 11-20 Archive",
+      "2026 Govt Rules & Constitution Archive",
+    ],
   },
 ];
 
@@ -271,7 +285,8 @@ function buildStudyBatches(topics, trackCountMap, pastPapers) {
         subject: t.subject,
         unit: t.unit,
         estimatedMinutes: t.estimatedMinutes || 15,
-        chaptersCount: Array.isArray(t.chapters) ? t.chapters.length : 0,
+        chaptersCount:
+          t.chapterCount || (Array.isArray(t.chapters) ? t.chapters.length : 0),
       })),
     };
   });

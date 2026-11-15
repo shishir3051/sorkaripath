@@ -161,6 +161,54 @@ export async function submitQuizAttempt(req, res, next) {
         ? Math.round((correctCount / totalQuestions) * 100)
         : 0;
 
+    // Build per-subject performance breakdown & cut-off readiness analytics
+    const subjectBuckets = new Map();
+    for (const item of review) {
+      if (!item.subject || item.status === "missing") continue;
+      const bucket = subjectBuckets.get(item.subject) || {
+        subject: item.subject,
+        total: 0,
+        correct: 0,
+        wrong: 0,
+        unanswered: 0,
+      };
+      bucket.total += 1;
+      if (item.status === "correct") bucket.correct += 1;
+      else if (item.status === "wrong") bucket.wrong += 1;
+      else bucket.unanswered += 1;
+      subjectBuckets.set(item.subject, bucket);
+    }
+
+    const subjectBreakdown = Array.from(subjectBuckets.values())
+      .map((b) => {
+        const subAcc = b.total > 0 ? Math.round((b.correct / b.total) * 100) : 0;
+        return {
+          ...b,
+          accuracyPercent: subAcc,
+          weak: b.total > 0 && subAcc < 65,
+        };
+      })
+      .sort((a, b) => a.accuracyPercent - b.accuracyPercent);
+
+    const cutoffTargetPercent =
+      examTrack === "Primary & NTRCA"
+        ? 72
+        : examTrack === "Grade 11-20"
+        ? 70
+        : examTrack === "Bank Combined"
+        ? 65
+        : 60;
+    const netPercent =
+      maxScore > 0 ? Math.max(0, Math.round((netScore / maxScore) * 100)) : 0;
+
+    const analytics = {
+      cutoffTargetPercent,
+      netPercent,
+      isSafeZone: netPercent >= cutoffTargetPercent,
+      penaltyLost: Number(penalty.toFixed(2)),
+      subjectBreakdown,
+    };
+
     const attempt = await QuizAttempt.create({
       sessionId,
       examTrack,
@@ -201,6 +249,7 @@ export async function submitQuizAttempt(req, res, next) {
       data: {
         attempt,
         review,
+        analytics,
       },
     });
   } catch (err) {
@@ -235,13 +284,17 @@ export async function getAttemptHistory(req, res, next) {
 export async function getPastPapersArchive(req, res, next) {
   try {
     const examSeries = String(req.query.examSeries || "").trim();
+    const examTrack = String(req.query.examTrack || "").trim();
+
+    const seriesMatch = {
+      examSeries: { $type: "string", $nin: ["Topic Practice Bank", ""] },
+    };
+    if (examTrack && examTrack !== "All") {
+      seriesMatch.examTrack = examTrack;
+    }
 
     const seriesList = await McqQuestion.aggregate([
-      {
-        $match: {
-          examSeries: { $type: "string", $nin: ["Topic Practice Bank", ""] },
-        },
-      },
+      { $match: seriesMatch },
       {
         $group: {
           _id: "$examSeries",

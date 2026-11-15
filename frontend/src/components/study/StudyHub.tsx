@@ -16,6 +16,7 @@ import {
   GraduationCap,
   Layers,
   Newspaper,
+  PenTool,
   Play,
   RefreshCw,
   Search,
@@ -29,6 +30,7 @@ import {
   safeExternalHref,
 } from "@/lib/api";
 import { TopicSheetDrawer } from "@/components/study/TopicSheetDrawer";
+import { WrittenTypingVivaLab } from "@/components/study/WrittenTypingVivaLab";
 import type {
   CurrentAffairsItem,
   LearnerProgress,
@@ -50,6 +52,7 @@ type StudyTab =
   | "topics"
   | "batches"
   | "routine"
+  | "written-viva"
   | "affairs"
   | "books"
   | "model-tests";
@@ -128,6 +131,7 @@ function resolveInitialTab(param: string | null): StudyTab {
     param === "topics" ||
     param === "batches" ||
     param === "routine" ||
+    param === "written-viva" ||
     param === "affairs" ||
     param === "books" ||
     param === "model-tests"
@@ -469,6 +473,7 @@ export function StudyHub({
           { id: "topics", label: "Subject Lecture Sheets", icon: Layers },
           { id: "batches", label: "Course Batches & Classes", icon: GraduationCap },
           { id: "routine", label: "30-Day Study Plan", icon: CalendarCheck },
+          { id: "written-viva", label: "Written, Typing & Viva", icon: PenTool },
           { id: "books", label: "Books, PDFs & Syllabus", icon: BookOpen },
           {
             id: "model-tests",
@@ -1152,6 +1157,13 @@ export function StudyHub({
               ))}
             </div>
           )}
+        </section>
+      )}
+
+      {/* TAB: WRITTEN EXAM, TYPING SPEED SIMULATOR & VIVA VOCE PREP */}
+      {activeTab === "written-viva" && (
+        <section className="space-y-6">
+          <WrittenTypingVivaLab />
         </section>
       )}
 

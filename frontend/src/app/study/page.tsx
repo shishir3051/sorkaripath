@@ -17,15 +17,15 @@ export default async function StudyPage() {
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
       <div>
         <span className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-800">
-          Study Hub: 30 Lecture Sheets, Course Batches, AI Tutor &amp; 216+ MCQs
+          Study Hub: {initialData?.stats?.topicsCount ?? 50} Lecture Sheets, Written &amp; Typing Lab, AI Tutor &amp; {initialData?.stats?.mcqCount ?? 355}+ Solved MCQs
         </span>
         <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold text-slate-900">
-          BD Govt Exam Study Hub — Batches, Topic Guru, AI Mentor &amp; Mocks
+          BD Govt Exam Study Hub — Batches, Topic Guru, Written/Viva &amp; Mocks
         </h1>
         <p className="mt-1 text-sm text-slate-600 max-w-3xl">
-          Study complete 9-subject lecture sheets, follow structured Course Batches &amp;
-          30-day routines, ask Gemini AI for instant explanations or fresh MCQs, browse free
-          official PDFs &amp; current affairs, and launch timed model tests.
+          Study complete 9-subject lecture sheets, practice Written reports/translations,
+          live EN/বাংলা Typing WPM tests &amp; Viva Voce Q&amp;A, follow 30-day routines,
+          and launch timed model tests.
         </p>
       </div>
 

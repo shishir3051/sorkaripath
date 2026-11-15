@@ -10,6 +10,8 @@ import {
   BookOpen,
   CheckCircle2,
   Clock,
+  Eye,
+  EyeOff,
   FileCheck2,
   Play,
   RotateCcw,
@@ -47,15 +49,90 @@ interface ReviewItem {
   status: "correct" | "wrong" | "unanswered";
 }
 
+interface SubjectBreakdownItem {
+  subject: string;
+  total: number;
+  correct: number;
+  wrong: number;
+  unanswered: number;
+  accuracyPercent: number;
+  weak: boolean;
+}
+
+interface SubmitAnalytics {
+  cutoffTargetPercent: number;
+  netPercent: number;
+  isSafeZone: boolean;
+  penaltyLost: number;
+  subjectBreakdown: SubjectBreakdownItem[];
+}
+
 interface SubmitResponse {
   attempt: QuizAttempt;
   review: ReviewItem[];
+  analytics?: SubmitAnalytics;
 }
 
 interface ArchiveResponse {
   activeSeries: string;
   seriesList: PastPaperSummary[];
   items: McqQuestion[];
+}
+
+function computeClientAnalytics(
+  review: ReviewItem[],
+  netScore: number,
+  maxScore: number,
+  penaltyLost: number,
+  examTrack: string
+): SubmitAnalytics {
+  const map = new Map<
+    string,
+    { total: number; correct: number; wrong: number; unanswered: number }
+  >();
+  for (const r of review) {
+    const cur = map.get(r.subject) ?? {
+      total: 0,
+      correct: 0,
+      wrong: 0,
+      unanswered: 0,
+    };
+    cur.total += 1;
+    if (r.status === "correct") cur.correct += 1;
+    else if (r.status === "wrong") cur.wrong += 1;
+    else cur.unanswered += 1;
+    map.set(r.subject, cur);
+  }
+  const subjectBreakdown: SubjectBreakdownItem[] = Array.from(map.entries())
+    .map(([sub, counts]) => {
+      const accuracyPercent = counts.total
+        ? Math.round((counts.correct / counts.total) * 100)
+        : 0;
+      return {
+        subject: sub,
+        ...counts,
+        accuracyPercent,
+        weak: accuracyPercent < 65,
+      };
+    })
+    .sort((a, b) => a.accuracyPercent - b.accuracyPercent);
+
+  const trackLower = examTrack.toLowerCase();
+  const cutoffTargetPercent = trackLower.includes("primary")
+    ? 75
+    : trackLower.includes("bank")
+    ? 68
+    : 65;
+  const netPercent =
+    maxScore > 0 ? Math.max(0, Math.round((netScore / maxScore) * 100)) : 0;
+
+  return {
+    cutoffTargetPercent,
+    netPercent,
+    isSafeZone: netPercent >= cutoffTargetPercent,
+    penaltyLost: Math.round(penaltyLost * 100) / 100,
+    subjectBreakdown,
+  };
 }
 
 interface SmartSearchResponse {
@@ -115,6 +192,18 @@ export function PracticeArena() {
   // Archive Mode State
   const [archiveData, setArchiveData] = useState<ArchiveResponse | null>(null);
   const [loadingArchive, setLoadingArchive] = useState(false);
+  const [archiveTrack, setArchiveTrack] = useState<string>(
+    initialTrack !== "All" ? initialTrack : "All"
+  );
+  const [archiveStudyMode, setArchiveStudyMode] = useState<"study" | "selftest">(
+    "study"
+  );
+  const [revealedArchiveIds, setRevealedArchiveIds] = useState<Set<string>>(
+    new Set()
+  );
+  const [selfTestPicks, setSelfTestPicks] = useState<Record<string, number>>(
+    {}
+  );
 
   // Smart Search Mode State
   const [searchQuery, setSearchQuery] = useState("");
@@ -164,18 +253,26 @@ export function PracticeArena() {
     }
   }, []);
 
-  const loadArchive = useCallback(async (seriesName?: string) => {
-    setLoadingArchive(true);
-    try {
-      const query = seriesName
-        ? `?examSeries=${encodeURIComponent(seriesName)}`
-        : "";
-      const res = await apiFetch<ArchiveResponse>(`/practice/archive${query}`);
-      setArchiveData(res);
-    } finally {
-      setLoadingArchive(false);
-    }
-  }, []);
+  const loadArchive = useCallback(
+    async (seriesName?: string, trackName?: string) => {
+      setLoadingArchive(true);
+      try {
+        const sp = new URLSearchParams();
+        if (seriesName && seriesName !== "All") sp.set("examSeries", seriesName);
+        if (trackName && trackName !== "All") sp.set("examTrack", trackName);
+        const qs = sp.toString();
+        const res = await apiFetch<ArchiveResponse>(
+          `/practice/archive${qs ? `?${qs}` : ""}`
+        );
+        setArchiveData(res);
+        setRevealedArchiveIds(new Set());
+        setSelfTestPicks({});
+      } finally {
+        setLoadingArchive(false);
+      }
+    },
+    []
+  );
 
   const runSmartSearch = useCallback(
     async (qText = searchQuery, sub = searchSubject) => {
@@ -234,11 +331,11 @@ export function PracticeArena() {
       .catch(() => {});
 
     if (initialMode === "archive") {
-      const q =
-        initialSeries !== "All"
-          ? `?examSeries=${encodeURIComponent(initialSeries)}`
-          : "";
-      apiFetch<ArchiveResponse>(`/practice/archive${q}`)
+      const sp = new URLSearchParams();
+      if (initialSeries !== "All") sp.set("examSeries", initialSeries);
+      if (initialTrack !== "All") sp.set("examTrack", initialTrack);
+      const qs = sp.toString();
+      apiFetch<ArchiveResponse>(`/practice/archive${qs ? `?${qs}` : ""}`)
         .then((res) => {
           if (active) setArchiveData(res);
         })
@@ -294,7 +391,10 @@ export function PracticeArena() {
   function handleSwitchMode(nextMode: ArenaMode) {
     setMode(nextMode);
     if (nextMode === "archive" && !archiveData) {
-      loadArchive(initialSeries !== "All" ? initialSeries : undefined);
+      loadArchive(
+        initialSeries !== "All" ? initialSeries : undefined,
+        archiveTrack !== "All" ? archiveTrack : undefined
+      );
     } else if (nextMode === "search" && !searchResults) {
       runSmartSearch(searchQuery, searchSubject);
     } else if (nextMode === "mistakes") {
@@ -324,6 +424,36 @@ export function PracticeArena() {
         params.set("limit", limit);
       }
 
+      const res = await apiFetch<QuestionsResponse>(
+        `/practice/questions?${params.toString()}`
+      );
+      setQuestions(res.items);
+      setQuizActive(res.items.length > 0);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function startSubjectDrill(targetSubject: string) {
+    setSubject(targetSubject);
+    setExamTrack("All");
+    setExamSeries("All");
+    setLimit("15");
+    setMode("mock");
+    setIsAiQuiz(false);
+    setAiNotice(null);
+    setLoading(true);
+    setResult(null);
+    setAnswers({});
+    setElapsedSec(0);
+    try {
+      const params = new URLSearchParams({
+        subject: targetSubject,
+        examTrack: "All",
+        examSeries: "All",
+        limit: "15",
+        includeAnswers: "false",
+      });
       const res = await apiFetch<QuestionsResponse>(
         `/practice/questions?${params.toString()}`
       );
@@ -436,6 +566,13 @@ export function PracticeArena() {
           createdAt: new Date().toISOString(),
         },
         review,
+        analytics: computeClientAnalytics(
+          review,
+          netScore,
+          questions.length,
+          penalty,
+          examTrack
+        ),
       });
       setSubmitting(false);
       return;
@@ -604,6 +741,7 @@ export function PracticeArena() {
                   <option value="30">30 Questions</option>
                   <option value="40">40 Questions</option>
                   <option value="50">50 Questions</option>
+                  <option value="80">80 Questions (DPE / Ministry Full)</option>
                   <option value="100">Full Bank (Up to 100)</option>
                 </select>
               </div>
@@ -819,6 +957,96 @@ export function PracticeArena() {
                 </div>
               </div>
 
+              {result.analytics && (
+                <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm space-y-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <span
+                        className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-extrabold ${
+                          result.analytics.isSafeZone
+                            ? "bg-emerald-100 text-emerald-900"
+                            : "bg-amber-100 text-amber-900"
+                        }`}
+                      >
+                        {result.analytics.isSafeZone
+                          ? `SAFE ZONE: ${result.analytics.netPercent}% meets ${result.analytics.cutoffTargetPercent}% Preliminary Cut-Off`
+                          : `BELOW CUT-OFF: ${result.analytics.netPercent}% vs ${result.analytics.cutoffTargetPercent}% Safe Target`}
+                      </span>
+                      <p className="mt-1.5 text-xs text-slate-600">
+                        Negative Marks Deducted:{" "}
+                        <strong className="text-rose-700">
+                          -{result.analytics.penaltyLost}
+                        </strong>{" "}
+                        &bull; Subjects below 65% need targeted lecture review before your
+                        next timed mock.
+                      </p>
+                    </div>
+                    <Link
+                      href="/study?tab=topics"
+                      className="rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100"
+                    >
+                      Open Topic Guru Sheets &rarr;
+                    </Link>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {result.analytics.subjectBreakdown.map((subStat) => (
+                      <div
+                        key={subStat.subject}
+                        className={`rounded-xl border p-3.5 space-y-2 ${
+                          subStat.weak
+                            ? "border-rose-200 bg-rose-50/40"
+                            : "border-emerald-200 bg-emerald-50/30"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between gap-2 text-xs">
+                          <span className="font-extrabold text-slate-900">
+                            {subStat.subject}
+                          </span>
+                          <span
+                            className={`rounded-full px-2 py-0.5 text-[11px] font-bold ${
+                              subStat.weak
+                                ? "bg-rose-100 text-rose-800"
+                                : "bg-emerald-100 text-emerald-800"
+                            }`}
+                          >
+                            {subStat.correct}/{subStat.total} ({subStat.accuracyPercent}
+                            %{subStat.weak ? " • Weak" : ""})
+                          </span>
+                        </div>
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
+                          <div
+                            className={`h-full rounded-full transition-all duration-300 ease-in-out ${
+                              subStat.weak ? "bg-rose-500" : "bg-emerald-600"
+                            }`}
+                            style={{ width: `${subStat.accuracyPercent}%` }}
+                          />
+                        </div>
+                        {subStat.weak && (
+                          <div className="flex items-center justify-between gap-2 pt-1 text-[11px]">
+                            <button
+                              type="button"
+                              onClick={() => startSubjectDrill(subStat.subject)}
+                              className="font-bold text-rose-800 hover:underline cursor-pointer"
+                            >
+                              Re-Drill 15 {subStat.subject} MCQs &rarr;
+                            </button>
+                            <Link
+                              href={`/study?tab=topics&q=${encodeURIComponent(
+                                subStat.subject.split(" ")[0]
+                              )}`}
+                              className="font-bold text-emerald-800 hover:underline"
+                            >
+                              Study Sheet
+                            </Link>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-4">
                 <h3 className="text-lg font-extrabold text-slate-900">
                   Detailed Answer &amp; Explanation Review
@@ -966,26 +1194,89 @@ export function PracticeArena() {
                   BD Job Solution Archive — Previous Exam Sets
                 </h2>
                 <p className="text-xs text-slate-600 mt-0.5">
-                  Read authentic past exam papers directly with verified answers and
-                  detailed explanations, or test yourself timed.
+                  Filter by exam track, read authentic past papers in Study Mode or test
+                  yourself in Self-Test reveal mode.
                 </p>
               </div>
-              {archiveData && archiveData.items.length > 0 && (
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="inline-flex rounded-xl border border-slate-200 bg-slate-50 p-1">
+                  <button
+                    type="button"
+                    onClick={() => setArchiveStudyMode("study")}
+                    className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
+                      archiveStudyMode === "study"
+                        ? "bg-emerald-700 text-white"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <Eye className="h-3.5 w-3.5" />
+                    <span>Study Mode</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setArchiveStudyMode("selftest");
+                      setRevealedArchiveIds(new Set());
+                      setSelfTestPicks({});
+                    }}
+                    className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
+                      archiveStudyMode === "selftest"
+                        ? "bg-slate-900 text-white"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    <EyeOff className="h-3.5 w-3.5" />
+                    <span>Self-Test Mode</span>
+                  </button>
+                </div>
+                {archiveData && archiveData.items.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setExamSeries(archiveData.activeSeries);
+                      setExamTrack("All");
+                      setSubject("All");
+                      setLimit(String(archiveData.items.length));
+                      startMock(archiveData.items.map((i) => i._id));
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-800 cursor-pointer"
+                  >
+                    <Play className="h-3.5 w-3.5" />
+                    <span>Take Timed</span>
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Exam Track Filter Pills */}
+            <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-100">
+              <span className="text-[11px] font-bold uppercase text-slate-400 mr-1">
+                Track:
+              </span>
+              {[
+                "All",
+                "BCS Preliminary",
+                "Grade 11-20",
+                "Primary & NTRCA",
+                "Bank Combined",
+                "Govt Rules 2026",
+              ].map((tr) => (
                 <button
+                  key={tr}
                   type="button"
                   onClick={() => {
-                    setExamSeries(archiveData.activeSeries);
-                    setExamTrack("All");
-                    setSubject("All");
-                    setLimit(String(archiveData.items.length));
-                    startMock(archiveData.items.map((i) => i._id));
+                    setArchiveTrack(tr);
+                    loadArchive(undefined, tr);
                   }}
-                  className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-800 cursor-pointer"
+                  className={`rounded-full px-3 py-1 text-xs font-bold cursor-pointer transition-colors ${
+                    archiveTrack === tr
+                      ? "bg-emerald-700 text-white"
+                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                  }`}
                 >
-                  <Play className="h-3.5 w-3.5" />
-                  <span>Take This Archive Timed</span>
+                  {tr === "Grade 11-20" ? "Post Office & Grade 11–20" : tr}
                 </button>
-              )}
+              ))}
             </div>
 
             <div className="flex flex-wrap gap-1.5">
@@ -993,7 +1284,12 @@ export function PracticeArena() {
                 <button
                   key={series.examSeries}
                   type="button"
-                  onClick={() => loadArchive(series.examSeries)}
+                  onClick={() =>
+                    loadArchive(
+                      series.examSeries,
+                      archiveTrack !== "All" ? archiveTrack : undefined
+                    )
+                  }
                   className={`rounded-xl px-3 py-1.5 text-xs font-bold cursor-pointer ${
                     archiveData?.activeSeries === series.examSeries
                       ? "bg-slate-900 text-white"
@@ -1004,6 +1300,23 @@ export function PracticeArena() {
                 </button>
               ))}
             </div>
+
+            {archiveStudyMode === "selftest" && archiveData && (
+              <div className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs font-bold text-slate-700">
+                <span>
+                  Self-Test Active: Click any option to check your answer immediately.
+                </span>
+                <span className="text-emerald-800">
+                  Attempted: {Object.keys(selfTestPicks).length} /{" "}
+                  {archiveData.items.length} &bull; Correct:{" "}
+                  {
+                    archiveData.items.filter(
+                      (it) => selfTestPicks[it._id] === it.correctIndex
+                    ).length
+                  }
+                </span>
+              </div>
+            )}
           </div>
 
           {loadingArchive ? (
@@ -1014,6 +1327,9 @@ export function PracticeArena() {
             <div className="space-y-4">
               {(archiveData?.items ?? []).map((item, idx) => {
                 const isSaved = bookmarkedQIds.has(item._id);
+                const isRevealed =
+                  archiveStudyMode === "study" || revealedArchiveIds.has(item._id);
+                const userPick = selfTestPicks[item._id];
                 return (
                   <article
                     key={item._id}
@@ -1025,6 +1341,21 @@ export function PracticeArena() {
                       </span>
                       <div className="flex items-center gap-2">
                         <span className="text-slate-500">{item.examSeries}</span>
+                        {archiveStudyMode === "selftest" && !isRevealed && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setRevealedArchiveIds((prev) => {
+                                const next = new Set(prev);
+                                next.add(item._id);
+                                return next;
+                              })
+                            }
+                            className="rounded-lg bg-slate-900 px-2.5 py-1 text-xs font-bold text-white hover:bg-slate-800 cursor-pointer"
+                          >
+                            Reveal Answer
+                          </button>
+                        )}
                         <button
                           type="button"
                           onClick={() => handleToggleQuestionBookmark(item._id)}
@@ -1047,26 +1378,66 @@ export function PracticeArena() {
                     <div className="grid gap-2 sm:grid-cols-2 text-xs">
                       {item.options.map((opt, optIdx) => {
                         const isRight = optIdx === item.correctIndex;
+                        const isPickedWrong =
+                          isRevealed && userPick === optIdx && !isRight;
+                        const cls = !isRevealed
+                          ? "border-slate-200 bg-slate-50 text-slate-800 hover:border-emerald-400 hover:bg-emerald-50/40"
+                          : isRight
+                          ? "border-emerald-500 bg-emerald-50 text-emerald-950"
+                          : isPickedWrong
+                          ? "border-rose-400 bg-rose-50 text-rose-900"
+                          : "border-slate-200 bg-slate-50/50 text-slate-700";
+
+                        if (archiveStudyMode === "selftest" && !isRevealed) {
+                          return (
+                            <button
+                              key={opt}
+                              type="button"
+                              onClick={() => {
+                                setSelfTestPicks((prev) => ({
+                                  ...prev,
+                                  [item._id]: optIdx,
+                                }));
+                                setRevealedArchiveIds((prev) => {
+                                  const next = new Set(prev);
+                                  next.add(item._id);
+                                  return next;
+                                });
+                              }}
+                              className={`rounded-lg px-3 py-2 border font-semibold text-left transition-colors cursor-pointer ${cls}`}
+                            >
+                              {String.fromCharCode(65 + optIdx)}. {opt}
+                            </button>
+                          );
+                        }
+
                         return (
                           <div
                             key={opt}
-                            className={`rounded-lg px-3 py-2 border font-semibold ${
-                              isRight
-                                ? "border-emerald-500 bg-emerald-50 text-emerald-950"
-                                : "border-slate-200 bg-slate-50/50 text-slate-700"
-                            }`}
+                            className={`rounded-lg px-3 py-2 border font-semibold ${cls}`}
                           >
                             {String.fromCharCode(65 + optIdx)}. {opt}
-                            {isRight && " ✓"}
+                            {isRevealed && isRight && " ✓"}
+                            {isPickedWrong && " ✗"}
                           </div>
                         );
                       })}
                     </div>
 
                     {item.explanation && (
-                      <div className="rounded-xl bg-slate-50 p-3 text-xs text-slate-700 leading-relaxed">
-                        <strong className="text-slate-900">Explanation:</strong>{" "}
-                        {item.explanation}
+                      <div
+                        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+                          isRevealed
+                            ? "grid-rows-[1fr] opacity-100"
+                            : "grid-rows-[0fr] opacity-0"
+                        }`}
+                      >
+                        <div className="overflow-hidden">
+                          <div className="rounded-xl bg-slate-50 p-3 text-xs text-slate-700 leading-relaxed">
+                            <strong className="text-slate-900">Explanation:</strong>{" "}
+                            {item.explanation}
+                          </div>
+                        </div>
                       </div>
                     )}
                   </article>

@@ -1,4 +1,9 @@
 import { extraMcqQuestions } from "./extraMcqQuestions.js";
+import { bcsPastArchiveMcqs } from "./mcqs/bcsPastArchiveMcqs.js";
+import { ministryPostOfficeMcqs } from "./mcqs/ministryPostOfficeMcqs.js";
+import { primaryNtrcaArchiveMcqs } from "./mcqs/primaryNtrcaArchiveMcqs.js";
+import { bankAndRulesArchiveMcqs } from "./mcqs/bankAndRulesArchiveMcqs.js";
+import { deepCoverageArchiveMcqs } from "./mcqs/deepCoverageArchiveMcqs.js";
 
 export const mcqQuestionsData = [
   // --- Govt Job Rules & Banking (2026 Rules) ---
@@ -1172,4 +1177,9 @@ export const mcqQuestionsData = [
     tags: ["constitution", "article-29", "grade-11-20"],
   },
   ...extraMcqQuestions,
+  ...bcsPastArchiveMcqs,
+  ...ministryPostOfficeMcqs,
+  ...primaryNtrcaArchiveMcqs,
+  ...bankAndRulesArchiveMcqs,
+  ...deepCoverageArchiveMcqs,
 ];

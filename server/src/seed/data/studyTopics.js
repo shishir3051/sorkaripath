@@ -9,6 +9,8 @@ import { nctbBanglaTopics } from "./topics/nctbBanglaTopics.js";
 import { nctbEnglishTopics } from "./topics/nctbEnglishTopics.js";
 import { nctbMathAndCoreTopics } from "./topics/nctbMathAndCoreTopics.js";
 import { nctbMathDeepTopics } from "./topics/nctbMathDeepTopics.js";
+import { deepGeoIntlTopics } from "./topics/deepGeoIntlTopics.js";
+import { deepLiteratureAndMathTopics } from "./topics/deepLiteratureAndMathTopics.js";
 
 export const studyTopicsData = [
   ...banglaTopics,
@@ -22,4 +24,6 @@ export const studyTopicsData = [
   ...nctbEnglishTopics,
   ...nctbMathAndCoreTopics,
   ...nctbMathDeepTopics,
+  ...deepGeoIntlTopics,
+  ...deepLiteratureAndMathTopics,
 ];
