@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ExternalLink } from "lucide-react";
 import { safeExternalHref } from "@/lib/api";
+import { PwaInstallButton } from "@/components/layout/PwaInstallControl";
 
 const OFFICIAL_PORTALS = [
   { name: "BPSC Official", url: "https://bpsc.gov.bd/" },
@@ -89,6 +90,7 @@ export function Footer() {
             Educational &amp; Career Aggregator — always verify final deadlines and
             fees in the attached official PDF circular.
           </p>
+          <PwaInstallButton variant="footer" />
         </div>
       </div>
     </footer>

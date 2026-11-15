@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import {
   Inter,
   JetBrains_Mono,
@@ -7,6 +7,7 @@ import {
 import "./globals.css";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
+import { PwaServiceWorkerRegistrar } from "@/components/layout/PwaInstallControl";
 import { AiCircularAssistant } from "@/components/jobs/AiCircularAssistant";
 
 const inter = Inter({
@@ -31,6 +32,17 @@ export const metadata: Metadata = {
   title: "SorkariPath — Bangladesh Govt Job Portal & A-to-Z Learning Academy",
   description:
     "Live Bangladesh Government Job circulars & notices synced from BPSC, Bangladesh Bank, MOPA & ministries, plus a complete A-to-Z career curriculum, MCQ practice arena & 2026 pay-scale tools.",
+  applicationName: "SorkariPath",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "SorkariPath",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#047857",
 };
 
 export default function RootLayout({
@@ -52,6 +64,7 @@ export default function RootLayout({
         <main className="flex-1">{children}</main>
         <Footer />
         <AiCircularAssistant />
+        <PwaServiceWorkerRegistrar />
       </body>
     </html>
   );

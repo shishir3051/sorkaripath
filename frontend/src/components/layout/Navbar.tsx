@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
+import { PwaInstallButton } from "@/components/layout/PwaInstallControl";
 import {
   BookOpen,
   Briefcase,
@@ -91,8 +92,9 @@ export function Navbar() {
           })}
         </nav>
 
-        {/* Right Status / Live Sync CTA + Mobile Toggle */}
+        {/* Right Status / Install App + Live Sync CTA + Mobile Toggle */}
         <div className="flex shrink-0 items-center gap-2">
+          <PwaInstallButton variant="navbar" />
           <Link
             href="/live-sync"
             className={`hidden sm:inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
@@ -147,6 +149,12 @@ export function Navbar() {
                 </Link>
               );
             })}
+          </div>
+          <div className="mt-2.5 pt-2.5 border-t border-slate-100">
+            <PwaInstallButton
+              variant="mobile"
+              onActionComplete={() => setMobileOpen(false)}
+            />
           </div>
         </div>
       )}
