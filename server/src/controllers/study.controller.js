@@ -219,7 +219,12 @@ const STUDY_BATCH_DEFINITIONS = [
     syllabusSummary:
       "Structured BSC preliminary + 200-mark written blueprint: English focus writing, step-by-step Bank written math, DBMS/networking ICT, and Bangladesh Bank monetary policy.",
     recommendedModelTestId: "bank-combined-mock",
-    featuredSeries: ["Sonali & Combined Bank SO Archive", "Bangladesh Bank AD Archive"],
+    featuredSeries: [
+      "Bangladesh Bank AD Archive",
+      "Sonali & Combined Bank SO Archive",
+      "Combined Bank Officer & Cash (2018-2024) Archive",
+      "Bangladesh Bank & Combined Bank Archive",
+    ],
   },
   {
     id: "primary-ntrca-batch",
