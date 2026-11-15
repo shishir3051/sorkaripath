@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
@@ -9,15 +9,20 @@ import {
   Bookmark,
   BookOpen,
   CheckCircle2,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
   Clock,
   Eye,
   EyeOff,
   FileCheck2,
+  Layers,
   Play,
   RotateCcw,
   Search,
   Sparkles,
   Target,
+  X,
   XCircle,
 } from "lucide-react";
 import { apiFetch, formatBdDateTime, getOrCreateSessionId } from "@/lib/api";
@@ -135,6 +140,63 @@ function computeClientAnalytics(
   };
 }
 
+const ARCHIVE_TRACK_LABELS: Record<string, string> = {
+  "BCS Preliminary": "BCS Preliminary & PSC Non-Cadre",
+  "Bank Combined": "Bangladesh Bank & Combined Bank",
+  "Primary & NTRCA": "DPE Primary & NTRCA",
+  "Grade 11-20": "Post Office & Ministry Grade 11–20",
+  "Govt Rules 2026": "2026 Govt Rules, Service Act & Viva",
+};
+
+const ARCHIVE_TRACK_ORDER = [
+  "BCS Preliminary",
+  "Bank Combined",
+  "Primary & NTRCA",
+  "Grade 11-20",
+  "Govt Rules 2026",
+];
+
+function extractArchiveRank(name: string): number {
+  const ord = name.match(/\b(\d{1,2})(?:st|nd|rd|th)\b/i);
+  if (ord) return Number(ord[1]);
+  const yr = name.match(/\b(20\d{2})\b/);
+  if (yr) return Number(yr[1]);
+  return -1;
+}
+
+function groupAndOrderArchiveSeries(list: PastPaperSummary[]) {
+  const orderedSeries = [...list].sort((a, b) => {
+    const tA = ARCHIVE_TRACK_ORDER.indexOf(a.examTrack);
+    const tB = ARCHIVE_TRACK_ORDER.indexOf(b.examTrack);
+    const normA = tA === -1 ? 99 : tA;
+    const normB = tB === -1 ? 99 : tB;
+    if (normA !== normB) return normA - normB;
+
+    const rA = extractArchiveRank(a.examSeries);
+    const rB = extractArchiveRank(b.examSeries);
+    if (rA !== rB) return rB - rA;
+
+    return a.examSeries.localeCompare(b.examSeries);
+  });
+
+  const groups: { track: string; label: string; items: PastPaperSummary[] }[] =
+    [];
+  for (const item of orderedSeries) {
+    const track = item.examTrack || "Other";
+    let group = groups.find((g) => g.track === track);
+    if (!group) {
+      group = {
+        track,
+        label: ARCHIVE_TRACK_LABELS[track] ?? track,
+        items: [],
+      };
+      groups.push(group);
+    }
+    group.items.push(item);
+  }
+  return { orderedSeries, groups };
+}
+
 interface SmartSearchResponse {
   questions: McqQuestion[];
   topics: StudyTopic[];
@@ -204,6 +266,38 @@ export function PracticeArena() {
   const [selfTestPicks, setSelfTestPicks] = useState<Record<string, number>>(
     {}
   );
+  const [archiveDirectoryOpen, setArchiveDirectoryOpen] = useState(false);
+  const [archivePaperQuery, setArchivePaperQuery] = useState("");
+
+  const rawSeriesList = archiveData?.seriesList;
+  const activeSeriesName = archiveData?.activeSeries;
+
+  const archiveGrouped = useMemo(
+    () => groupAndOrderArchiveSeries(rawSeriesList ?? []),
+    [rawSeriesList]
+  );
+
+  const filteredArchiveGroups = useMemo(() => {
+    const q = archivePaperQuery.trim().toLowerCase();
+    if (!q) return archiveGrouped.groups;
+    return archiveGrouped.groups
+      .map((g) => ({
+        ...g,
+        items: g.items.filter(
+          (item) =>
+            item.examSeries.toLowerCase().includes(q) ||
+            g.label.toLowerCase().includes(q)
+        ),
+      }))
+      .filter((g) => g.items.length > 0);
+  }, [archiveGrouped.groups, archivePaperQuery]);
+
+  const activeSeriesIdx = useMemo(() => {
+    if (!activeSeriesName) return -1;
+    return archiveGrouped.orderedSeries.findIndex(
+      (s) => s.examSeries === activeSeriesName
+    );
+  }, [archiveGrouped.orderedSeries, activeSeriesName]);
 
   // Smart Search Mode State
   const [searchQuery, setSearchQuery] = useState("");
@@ -1249,7 +1343,7 @@ export function PracticeArena() {
             </div>
 
             {/* Exam Track Filter Pills */}
-            <div className="flex flex-wrap items-center gap-1.5 pt-1 border-t border-slate-100">
+            <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100">
               <span className="text-[11px] font-bold uppercase text-slate-400 mr-1">
                 Track:
               </span>
@@ -1266,6 +1360,7 @@ export function PracticeArena() {
                   type="button"
                   onClick={() => {
                     setArchiveTrack(tr);
+                    setArchivePaperQuery("");
                     loadArchive(undefined, tr);
                   }}
                   className={`rounded-full px-3 py-1 text-xs font-bold cursor-pointer transition-colors ${
@@ -1279,26 +1374,219 @@ export function PracticeArena() {
               ))}
             </div>
 
-            <div className="flex flex-wrap gap-1.5">
-              {(archiveData?.seriesList ?? []).map((series) => (
-                <button
-                  key={series.examSeries}
-                  type="button"
-                  onClick={() =>
-                    loadArchive(
-                      series.examSeries,
-                      archiveTrack !== "All" ? archiveTrack : undefined
-                    )
-                  }
-                  className={`rounded-xl px-3 py-1.5 text-xs font-bold cursor-pointer ${
-                    archiveData?.activeSeries === series.examSeries
-                      ? "bg-slate-900 text-white"
-                      : "bg-slate-100 text-slate-700 hover:bg-slate-200"
-                  }`}
-                >
-                  {series.examSeries} ({series.count})
-                </button>
-              ))}
+            {/* Compact Paper Switcher + Smooth Expandable Archive Directory */}
+            <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-2.5 space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <div className="relative flex-1 min-w-[230px]">
+                  <label htmlFor="archive-series-select" className="sr-only">
+                    Select Exam Paper Archive
+                  </label>
+                  <select
+                    id="archive-series-select"
+                    value={archiveData?.activeSeries ?? ""}
+                    onChange={(e) => {
+                      if (!e.target.value) return;
+                      loadArchive(
+                        e.target.value,
+                        archiveTrack !== "All" ? archiveTrack : undefined
+                      );
+                    }}
+                    disabled={!archiveData || archiveGrouped.orderedSeries.length === 0}
+                    className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs sm:text-sm font-bold text-slate-900 shadow-2xs focus:border-emerald-500 focus:outline-none cursor-pointer"
+                  >
+                    {archiveGrouped.orderedSeries.length === 0 ? (
+                      <option value="">Loading exam archives...</option>
+                    ) : (
+                      archiveGrouped.groups.map((group) => (
+                        <optgroup key={group.track} label={group.label}>
+                          {group.items.map((series) => (
+                            <option
+                              key={series.examSeries}
+                              value={series.examSeries}
+                            >
+                              {series.examSeries} ({series.count} Qs)
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))
+                    )}
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    disabled={activeSeriesIdx <= 0}
+                    title={
+                      activeSeriesIdx > 0
+                        ? `Previous: ${archiveGrouped.orderedSeries[activeSeriesIdx - 1]?.examSeries}`
+                        : "First archive in list"
+                    }
+                    onClick={() => {
+                      const prev =
+                        archiveGrouped.orderedSeries[activeSeriesIdx - 1];
+                      if (prev) {
+                        loadArchive(
+                          prev.examSeries,
+                          archiveTrack !== "All" ? archiveTrack : undefined
+                        );
+                      }
+                    }}
+                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                  >
+                    <ChevronLeft className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Prev</span>
+                  </button>
+                  {archiveGrouped.orderedSeries.length > 0 && activeSeriesIdx >= 0 && (
+                    <span className="hidden md:inline-block px-1.5 text-[11px] font-bold text-slate-500 tabular-nums">
+                      {activeSeriesIdx + 1}/{archiveGrouped.orderedSeries.length}
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    disabled={
+                      activeSeriesIdx === -1 ||
+                      activeSeriesIdx >= archiveGrouped.orderedSeries.length - 1
+                    }
+                    title={
+                      activeSeriesIdx >= 0 &&
+                      activeSeriesIdx < archiveGrouped.orderedSeries.length - 1
+                        ? `Next: ${archiveGrouped.orderedSeries[activeSeriesIdx + 1]?.examSeries}`
+                        : "Last archive in list"
+                    }
+                    onClick={() => {
+                      const next =
+                        archiveGrouped.orderedSeries[activeSeriesIdx + 1];
+                      if (next) {
+                        loadArchive(
+                          next.examSeries,
+                          archiveTrack !== "All" ? archiveTrack : undefined
+                        );
+                      }
+                    }}
+                    className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-2 text-xs font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                  >
+                    <span className="hidden sm:inline">Next</span>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+
+                  <button
+                    type="button"
+                    aria-expanded={archiveDirectoryOpen}
+                    onClick={() => setArchiveDirectoryOpen((prev) => !prev)}
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-bold cursor-pointer transition-colors ${
+                      archiveDirectoryOpen
+                        ? "border-slate-900 bg-slate-900 text-white"
+                        : "border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
+                    }`}
+                  >
+                    <Layers className="h-3.5 w-3.5" />
+                    <span>
+                      Browse All ({archiveGrouped.orderedSeries.length})
+                    </span>
+                    <ChevronDown
+                      className={`h-3.5 w-3.5 transition-transform duration-300 ease-in-out ${
+                        archiveDirectoryOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              {/* Smooth Ease-In / Ease-Out Collapsible Grouped Grid Directory */}
+              <div
+                className={`grid transition-all duration-300 ease-in-out ${
+                  archiveDirectoryOpen
+                    ? "grid-rows-[1fr] opacity-100 pt-2"
+                    : "grid-rows-[0fr] opacity-0 pointer-events-none"
+                }`}
+              >
+                <div className="overflow-hidden">
+                  <div className="border-t border-slate-200 pt-3 space-y-3">
+                    <div className="relative">
+                      <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                      <input
+                        type="text"
+                        value={archivePaperQuery}
+                        onChange={(e) => setArchivePaperQuery(e.target.value)}
+                        placeholder={`Search ${archiveGrouped.orderedSeries.length} exam papers (e.g. 46th BCS, Bank AD, Primary, NBR)...`}
+                        className="w-full rounded-lg border border-slate-200 bg-white pl-8 pr-8 py-1.5 text-xs text-slate-900 placeholder:text-slate-400 focus:border-emerald-500 focus:outline-none"
+                      />
+                      {archivePaperQuery && (
+                        <button
+                          type="button"
+                          onClick={() => setArchivePaperQuery("")}
+                          aria-label="Clear paper search"
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 cursor-pointer"
+                        >
+                          <X className="h-3.5 w-3.5" />
+                        </button>
+                      )}
+                    </div>
+
+                    {filteredArchiveGroups.length === 0 ? (
+                      <p className="py-4 text-center text-xs font-medium text-slate-500">
+                        No exam archive matches &ldquo;{archivePaperQuery}&rdquo;.
+                      </p>
+                    ) : (
+                      <div className="max-h-80 overflow-y-auto pr-1 space-y-3">
+                        {filteredArchiveGroups.map((group) => (
+                          <div key={group.track} className="space-y-1.5">
+                            <div className="flex items-center justify-between px-0.5">
+                              <span className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                                {group.label}
+                              </span>
+                              <span className="text-[11px] font-semibold text-slate-400">
+                                {group.items.length}{" "}
+                                {group.items.length === 1 ? "set" : "sets"}
+                              </span>
+                            </div>
+                            <div className="grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
+                              {group.items.map((series) => {
+                                const isActive =
+                                  archiveData?.activeSeries === series.examSeries;
+                                return (
+                                  <button
+                                    key={series.examSeries}
+                                    type="button"
+                                    onClick={() => {
+                                      loadArchive(
+                                        series.examSeries,
+                                        archiveTrack !== "All"
+                                          ? archiveTrack
+                                          : undefined
+                                      );
+                                      setArchiveDirectoryOpen(false);
+                                    }}
+                                    className={`flex items-center justify-between gap-2 rounded-lg border px-2.5 py-2 text-left text-xs font-bold transition-all cursor-pointer ${
+                                      isActive
+                                        ? "border-slate-900 bg-slate-900 text-white shadow-2xs"
+                                        : "border-slate-200 bg-white text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/40"
+                                    }`}
+                                  >
+                                    <span className="line-clamp-1">
+                                      {series.examSeries}
+                                    </span>
+                                    <span
+                                      className={`shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-extrabold tabular-nums ${
+                                        isActive
+                                          ? "bg-white/15 text-white"
+                                          : "bg-slate-100 text-slate-600"
+                                      }`}
+                                    >
+                                      {series.count} Qs
+                                    </span>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
 
             {archiveStudyMode === "selftest" && archiveData && (
