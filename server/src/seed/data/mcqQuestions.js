@@ -1,5 +1,8 @@
 import { extraMcqQuestions } from "./extraMcqQuestions.js";
 import { bcsPastArchiveMcqs } from "./mcqs/bcsPastArchiveMcqs.js";
+import { bcs40to46ExpansionMcqs } from "./mcqs/bcs40to46ExpansionMcqs.js";
+import { bcs30to39ArchiveMcqs } from "./mcqs/bcs30to39ArchiveMcqs.js";
+import { bcs10to29ArchiveMcqs } from "./mcqs/bcs10to29ArchiveMcqs.js";
 import { ministryPostOfficeMcqs } from "./mcqs/ministryPostOfficeMcqs.js";
 import { primaryNtrcaArchiveMcqs } from "./mcqs/primaryNtrcaArchiveMcqs.js";
 import { bankAndRulesArchiveMcqs } from "./mcqs/bankAndRulesArchiveMcqs.js";
@@ -1178,6 +1181,9 @@ export const mcqQuestionsData = [
   },
   ...extraMcqQuestions,
   ...bcsPastArchiveMcqs,
+  ...bcs40to46ExpansionMcqs,
+  ...bcs30to39ArchiveMcqs,
+  ...bcs10to29ArchiveMcqs,
   ...ministryPostOfficeMcqs,
   ...primaryNtrcaArchiveMcqs,
   ...bankAndRulesArchiveMcqs,
