@@ -162,11 +162,72 @@ export function StudyHub({
   const [topicSubject, setTopicSubject] = useState("All");
   const [topicTrack, setTopicTrack] = useState("All");
   const [topicQuery, setTopicQuery] = useState("");
+  const [topicResults, setTopicResults] = useState<StudyTopic[] | null>(null);
+  const [topicsLoading, setTopicsLoading] = useState(false);
+
+  // Topic search runs on the server so it can match keyFacts and chapter text,
+  // neither of which the trimmed list payload carries. Debounced so typing does
+  // not fire a request per keystroke.
+  useEffect(() => {
+    const q = topicQuery.trim();
+    if (!q && topicSubject === "All" && topicTrack === "All") {
+      setTopicResults(null);
+      setTopicsLoading(false);
+      return;
+    }
+    let cancelled = false;
+    setTopicsLoading(true);
+    const handle = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams();
+        if (q) params.set("q", q);
+        if (topicSubject !== "All") params.set("subject", topicSubject);
+        if (topicTrack !== "All") params.set("track", topicTrack);
+        const res = await apiFetch<{ items: StudyTopic[] }>(
+          `/study/topics?${params.toString()}`
+        );
+        if (!cancelled) setTopicResults(res?.items ?? []);
+      } catch {
+        if (!cancelled) setTopicResults([]);
+      } finally {
+        if (!cancelled) setTopicsLoading(false);
+      }
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(handle);
+    };
+  }, [topicQuery, topicSubject, topicTrack]);
   const [selectedTopic, setSelectedTopic] = useState<StudyTopic | null>(() => {
     const slug = searchParams.get("topicSlug");
     if (!slug || !initialData?.topics) return null;
     return initialData.topics.find((t) => t.slug === slug) ?? null;
   });
+
+  // The list payload omits chapters, memory tricks and quick examples so that
+  // /study/overview stays small. Fetch the full sheet once a topic is opened;
+  // until it arrives the summary renders and the heavy sections stay hidden.
+  useEffect(() => {
+    const slug = selectedTopic?.slug;
+    if (!slug || selectedTopic?.chapters) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await apiFetch<{ topic: StudyTopic }>(
+          `/study/topics/${encodeURIComponent(slug)}`
+        );
+        if (cancelled || !res?.topic) return;
+        setSelectedTopic((current) =>
+          current?.slug === slug ? { ...current, ...res.topic } : current
+        );
+      } catch {
+        // Leave the summary view in place if the sheet cannot be loaded.
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedTopic?.slug, selectedTopic?.chapters]);
 
   // 30-Day Routine state
   const [routineData, setRoutineData] = useState<StudyRoutineData | null>(
@@ -319,19 +380,10 @@ export function StudyHub({
   const completedTopicsSet = new Set(progress?.completedTopicSlugs ?? []);
   const completedDaysSet = new Set(progress?.completedRoutineDays ?? []);
 
-  const filteredTopics: StudyTopic[] = (overview?.topics ?? []).filter((t) => {
-    const matchSub = topicSubject === "All" || t.subject === topicSubject;
-    const matchTrack =
-      topicTrack === "All" || t.targetTracks.includes(topicTrack);
-    const q = topicQuery.trim().toLowerCase();
-    const matchQ =
-      !q ||
-      t.title.toLowerCase().includes(q) ||
-      t.unit.toLowerCase().includes(q) ||
-      t.highYieldSummary.toLowerCase().includes(q) ||
-      t.keyFacts.some((f) => f.toLowerCase().includes(q));
-    return matchSub && matchTrack && matchQ;
-  });
+  // Filtering happens on the server: the list payload no longer carries
+  // keyFacts or chapter text, and /study/topics searches both. While no
+  // filter is active topicResults stays null and the overview list shows.
+  const filteredTopics: StudyTopic[] = topicResults ?? overview?.topics ?? [];
 
   const booksList: StudyResource[] = (overview?.books ?? []).filter((b) => {
     const matchTrack =
@@ -586,7 +638,7 @@ export function StudyHub({
                   Rapid Revision Capsule &amp; High-Yield Facts
                 </h3>
                 <ul className="space-y-2.5">
-                  {selectedTopic.keyFacts.map((fact) => (
+                  {selectedTopic.keyFacts?.map((fact) => (
                     <li
                       key={fact}
                       className="flex items-start gap-2.5 rounded-xl bg-slate-50 border border-slate-100 p-3 text-sm text-slate-800 leading-relaxed"
@@ -599,14 +651,14 @@ export function StudyHub({
               </div>
 
               {/* Memory Tricks & Traps */}
-              {selectedTopic.memoryTricks.length > 0 && (
+              {(selectedTopic.memoryTricks?.length ?? 0) > 0 && (
                 <div className="rounded-xl border border-amber-200 bg-amber-50/70 p-4 sm:p-5 space-y-2.5">
                   <h3 className="text-sm font-extrabold text-amber-950 flex items-center gap-2">
                     <Lightbulb className="h-4 w-4 text-amber-600" />
                     Shortcuts, Memory Tricks &amp; Common Exam Traps
                   </h3>
                   <ul className="space-y-1.5 text-xs sm:text-sm text-amber-950/90">
-                    {selectedTopic.memoryTricks.map((trick) => (
+                    {selectedTopic.memoryTricks?.map((trick) => (
                       <li key={trick} className="leading-relaxed">
                         &bull; {trick}
                       </li>
@@ -616,13 +668,13 @@ export function StudyHub({
               )}
 
               {/* Quick Examples Table */}
-              {selectedTopic.quickExamples.length > 0 && (
+              {(selectedTopic.quickExamples?.length ?? 0) > 0 && (
                 <div className="space-y-2.5">
                   <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-900">
                     Quick Examples &amp; High-Frequency Pairs
                   </h3>
                   <div className="grid gap-3 sm:grid-cols-2">
-                    {selectedTopic.quickExamples.map((ex) => (
+                    {selectedTopic.quickExamples?.map((ex) => (
                       <div
                         key={ex.label}
                         className="rounded-xl border border-slate-200 bg-white p-3.5"
@@ -700,6 +752,11 @@ export function StudyHub({
                   placeholder="Search Sandhi, Article 137, Clock..."
                   className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 py-2 text-sm focus:border-emerald-600 focus:bg-white focus:outline-none"
                 />
+                {topicsLoading && (
+                  <p className="absolute left-0 top-full mt-1 text-[11px] font-semibold text-slate-500">
+                    Searching every sheet&hellip;
+                  </p>
+                )}
               </div>
             </div>
 
@@ -760,9 +817,9 @@ export function StudyHub({
                         {item.subject}
                       </span>
                       <div className="flex items-center gap-2">
-                        {item.chapters && item.chapters.length > 0 && (
+                        {(item.chapterCount ?? item.chapters?.length ?? 0) > 0 && (
                           <span className="rounded bg-amber-50 px-2 py-0.5 text-amber-800">
-                            {item.chapters.length} Chapters
+                            {item.chapterCount ?? item.chapters?.length} Chapters
                           </span>
                         )}
                         {isDone ? (
@@ -813,6 +870,12 @@ export function StudyHub({
               );
             })}
           </div>
+
+          {filteredTopics.length === 0 && !topicsLoading && (
+            <p className="rounded-2xl border border-slate-200 bg-white p-6 text-sm text-slate-500">
+              No topic sheets match that search.
+            </p>
+          )}
         </section>
       )}
 

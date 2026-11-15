@@ -31,6 +31,18 @@ export default async function JobsPage({
     initialData = null;
   }
 
+  // Read the portal count from the live sync config rather than hardcoding it,
+  // so this copy cannot drift as sources are added or disabled.
+  let sourceCount: number | null = null;
+  try {
+    const overview = await apiFetch<{ stats?: { enabledSources?: number } }>(
+      "/meta/overview"
+    );
+    sourceCount = overview?.stats?.enabledSources ?? null;
+  } catch {
+    sourceCount = null;
+  }
+
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
       <div>
@@ -42,9 +54,11 @@ export default async function JobsPage({
         </h1>
         <p className="mt-1 text-sm text-slate-600 max-w-3xl">
           Browse curated track blueprints alongside live circulars, exam schedules,
-          and results pulled directly from 40 official ministries &amp; boards (BPSC,
-          Bangladesh Bank BSC, BDPost, DPE, NTRCA, DG Food, MOPA, MoF, DSHE, MoHA,
-          MoD, DGHS &amp; Railway) — enhanced with Gemini AI PDF extraction.
+          and results pulled directly from{" "}
+          {sourceCount ? `${sourceCount} ` : ""}official ministries, boards &amp;
+          application portals (including BPSC, Bangladesh Bank BSC, Teletalk
+          Alljobs, BDPost, DPE, NTRCA &amp; Railway) — enhanced with Gemini AI
+          PDF extraction.
         </p>
       </div>
 
@@ -55,7 +69,7 @@ export default async function JobsPage({
           </div>
         }
       >
-        <JobsExplorer initialData={initialData} />
+        <JobsExplorer initialData={initialData} sourceCount={sourceCount} />
       </Suspense>
     </div>
   );

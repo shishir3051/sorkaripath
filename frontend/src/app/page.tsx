@@ -36,14 +36,10 @@ async function loadOverview(): Promise<OverviewData | null> {
 export default async function HomePage() {
   const overview = await loadOverview();
 
-  const stats = overview?.stats || {
-    totalCirculars: 0,
-    liveSyncedCount: 0,
-    curatedCount: 0,
-    lessonCount: 26,
-    mcqCount: 40,
-    enabledSources: 8,
-  };
+  // If the overview API is unreachable, every label below drops its number
+  // instead of falling back to a placeholder. A stale count still reads as
+  // fact: the previous fallback claimed 8 portals, 40 MCQs and "View All 0".
+  const stats = overview?.stats ?? null;
 
   return (
     <div className="space-y-12 pb-8">
@@ -63,7 +59,7 @@ export default async function HomePage() {
                 <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-emerald-200 ring-1 ring-white/20">
                   <Radio className="h-3.5 w-3.5 text-emerald-400 animate-pulse" />
                   <span>
-                    Live Synced from {stats.enabledSources} Official .gov.bd &amp; Bank Portals
+                    Live Synced from {stats ? `${stats.enabledSources} ` : ""}Official .gov.bd &amp; Bank Portals
                   </span>
                 </div>
                 <DhakaClockBadge variant="hero" />
@@ -88,14 +84,14 @@ export default async function HomePage() {
                   className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3.5 py-2 text-white hover:bg-white/25 transition-colors"
                 >
                   <BookOpen className="h-4 w-4 text-emerald-300" />
-                  Start A-to-Z Roadmap ({stats.lessonCount} Modules)
+                  Start A-to-Z Roadmap{stats ? ` (${stats.lessonCount} Modules)` : ""}
                 </Link>
                 <Link
                   href="/practice"
                   className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3.5 py-2 text-white hover:bg-white/25 transition-colors"
                 >
                   <Target className="h-4 w-4 text-rose-300" />
-                  Take MCQ Mock ({stats.mcqCount}+ Questions)
+                  Take MCQ Mock{stats ? ` (${stats.mcqCount}+ Questions)` : ""}
                 </Link>
                 <Link
                   href="/tools"
@@ -142,7 +138,7 @@ export default async function HomePage() {
                   <div className="rounded-xl bg-black/20 p-3.5">
                     <p className="text-xs text-emerald-200">Live Web Records</p>
                     <p className="mt-1 text-lg font-extrabold text-white">
-                      {stats.liveSyncedCount}
+                      {stats ? stats.liveSyncedCount.toLocaleString("en-US") : "—"}
                     </p>
                     <p className="text-[11px] text-emerald-100/75">
                       {overview?.lastSyncLog
@@ -187,7 +183,7 @@ export default async function HomePage() {
               <Briefcase className="h-5 w-5" />
             </div>
             <h2 className="mt-4 text-base font-bold text-slate-900 group-hover:text-emerald-700">
-              {stats.totalCirculars} Active Feeds &amp; Guides
+              {stats ? `${stats.totalCirculars} ` : ""}Active Feeds &amp; Guides
             </h2>
             <p className="mt-1 text-sm text-slate-600">
               Filter live BPSC, Bank BSC, DGHS, MOPA &amp; Railway updates with direct PDFs.
@@ -202,7 +198,7 @@ export default async function HomePage() {
               <GraduationCap className="h-5 w-5" />
             </div>
             <h2 className="mt-4 text-base font-bold text-slate-900 group-hover:text-emerald-700">
-              A-to-Z Curriculum ({stats.lessonCount})
+              A-to-Z Curriculum{stats ? ` (${stats.lessonCount})` : ""}
             </h2>
             <p className="mt-1 text-sm text-slate-600">
               26 step-by-step modules from Teletalk setup to Viva Voce &amp; Gazette joining.
@@ -250,14 +246,14 @@ export default async function HomePage() {
                   Latest Live Official Circulars &amp; Notices
                 </h2>
                 <p className="text-sm text-slate-500">
-                  Diverse latest feed across {stats.enabledSources} connected govt ministries, BPSC &amp; Bangladesh Bank
+                  Diverse latest feed across {stats ? `${stats.enabledSources} ` : ""}connected govt ministries, BPSC &amp; Bangladesh Bank
                 </p>
               </div>
               <Link
                 href="/jobs?origin=web_sync"
                 className="shrink-0 text-sm font-bold text-emerald-700 hover:text-emerald-800 inline-flex items-center gap-1"
               >
-                <span>View All {stats.liveSyncedCount}</span>
+                <span>View All{stats ? ` ${stats.liveSyncedCount}` : ""}</span>
                 <ArrowRight className="h-4 w-4" />
               </Link>
             </div>

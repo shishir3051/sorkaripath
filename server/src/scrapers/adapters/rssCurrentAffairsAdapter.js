@@ -90,7 +90,10 @@ export function parseRssCurrentAffairs(xml, source, limit = 12) {
     const publishedDate = parseRssDate(pubRaw);
     const language = /[\u0980-\u09FF]/.test(title) ? "bn" : "en";
     const topic = classifyAffairsTopic(title, summary, source.defaultCategory);
-    const sourceHash = createSourceHash(source.key, title, link);
+    // Deliberately hashed on (source + title) WITHOUT the link: BSS republishes
+    // one story under several section paths (/subscriber/, /district/, /others/)
+    // with different article ids, so including the link stored each copy again.
+    const sourceHash = createSourceHash(source.key, title);
 
     items.push({
       title,

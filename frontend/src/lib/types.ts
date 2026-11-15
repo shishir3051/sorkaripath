@@ -262,10 +262,14 @@ export interface StudyTopic {
   targetTracks: string[];
   estimatedMinutes: number;
   highYieldSummary: string;
-  keyFacts: string[];
-  memoryTricks: string[];
-  quickExamples: Array<{ label: string; detail: string }>;
+  /** Omitted by the list endpoints; arrives with the per-topic sheet. */
+  keyFacts?: string[];
+  // Omitted by the list endpoints; present once the per-topic sheet loads.
+  memoryTricks?: string[];
+  quickExamples?: Array<{ label: string; detail: string }>;
   chapters?: StudyChapter[];
+  /** Supplied by the list endpoints in place of the full chapters array. */
+  chapterCount?: number;
   mcqSubjectFilter: string;
   order: number;
 }

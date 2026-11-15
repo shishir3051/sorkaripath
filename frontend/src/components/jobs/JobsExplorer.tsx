@@ -68,8 +68,10 @@ const RECORD_TYPES = [
 
 export function JobsExplorer({
   initialData = null,
+  sourceCount = null,
 }: {
   initialData?: JobsResponse | null;
+  sourceCount?: number | null;
 }) {
   const searchParams = useSearchParams();
   const [q, setQ] = useState(searchParams.get("q") || "");
@@ -542,9 +544,11 @@ export function JobsExplorer({
                   Official Application Portals &amp; Aggregators
                 </h3>
                 <p className="text-xs text-slate-600 mt-0.5">
-                  We auto-sync 40 official ministries &amp; boards live (BPSC, Bangladesh
-                  Bank BSC, BDPost, DPE, NTRCA, DG Food, DSS, LGED, PWD &amp; Railway).
-                  Open the central application portals below when submitting forms:
+                  We auto-sync {sourceCount ? `${sourceCount} ` : ""}official
+                  ministries, boards &amp; application portals live (including BPSC,
+                  Bangladesh Bank BSC, Teletalk Alljobs, BDPost, DPE, NTRCA, LGED,
+                  PWD &amp; Railway). Open the central application portals below when
+                  submitting forms:
                 </p>
               </div>
             </div>

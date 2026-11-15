@@ -170,8 +170,24 @@ function getSpeechRecognitionCtor(): SpeechRecognitionConstructorLike | null {
   return w.SpeechRecognition || w.webkitSpeechRecognition || null;
 }
 
+function buildInsecureOriginNotice(): string {
+  if (typeof window === "undefined") {
+    return "Voice input needs a secure connection (HTTPS or localhost).";
+  }
+  const { protocol, hostname, port } = window.location;
+  const localUrl = `${protocol}//localhost${port ? `:${port}` : ""}`;
+  return `Voice input is blocked because this page is open on ${hostname} over plain HTTP. Browsers only allow the microphone on HTTPS or localhost, so there is no mic setting to enable here. Open ${localUrl} instead, or serve the site over HTTPS.`;
+}
+
+function isInsecureOrigin(): boolean {
+  return typeof window !== "undefined" && !window.isSecureContext;
+}
+
 function buildSpeechErrorText(code?: string): string {
   if (code === "not-allowed" || code === "service-not-allowed") {
+    if (isInsecureOrigin()) {
+      return buildInsecureOriginNotice();
+    }
     return "Microphone permission blocked. Please allow mic access in your browser address bar and try again.";
   }
   if (code === "no-speech") {
@@ -180,7 +196,76 @@ function buildSpeechErrorText(code?: string): string {
   if (code === "audio-capture") {
     return "No microphone found on this device. Connect a mic or type your question.";
   }
-  return "Voice recognition could not complete. Tap the microphone to retry or type your question.";
+  if (code === "network") {
+    return "Speech recognition could not reach the recognition service. Chrome streams audio to Google servers for transcription, so check your internet connection, VPN or proxy, then tap the microphone again.";
+  }
+  if (code === "language-not-supported") {
+    return "This browser cannot recognise the selected voice language. Switch with the EN / বাংলা button or type your question.";
+  }
+  return `Voice recognition could not complete${code ? ` (${code})` : ""}. Tap the microphone to retry or type your question.`;
+}
+
+// Modern neural voices ship under these names; legacy SAPI "Desktop" voices are the robotic ones.
+const VOICE_QUALITY_HINTS: Array<[RegExp, number]> = [
+  [/natural/i, 100],
+  [/neural/i, 95],
+  [/online/i, 80],
+  [/^google/i, 70],
+  [/premium|enhanced/i, 60],
+];
+
+function scoreVoice(voice: SpeechSynthesisVoice): number {
+  let score = 0;
+  for (const [pattern, weight] of VOICE_QUALITY_HINTS) {
+    if (pattern.test(voice.name)) score += weight;
+  }
+  // Network-backed voices are the modern, non-robotic ones.
+  if (!voice.localService) score += 30;
+  if (/desktop/i.test(voice.name)) score -= 40;
+  if (voice.default) score += 1;
+  return score;
+}
+
+function pickBestVoice(
+  voices: SpeechSynthesisVoice[],
+  langPrefix: string
+): SpeechSynthesisVoice | null {
+  const matches = voices.filter((v) =>
+    v.lang.toLowerCase().startsWith(langPrefix)
+  );
+  if (!matches.length) return null;
+  return matches
+    .slice()
+    .sort((a, b) => scoreVoice(b) - scoreVoice(a))[0];
+}
+
+// getVoices() is empty on first call in Chrome until the list loads asynchronously.
+function withVoices(run: (voices: SpeechSynthesisVoice[]) => void): void {
+  const synth = window.speechSynthesis;
+  const ready = synth.getVoices();
+  if (ready.length) {
+    run(ready);
+    return;
+  }
+  const handler = () => {
+    synth.removeEventListener("voiceschanged", handler);
+    run(synth.getVoices());
+  };
+  synth.addEventListener("voiceschanged", handler);
+}
+
+// Avoid cutting mid-sentence; "।" is the Bangla full stop.
+function trimForSpeech(text: string, max = 700): string {
+  const clean = text.trim();
+  if (clean.length <= max) return clean;
+  const cut = clean.slice(0, max);
+  const stop = Math.max(
+    cut.lastIndexOf("।"),
+    cut.lastIndexOf(". "),
+    cut.lastIndexOf("! "),
+    cut.lastIndexOf("? ")
+  );
+  return stop > max * 0.5 ? cut.slice(0, stop + 1) : cut;
 }
 
 const AI_CHAT_OPEN_EVENT = "sorkaripath:open-ai-chat";
@@ -243,35 +328,38 @@ export function AiCircularAssistant() {
       const synth = window.speechSynthesis;
       synth.cancel();
 
-      const voices = synth.getVoices();
-      const bnVoice = voices.find((v) => v.lang.toLowerCase().startsWith("bn"));
-      const preferBangla =
-        (voiceLang === "bn-BD" || !primaryEn.trim()) &&
-        Boolean(primaryBn?.trim()) &&
-        Boolean(bnVoice);
+      withVoices((voices) => {
+        const bnVoice = pickBestVoice(voices, "bn");
+        const preferBangla =
+          (voiceLang === "bn-BD" || !primaryEn.trim()) &&
+          Boolean(primaryBn?.trim()) &&
+          Boolean(bnVoice);
 
-      const textToSpeak = preferBangla
-        ? String(primaryBn || "").trim()
-        : String(primaryEn || primaryBn || "").trim();
-      if (!textToSpeak) return;
+        const textToSpeak = preferBangla
+          ? String(primaryBn || "").trim()
+          : String(primaryEn || primaryBn || "").trim();
+        if (!textToSpeak) return;
 
-      const utterance = new SpeechSynthesisUtterance(textToSpeak.slice(0, 700));
-      if (preferBangla && bnVoice) {
-        utterance.voice = bnVoice;
-        utterance.lang = bnVoice.lang;
-      } else {
-        const enVoice = voices.find((v) =>
-          v.lang.toLowerCase().startsWith("en")
+        const utterance = new SpeechSynthesisUtterance(
+          trimForSpeech(textToSpeak)
         );
-        if (enVoice) utterance.voice = enVoice;
-        utterance.lang = "en-US";
-      }
-      utterance.rate = 1.02;
-      utterance.onend = () => setSpeakingMsgId(null);
-      utterance.onerror = () => setSpeakingMsgId(null);
+        if (preferBangla && bnVoice) {
+          utterance.voice = bnVoice;
+          utterance.lang = bnVoice.lang;
+        } else {
+          const enVoice = pickBestVoice(voices, "en");
+          if (enVoice) utterance.voice = enVoice;
+          utterance.lang = enVoice?.lang || "en-US";
+        }
+        // Slightly under full speed reads as calmer and less clipped.
+        utterance.rate = 0.97;
+        utterance.pitch = 1;
+        utterance.onend = () => setSpeakingMsgId(null);
+        utterance.onerror = () => setSpeakingMsgId(null);
 
-      setSpeakingMsgId(messageId);
-      synth.speak(utterance);
+        setSpeakingMsgId(messageId);
+        synth.speak(utterance);
+      });
     },
     [voiceLang]
   );
@@ -363,6 +451,10 @@ export function AiCircularAssistant() {
 
   const startVoiceListening = useCallback(() => {
     if (loading) return;
+    if (isInsecureOrigin()) {
+      setVoiceNotice(buildInsecureOriginNotice());
+      return;
+    }
     const SpeechCtor = getSpeechRecognitionCtor();
     if (!SpeechCtor) {
       setVoiceNotice(
@@ -628,7 +720,7 @@ export function AiCircularAssistant() {
               />
               <span>Check Live .gov.bd Web First</span>
             </label>
-            <span className="font-bold text-emerald-800">40 Official Portals</span>
+            <span className="font-bold text-emerald-800">Official .gov.bd Portals</span>
           </div>
         )}
       </div>
@@ -1042,17 +1134,17 @@ export function AiCircularAssistant() {
       {/* Voice Status & Error Banner */}
       {(isListening || voiceNotice) && (
         <div
-          className={`flex items-center justify-between gap-2 border-t px-3.5 py-2 text-[11px] font-semibold shrink-0 ${
+          className={`flex ${isListening ? "items-center" : "items-start"} justify-between gap-2 border-t px-3.5 py-2 text-[11px] font-semibold shrink-0 ${
             isListening
               ? "border-rose-200 bg-rose-50 text-rose-800"
               : "border-amber-200 bg-amber-50 text-amber-900"
           }`}
         >
-          <span className="flex items-center gap-1.5 truncate">
+          <span className={`flex gap-1.5 min-w-0 ${isListening ? "items-center truncate" : "items-start"}`}>
             {isListening && (
               <span className="h-2 w-2 rounded-full bg-rose-600 animate-ping shrink-0" />
             )}
-            <span className="truncate">
+            <span className={isListening ? "truncate" : "whitespace-normal break-words leading-snug"}>
               {isListening
                 ? `Listening (${voiceLang === "bn-BD" ? "বাংলা" : "English"})... Speak now`
                 : voiceNotice}

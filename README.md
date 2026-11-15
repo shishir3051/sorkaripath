@@ -7,18 +7,21 @@ A full-stack **Bangladesh Government Job Portal, Live Official Notice Aggregator
 ## Key Features
 
 - **Live Official Job Circulars & Gemini AI Intelligence (`/`, `/jobs`, `/jobs/[slug]`)**
-  - Concurrently syncs circulars, exam schedules, admit card notices, and results from **40 official `.gov.bd` & `bb.org.bd` sources** (including BPSC, Bangladesh Bank BSC, Bangladesh Post Office, DPE, NTRCA, DG Food, DSS, LGED, PWD, Railway, and ministries).
+  - Concurrently syncs circulars, exam schedules, admit card notices, and results from **41 configured official sources** — 40 enabled by default, covering 36 `.gov.bd`/`bb.org.bd` job & notice pages (BPSC, Bangladesh Bank BSC, Bangladesh Post Office, DPE, NTRCA, DG Food, DSS, LGED, PWD, Railway, and ministries) plus 5 news RSS current-affairs feeds.
   - **Gemini AI Circular Finder & Multimodal Official PDF Reader** (`GEMINI_API_KEY` + optional backup pool via `GEMINI_API_KEYS`, defaulting to `gemini-4-hydrogen` with automatic key failover & model fallbacks) lets users ask live questions across `.gov.bd` notices and extract total vacancies, post grades, Teletalk fees, eligibility, and apply links directly from official circular PDFs.
+  - **Floating Gemini Assistant** mounted on every route with **two-way voice**: English & Bangla speech input plus spoken replies, answering live circular questions on job pages and switching to **Study Tutor** mode on `/study`, `/learn`, and `/practice`.
   - Clean **Asia/Dhaka (BST)** date & time display, live header clock, bilingual search normalization (Bangla & English), persistent session bookmarks, and direct portal links (`AllJobs Teletalk`, `Bdjobs`, `BJSC`, `BMET`).
 - **A–Z Career Learning Academy (`/learn`, `/learn/[slug]`)**
   - **26 structured modules (A–Z)** covering BCS, Bangladesh Bank, Primary/NTRCA, Defense, Technical, and Ministry recruitment processes—updated for **2026 rules** (32-year age limit, 93/7 quota distribution, National Pay Scale 2026).
 - **Topic Guru Study Hub & Live Current Affairs (`/study`)**
-  - **16 multi-chapter Topic Guru lecture sheets** across Bangla, English, Bangladesh Affairs, International Affairs, Math & Mental Ability, and Science & ICT.
+  - **30 multi-chapter Topic Guru lecture sheets** across Bangla, English, Bangladesh Affairs, International Affairs, Math & Mental Ability, and Science & ICT.
+  - **4 Course Batches** (BCS Cadre Foundation, Bangladesh Bank AD & Combined Bank, Primary & NTRCA Rapid, Ministry Grade 11–20) that map Topic Guru sheets and past-paper archives onto each exam track.
   - **30-Day Guided Study Routine** with persisted daily progress check-offs.
   - **Live RSS Current Affairs Digest** pulled from official/major news feeds (`BSS National News`, `Prothom Alo`, `The Daily Star`).
-  - **12 Curated Booklists & Official Syllabus Portals** plus **Model Test presets**.
+  - **20 Curated Books, Digests & Official Syllabus Portals** plus **Model Test presets**.
 - **Timed MCQ Arena, Past Papers & Mistake Vault (`/practice`)**
-  - **81 MCQ questions** including **5 Past Paper Job Solution archives** (BCS, Bank, Primary/NTRCA, Ministry Grade 11–20), server-graded scoring with optional **-0.50 BPSC negative marking**, Smart Search across questions and lecture sheets, Question Bookmarks, and an automatic **Mistake Vault** for wrong answers.
+  - **216 MCQ questions** including **8 Past Paper Job Solution archives** (BCS, Bank, Primary/NTRCA, Ministry Grade 11–20), server-graded scoring with optional **-0.50 BPSC negative marking**, Smart Search across questions and lecture sheets, Question Bookmarks, and an automatic **Mistake Vault** for wrong answers.
+  - **Gemini MCQ Generator** for on-demand practice sets by subject, exam track, and difficulty, available in the Practice Arena and inside the Topic Guru AI Lab on `/study`.
 - **2026 Preparation Calculators (`/tools`)**
   - Age Eligibility Calculator (32-year cutoff), National Pay Scale 2026 Estimator, and BCS Preliminary/Written/Viva Marks Simulator.
 - **Live Web Sync & Admin Console (`/live-sync`)**

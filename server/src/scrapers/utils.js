@@ -106,17 +106,59 @@ function normalizeBengaliForMatch(str = "") {
     .replace(/\u09C7\u09D7/g, "\u09CC");
 }
 
+// Patterns are run against a haystack that normalizeBengaliForMatch() has
+// already folded (decomposed য+় becomes য়, etc). Build them through the same
+// folding so a pattern written either way still matches.
+function buildMatcher(source) {
+  return new RegExp(normalizeBengaliForMatch(source).toLowerCase());
+}
+
+// Unambiguous "we are hiring" wording.
+const STRONG_CIRCULAR_PATTERN = buildMatcher(
+  "নিয়োগ বিজ্ঞপ্তি|নিয়োগ সংক্রান্ত|পদে নিয়োগ|জনবল নিয়োগ|শূন্য\s*পদ|শূন্যপদ|recruitment|vacancy|vacancies|career opportunity|applications are invited|আবেদন আহ্বান|আবেদনপত্র আহ্বান"
+);
+
+// "circular" on its own is far too generic: Bangladesh Bank titles every
+// notice "Circular regarding ...", seat plans and viva schedules included.
+// It only counts once exam wording has been ruled out.
+const WEAK_CIRCULAR_PATTERN = buildMatcher("circular");
+
+// Administrative notices often MENTION recruitment without advertising a job:
+// a meeting about staffing, an offer letter, a transfer, a waiting-list
+// appointment. These must never reach the "circular" bucket, which the home
+// page surfaces as "Direct Hiring Circulars".
+const ADMIN_CONTEXT_PATTERN = buildMatcher(
+  "সভা|মিটিং|meeting|অফিস আদেশ|office order|দরপত্র|টেন্ডার|tender|বদলি|পদায়ন|পদোন্নতি|promotion|ছুটি|অবসর|পেনশন|pension|অনাপত্তি|\bnoc\b|পাসপোর্ট|passport|প্রজ্ঞাপন|gazette|offer letter|যোগদান|স্বাস্থ্য পরীক্ষা|প্রাক জীবন|verification|অপেক্ষমান তালিকা|মনোনয়ন|শিক্ষাবৃত্তি|বৃত্তি|scholarship|stipend"
+);
+
+// Exam logistics wording. A genuine advert does not carry a timetable or a
+// seat plan in its title, so these outrank the hiring phrases below.
+const STRONG_EXAM_PATTERN = buildMatcher(
+  "সময়সূচি|মৌখিক|viva|seat.?plan|আসন বিন্যাস|প্রবেশপত্র|admit"
+);
+
+const EXAM_SCHEDULE_PATTERN = buildMatcher(
+  "viva|মৌখিক|schedule|সময়সূচি|seat|আসন|written|লিখিত|mcq|preliminary|পরীক্ষার"
+);
+
 export function classifyRecord(title = "", defaultCategory = "General Notice", extraHint = "") {
   const hay = normalizeBengaliForMatch(`${title} ${extraHint}`).toLowerCase();
 
   let recordType = "notice";
-  if (/result|ফলাফল|selected|সুপারিশ|মনোনীত|উত্তীর্ণ/.test(hay)) {
+  const isAdmin = ADMIN_CONTEXT_PATTERN.test(hay);
+  if (buildMatcher("result|ফলাফল|selected|সুপারিশ|মনোনীত|উত্তীর্ণ").test(hay)) {
     recordType = "result";
-  } else if (/admit|প্রবেশপত্র/.test(hay)) {
+  } else if (buildMatcher("admit|প্রবেশপত্র").test(hay)) {
     recordType = "admit_card";
-  } else if (/viva|মৌখিক|schedule|সময়সূচি|seat|আসন|written|লিখিত|mcq|preliminary|পরীক্ষার/.test(hay)) {
+  } else if (STRONG_EXAM_PATTERN.test(hay)) {
     recordType = "exam_schedule";
-  } else if (/নিয়োগ বিজ্ঞপ্তি|নিয়োগ বিজ্ঞপ্তি|নিয়োগ সংক্রান্ত|নিয়োগ সংক্রান্ত|পদে নিয়োগ|পদে নিয়োগ|জনবল নিয়োগ|জনবল নিয়োগ|শূন্য\s*পদ|circular|recruitment|vacancy|vacancies|career opportunity|applications are invited|আবেদন আহ্বান/.test(hay)) {
+  } else if (STRONG_CIRCULAR_PATTERN.test(hay) && !isAdmin) {
+    // Ahead of exam wording: a real advert usually also names the exam it
+    // leads to, which would otherwise demote it to "exam_schedule".
+    recordType = "circular";
+  } else if (EXAM_SCHEDULE_PATTERN.test(hay)) {
+    recordType = "exam_schedule";
+  } else if (WEAK_CIRCULAR_PATTERN.test(hay) && !isAdmin) {
     recordType = "circular";
   }
 

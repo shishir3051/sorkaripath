@@ -6,6 +6,7 @@ import { env } from "../config/env.js";
 import { webSourcesData } from "../seed/data/webSources.js";
 import { fetchPublicHtml } from "./utils.js";
 import { parseNpfTable } from "./adapters/npfTableAdapter.js";
+import { parseTeletalkJobs } from "./adapters/teletalkApiAdapter.js";
 import { parseBbErecruitment } from "./adapters/bbErecruitmentAdapter.js";
 import { parseRssCurrentAffairs } from "./adapters/rssCurrentAffairsAdapter.js";
 
@@ -81,6 +82,8 @@ function runAdapter(adapterType, payload, source) {
   switch (adapterType) {
     case "npf-table":
       return parseNpfTable(payload, source, 25);
+    case "teletalk-api":
+      return parseTeletalkJobs(payload, source, 400);
     case "bb-erecruitment":
       return parseBbErecruitment(payload, source, 25);
     case "rss-feed":
@@ -92,7 +95,9 @@ function runAdapter(adapterType, payload, source) {
 
 export async function syncSingleSource(source) {
   const rawContent = await fetchPublicHtml(source.url);
-  const parsedItems = runAdapter(source.adapterType, rawContent, source);
+  // Awaited: most adapters are synchronous, but a paginating one (teletalk-api)
+  // returns a promise. Awaiting a non-promise is a no-op for the others.
+  const parsedItems = await runAdapter(source.adapterType, rawContent, source);
 
   let newInserted = 0;
   let updatedCount = 0;
