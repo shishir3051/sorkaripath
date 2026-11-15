@@ -54,7 +54,22 @@ body {
   header,
   nav,
   footer,
-  .fixed {
+  .fixed:not([data-printable-drawer="true"]) {
     display: none !important;
   }
+}
+
+@keyframes softReveal {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-soft-reveal {
+  animation: softReveal 260ms ease-in-out both;
 }

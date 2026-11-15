@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   AlertTriangle,
   BookOpen,
@@ -28,6 +28,7 @@ interface TopicLectureReaderProps {
   isCompleted: boolean;
   onToggleComplete: (slug: string) => void;
   onClose: () => void;
+  inDrawer?: boolean;
 }
 
 function splitParagraphs(text: string): string[] {
@@ -88,24 +89,44 @@ function ChapterPracticeCard({
         </button>
       </div>
 
-      {showHint && problem.hint && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2 text-xs text-amber-950 font-bangla">
-          <strong>ইঙ্গিত:</strong> {problem.hint}
+      {problem.hint && (
+        <div
+          aria-hidden={!showHint}
+          className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+            showHint
+              ? "grid-rows-[1fr] opacity-100 pt-0.5"
+              : "grid-rows-[0fr] opacity-0 pointer-events-none"
+          }`}
+        >
+          <div className="overflow-hidden">
+            <div className="rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2 text-xs text-amber-950 font-bangla">
+              <strong>ইঙ্গিত:</strong> {problem.hint}
+            </div>
+          </div>
         </div>
       )}
 
-      {showSolution && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 space-y-1.5 text-xs sm:text-sm text-emerald-950 font-bangla">
-          <div className="space-y-1 leading-relaxed">
-            {problem.solution.split("\n").map((line, lineIdx) => (
-              <p key={lineIdx}>{line}</p>
-            ))}
+      <div
+        aria-hidden={!showSolution}
+        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-in-out ${
+          showSolution
+            ? "grid-rows-[1fr] opacity-100 pt-0.5 print:grid-rows-[1fr] print:opacity-100"
+            : "grid-rows-[0fr] opacity-0 pointer-events-none print:hidden"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 space-y-1.5 text-xs sm:text-sm text-emerald-950 font-bangla">
+            <div className="space-y-1 leading-relaxed">
+              {problem.solution.split("\n").map((line, lineIdx) => (
+                <p key={lineIdx}>{line}</p>
+              ))}
+            </div>
+            <p className="pt-1 border-t border-emerald-200 font-extrabold text-emerald-900">
+              সঠিক উত্তর: {problem.answer}
+            </p>
           </div>
-          <p className="pt-1 border-t border-emerald-200 font-extrabold text-emerald-900">
-            সঠিক উত্তর: {problem.answer}
-          </p>
         </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -115,10 +136,17 @@ export function TopicLectureReader({
   isCompleted,
   onToggleComplete,
   onClose,
+  inDrawer = false,
 }: TopicLectureReaderProps) {
   const chapters = topic.chapters ?? [];
-  const [focusMode, setFocusMode] = useState(false);
+  const [focusMode, setFocusMode] = useState(true);
   const [activeChapterIdx, setActiveChapterIdx] = useState(0);
+  const chapterTopRef = useRef<HTMLDivElement | null>(null);
+
+  function selectFocusChapter(nextIdx: number) {
+    setActiveChapterIdx(nextIdx);
+    chapterTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
 
   const safeIdx = Math.min(activeChapterIdx, Math.max(0, chapters.length - 1));
   const visibleChapters =
@@ -126,13 +154,22 @@ export function TopicLectureReader({
       ? [{ chapter: chapters[safeIdx], idx: safeIdx }]
       : chapters.map((chapter, idx) => ({ chapter, idx }));
 
+  const isLoadingChapters =
+    !topic.chapters && (topic.chapterCount ?? 0) > 0;
+
   const quizSubject =
     topic.mcqSubjectFilter && topic.mcqSubjectFilter !== "All"
       ? topic.mcqSubjectFilter
       : topic.subject;
 
   return (
-    <div className="rounded-2xl border-2 border-emerald-600/30 bg-white p-6 sm:p-8 shadow-md space-y-6">
+    <div
+      className={
+        inDrawer
+          ? "bg-white p-5 sm:p-7 space-y-6 print:p-0"
+          : "rounded-2xl border-2 border-emerald-600/30 bg-white p-6 sm:p-8 shadow-md space-y-6"
+      }
+    >
       {/* Header Bar */}
       <div className="flex flex-wrap items-start justify-between gap-4 border-b border-slate-100 pb-4">
         <div className="space-y-1.5">
@@ -182,20 +219,33 @@ export function TopicLectureReader({
             <Printer className="h-4 w-4" />
             <span>Print / PDF</span>
           </button>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Close lecture sheet"
-            className="inline-flex items-center justify-center rounded-xl border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 cursor-pointer"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          {!inDrawer && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close lecture sheet"
+              className="inline-flex items-center justify-center rounded-xl border border-slate-200 p-2 text-slate-500 hover:bg-slate-100 cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          )}
         </div>
       </div>
 
+      {/* Loading skeleton while full chapters fetch */}
+      {isLoadingChapters && (
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-5 space-y-3 animate-pulse print:hidden">
+          <p className="text-xs font-bold text-emerald-800">
+            Loading {topic.chapterCount} NCTB Bangla chapters &amp; practice problems...
+          </p>
+          <div className="h-4 w-2/3 rounded bg-emerald-200/70" />
+          <div className="h-24 w-full rounded-xl bg-slate-200/70" />
+        </div>
+      )}
+
       {/* Elaborate Chapters Lecture View */}
       {chapters.length > 0 && (
-        <div className="space-y-5">
+        <div ref={chapterTopRef} className="space-y-5 scroll-mt-4">
           {/* Chapter Index & Reading Mode Bar */}
           <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4 space-y-3 print:hidden">
             <div className="flex flex-wrap items-center justify-between gap-2">
@@ -208,25 +258,25 @@ export function TopicLectureReader({
                 <div className="inline-flex rounded-lg border border-emerald-200 bg-white p-0.5 text-[11px] font-bold">
                   <button
                     type="button"
-                    onClick={() => setFocusMode(false)}
-                    className={`rounded-md px-2.5 py-1 cursor-pointer ${
-                      !focusMode
-                        ? "bg-emerald-700 text-white"
-                        : "text-slate-600 hover:text-slate-900"
-                    }`}
-                  >
-                    সব অধ্যায় একসাথে
-                  </button>
-                  <button
-                    type="button"
                     onClick={() => setFocusMode(true)}
-                    className={`rounded-md px-2.5 py-1 cursor-pointer ${
+                    className={`rounded-md px-2.5 py-1 transition-all duration-200 ease-in-out cursor-pointer ${
                       focusMode
-                        ? "bg-emerald-700 text-white"
+                        ? "bg-emerald-700 text-white shadow-2xs"
                         : "text-slate-600 hover:text-slate-900"
                     }`}
                   >
                     ১টি করে পড়ুন (Focus)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setFocusMode(false)}
+                    className={`rounded-md px-2.5 py-1 transition-all duration-200 ease-in-out cursor-pointer ${
+                      !focusMode
+                        ? "bg-emerald-700 text-white shadow-2xs"
+                        : "text-slate-600 hover:text-slate-900"
+                    }`}
+                  >
+                    সব অধ্যায় একসাথে
                   </button>
                 </div>
               )}
@@ -275,9 +325,9 @@ export function TopicLectureReader({
 
               return (
                 <section
-                  key={ch.heading}
+                  key={`${ch.heading}-${focusMode ? "focus" : "all"}`}
                   id={`topic-chapter-${idx}`}
-                  className="rounded-2xl border border-slate-200 bg-slate-50/70 p-5 sm:p-6 space-y-5 scroll-mt-24"
+                  className="animate-soft-reveal rounded-2xl border border-slate-200 bg-slate-50/70 p-5 sm:p-6 space-y-5 scroll-mt-24"
                 >
                   {/* Section Title & Elaborate Concept Walkthrough */}
                   <div className="space-y-3">
@@ -470,7 +520,7 @@ export function TopicLectureReader({
               <button
                 type="button"
                 disabled={safeIdx === 0}
-                onClick={() => setActiveChapterIdx(Math.max(0, safeIdx - 1))}
+                onClick={() => selectFocusChapter(Math.max(0, safeIdx - 1))}
                 className="inline-flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-xs font-bold text-slate-800 hover:bg-slate-100 disabled:opacity-40 cursor-pointer"
               >
                 <ChevronLeft className="h-4 w-4" />
@@ -483,7 +533,7 @@ export function TopicLectureReader({
                 type="button"
                 disabled={safeIdx >= chapters.length - 1}
                 onClick={() =>
-                  setActiveChapterIdx(Math.min(chapters.length - 1, safeIdx + 1))
+                  selectFocusChapter(Math.min(chapters.length - 1, safeIdx + 1))
                 }
                 className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-3.5 py-2 text-xs font-bold text-white hover:bg-emerald-800 disabled:opacity-40 cursor-pointer"
               >

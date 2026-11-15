@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   ArrowRight,
@@ -28,7 +28,7 @@ import {
   getOrCreateSessionId,
   safeExternalHref,
 } from "@/lib/api";
-import { TopicLectureReader } from "@/components/study/TopicLectureReader";
+import { TopicSheetDrawer } from "@/components/study/TopicSheetDrawer";
 import type {
   CurrentAffairsItem,
   LearnerProgress,
@@ -143,7 +143,6 @@ export function StudyHub({
   initialData: StudyOverviewData | null;
 }) {
   const searchParams = useSearchParams();
-  const readerRef = useRef<HTMLDivElement | null>(null);
 
   const [activeTab, setActiveTab] = useState<StudyTab>(() =>
     resolveInitialTab(searchParams.get("tab"))
@@ -283,12 +282,12 @@ export function StudyHub({
   }, [overview, searchParams]);
 
   function openLectureSheet(sheet: StudyTopic) {
-    setActiveTab("topics");
     setSelectedTopic(sheet);
-    setTimeout(() => {
-      readerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 50);
   }
+
+  const handleCloseTopic = useCallback(() => {
+    setSelectedTopic(null);
+  }, []);
 
   async function handleToggleTopicDone(slug: string) {
     const sid = getOrCreateSessionId();
@@ -410,7 +409,8 @@ export function StudyHub({
   const routinePercent = Math.round((completedDaysSet.size / 30) * 100);
 
   return (
-    <div className="space-y-8">
+    <>
+      <div className={selectedTopic ? "space-y-8 print:hidden" : "space-y-8"}>
       {/* Top Metrics */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 print:hidden">
         <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -499,19 +499,6 @@ export function StudyHub({
       {/* TAB 1: TOPIC GURU (ALL-IN-ONE SUBJECT LECTURE SHEETS) */}
       {activeTab === "topics" && (
         <section className="space-y-6">
-          {/* Active Lecture Sheet Reader */}
-          {selectedTopic && (
-            <div ref={readerRef}>
-              <TopicLectureReader
-                key={selectedTopic.slug}
-                topic={selectedTopic}
-                isCompleted={completedTopicsSet.has(selectedTopic.slug)}
-                onToggleComplete={handleToggleTopicDone}
-                onClose={() => setSelectedTopic(null)}
-              />
-            </div>
-          )}
-
           {/* Filters for Topic Guru */}
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm space-y-4 print:hidden">
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -1476,6 +1463,16 @@ export function StudyHub({
           </div>
         </section>
       )}
-    </div>
+      </div>
+
+      <TopicSheetDrawer
+        topic={selectedTopic}
+        isCompleted={
+          selectedTopic ? completedTopicsSet.has(selectedTopic.slug) : false
+        }
+        onToggleComplete={handleToggleTopicDone}
+        onClose={handleCloseTopic}
+      />
+    </>
   );
 }
