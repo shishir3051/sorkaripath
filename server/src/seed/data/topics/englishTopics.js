@@ -54,9 +54,11 @@ export const englishTopics = [
           "3rd Conditional (Unreal past): If + had + V3, would/could/might + have + V3 ('If you had worked hard, you would have succeeded'). Inversion: 'Had I known his address, I would have written.' Mixed Conditional: 'If he had studied earlier (past), he would be a magistrate now (present).'",
           "Mandative Subjunctive (Very Frequent in Bank Exams): Certain verbs (advise, ask, command, demand, insist, prefer, propose, recommend, request, suggest, urge) & adjectives (essential, imperative, important, mandatory, necessary, vital) + THAT + Subject + BARE INFINITIVE V1 (negated with 'not + V1', passive uses 'be + V3'): 'The committee recommended that the policy BE revised immediately.' 'She insisted that he NOT go alone.'",
           "Negative Inversion Rule: When a sentence opens with 'Seldom, Never, Hardly, Scarcely, Rarely, Little, Not only, Only then, Under no circumstances, No sooner', invert Auxiliary + Subject! ('Seldom HAVE I seen such dedication'; 'No sooner HAD he reached the station THAN the train left').",
+          "Parallelism Rule: Items joined by coordinating ('and, but, or'), correlative ('both...and, either...or, neither...nor, not only...but also, rather...than'), or comparative ('more...than, as...as') structures must match in grammatical form (gerund with gerund, infinitive with infinitive, clause with clause).",
         ],
         workedExamples: [
           "Trap: 'Had he invited me, I ___ the party.' Answer: 'would have attended' (Why? Because 'Had he invited' = 'If he had invited', 3rd conditional!). Contrast with 'Had I the wings of a dove, I would fly' -> here 'Had' = 'Possessed' (simple V2), so 2nd conditional 'would fly'!",
+          "Parallelism Trap: Faulty 'She likes reading, swimming, and to hike' -> Correct 'She likes reading, swimming, and hiking.' Also match correlatives: 'He is NOT ONLY smart BUT ALSO hard-working' (adjective + adjective).",
         ],
       },
       {
@@ -83,9 +85,11 @@ export const englishTopics = [
           "Special Passive Transformations: Double Object ('He gave me a book' -> 'I was given a book by him' OR 'A book was given to me by him'); Reflexive ('He killed himself' -> 'He was killed by himself'); Bare Infinitive turns to FULL Infinitive ('I saw him go' -> 'He was seen TO go'); Who -> 'By whom' ('Who taught you?' -> 'By whom were you taught?'); Whom -> 'Who'.",
           "Quasi-Passive & Fixed Preposition Passives: 'Honey tastes sweet' -> 'Honey is sweet when it is tasted'; 'The house is building' -> 'The house is being built'; 'Know' takes TO ('He is known TO me', never 'by me'); 'Please/Satisfy/Marvel/Surprise/Annoy' take WITH/AT ('I was surprised AT his conduct'; 'He was annoyed WITH me AT my behavior').",
           "Narration (Indirect Speech) Checklist: Change Reporting Verb ('asked/enquired' for questions, 'ordered/advised/requested' for imperative, 'wished/prayed' for optative, 'exclaimed with joy/sorrow' for exclamatory); Shift tense back one step ONLY when reporting verb is Past (except universal truth/habit); Change assertive question word order BACK to Subject + Verb ('He asked me what my name WAS', NEVER 'what was my name').",
+          "Pronoun Reference Rules: Every pronoun must point unambiguously to a specific, grammatical antecedent matching in person, number, and gender. Avoid vague 'it/this/they' with no clear noun, replace ambiguous 'he/she' between two same-gender nouns by repeating the exact noun, use singular 'his or her' (not plural 'their' in formal exam grammar) with 'each/every/everyone/neither', and shift 'who/whom/whose' for persons vs 'which/that' for things.",
         ],
         workedExamples: [
           "Classic Imperative Passive: 'Never tell a lie.' -> 'Let never a lie be told.' / 'Panic seized the writer.' -> 'The writer was seized WITH panic.'",
+          "Pronoun Reference Fix: Ambiguous 'When Karim met Rahim, he was delighted.' -> Clear 'Karim was delighted when he met Rahim.' / Vague 'Smoking harms lungs; this should stop.' -> 'Smoking harms lungs; this habit should stop.'",
         ],
       },
     ],
@@ -160,7 +164,7 @@ export const englishTopics = [
           "Word Root Accelerators: BENE (Good: benevolent, benefactor), MAL (Bad: malice, malevolent), OMNI (All: omniscient, omnipresent), PHIL (Love: philanthropist, bibliophile), MIS (Hate: misanthrope, misogynist), CHRON (Time: anachronism, chronic), PATH (Feeling: apathy, empathy).",
         ],
         workedExamples: [
-          "Spelling Champions (Single vs Double Letters): Accommodation (cc, mm), Embarrassment (rr, ss), Millennium (ll, nn), Mischievous (-ous, NOT -ious), Lieutenant, Bureaucracy, Cigarette, Diarrhoea, Privilege (no 'd'), Separate ('par', NOT 'per'), Supercede -> NO, Supersede ('s', NOT 'c'!).",
+          "Spelling Champions (Single vs Double Letters): Accommodation (cc, mm), Embarrassment (rr, ss), Millennium (ll, nn), Mischievous (-ous, NOT -ious), Lieutenant, Bureaucracy, Cigarette, Diarrhoea, Privilege (no 'd'), Separate ('par', NOT 'per'), Supersede ('s', NOT 'Supercede'!).",
         ],
       },
       {
@@ -171,9 +175,11 @@ export const englishTopics = [
           "Color & Animal Idioms: Blue blood (অভিজাত বংশ), Black sheep (কুলাঙ্গার), Red-letter day (স্মরণীয় দিন), Caught red-handed (হাতে-নাতে ধরা), White elephant (ব্যয়বহুল কিন্তু অকাজের বস্তু), Once in a blue moon (কদাচিৎ), Dark horse (অজ্ঞাত শক্তিশালী প্রতিদ্বন্দ্বী), Crocodile tears (মায়াকান্না), Swan song (শেষ কর্ম/রচনা), Wild goose chase (বৃথা চেষ্টা), Lion's share (সিংহভাগ)।",
           "State & Action Idioms: Achilles' heel (দুর্বল স্থান), Apple of discord (বিবাদের বিষয়), At sixes and sevens (বিশৃঙ্খল), Beat about the bush (আসল কথা এড়িয়ে যাওয়া), Bona fide (আসল), Burning question (গুরুত্বপূর্ণ আলোচ্য বিষয়), By fits and starts (অনিয়মিতভাবে), Cry in the wilderness (অরণ্যে রোদন), Fight shy of (এড়িয়ে চলা), Gift of the gab (বাগ্মিতা), Hard and fast (বাঁধাধরা), Kith and kin (আত্মীয়স্বজন), Leave no stone unturned (চেষ্টার ত্রুটি না করা), Pros and cons (ভালো-মন্দ উভয় দিক), Through thick and thin (সর্বাবস্থায়)।",
           "Essential One-Word Substitutions: Omnipotent (সর্বশক্তিমান), Omniscient (সর্বজ্ঞ), Autobiography (আত্মজীবনী), Anthology (কবিতা সংকলন), Ambiguous (দ্ব্যর্থবোধক), Ambidextrous (সব্যসাচী — দুই হাতে সমান দক্ষ), Calligraphy (হস্তলিপি বিদ্যা), Epitaph (সমাধিলিপি), Extempore (পূর্বপ্রস্তুতিহীন বক্তৃতা), Hypochondriac (অলীক রোগভয়গ্রস্ত), Incorrigible (সংশোধনাতীত), Kleptomania (চুরির রোগ), Optimist vs Pessimist, Philanthropist (বিশ্বপ্রেমিক/মানবদরদি), Pseudonym (ছদ্মনাম)।",
+          "Analogy Rules & Bridge Method: Define the exact relationship between the given pair as a concise grammatical sentence (matching exact word order and part of speech) — core patterns include Synonym/Degree ('warm : hot'), Antonym ('candid : deceptive'), Worker : Tool ('sculptor : chisel'), Tool : Action ('scalpel : incise'), Part : Whole ('verse : poem'), Cause : Effect ('friction : heat'), and Lack Of ('insomnia : sleep').",
         ],
         workedExamples: [
           "One-word distinction: Killing of one's brother = Fratricide; Father = Patricide; Mother = Matricide; King = Regicide; Self = Suicide; Mass people/race = Genocide; Infant = Infanticide.",
+          "Analogy Rule Demo: 'CARPENTER : SAW' -> 'A carpenter cuts wood using a saw' -> 'TAILOR : SCISSORS' (Reject 'WOOD : CARPENTER' due to reversed relationship/role).",
         ],
       },
     ],
@@ -212,7 +218,7 @@ export const englishTopics = [
         explanation:
           "Understand the origins of English epic poetry, Chaucer's Chaucerian realism, and the golden flowering of English Drama and Metaphysical Poetry during the Elizabethan and Jacobean periods.",
         points: [
-          "Old English / Anglo-Saxon (450–1066): Earliest surviving epic = 'Beowulf' (~3,182 lines, hero fights Grendel & Dragon); Caedmon (first named religious poet); King Alfred the Great (translated Latin works -> Father of English Prose? Wait: Wycliffe translated the Bible; King Alfred promoted prose education).",
+          "Old English / Anglo-Saxon (450–1066): Earliest surviving epic = 'Beowulf' (~3,182 lines, hero fights Grendel & Dragon); Caedmon (first named religious poet); King Alfred the Great (commissioned the Anglo-Saxon Chronicle & Latin translations; alongside later Middle English John Wycliffe's Bible translation, frequently tested in BCS MCQs on early 'Father of English Prose').",
           "Middle English (1066–1500): Geoffrey Chaucer ('The Canterbury Tales' — pilgrims travelling to Thomas Becket's shrine at Canterbury; Father of English Poetry); William Langland ('Piers Plowman'); Sir Thomas Malory ('Morte d'Arthur' — Arthurian prose).",
           "Elizabethan Giants: Edmund Spenser ('The Faerie Queene' — Poets' Poet); Christopher Marlowe ('Doctor Faustus', 'Tamburlaine', 'The Jew of Malta' — introduced 'mighty line' Blank Verse); University Wits (Marlowe, Robert Greene, Thomas Kyd 'The Spanish Tragedy', John Lyly, Thomas Nashe, George Peele, Thomas Lodge).",
           "William Shakespeare (1564–1616, Stratford-upon-Avon — Bard of Avon): 37 Plays + 154 Sonnets (ABAB CDCD EFEF GG). Must-know Tragedies: Hamlet (Prince of Denmark, longest play), Macbeth (Scottish general, Three Witches), Othello (Moor of Venice, villain Iago), King Lear (daughters Goneril, Regan, Cordelia), Julius Caesar ('Et tu, Brute?'), Antony & Cleopatra. Key Comedies: Twelfth Night (Viola/Malvolio), As You Like It (Rosalind), The Merchant of Venice (Shylock/Portia — Tragi-comedy), The Tempest (Prospero/Caliban — Swan Song).",

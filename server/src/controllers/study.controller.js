@@ -244,7 +244,7 @@ function buildStudyBatches(topics, trackCountMap, pastPapers) {
     const matchedTopics = topics.filter(
       (t) => Array.isArray(t.targetTracks) && t.targetTracks.includes(batch.trackKey)
     );
-    const orderedTopics = (matchedTopics.length ? matchedTopics : topics.slice(0, 8)).slice(0, 14);
+    const orderedTopics = matchedTopics.length ? matchedTopics : topics.slice(0, 8);
     const totalEstimatedMinutes = orderedTopics.reduce(
       (sum, t) => sum + (Number(t.estimatedMinutes) || 15),
       0
@@ -277,6 +277,17 @@ function buildStudyBatches(topics, trackCountMap, pastPapers) {
   });
 }
 
+// List views only need card fields. The heavy sections are fetched per topic
+// from /study/topics/:slug - "chapters" alone is ~62% of the collection, so
+// shipping it 30x made /study/overview a 365 KB response.
+// Cards still show a chapter-count badge, so the count is computed server
+// side and the array itself dropped - a few bytes instead of ~108 KB.
+const TOPIC_LIST_PIPELINE = [
+  { $addFields: { chapterCount: { $size: { $ifNull: ["$chapters", []] } } } },
+  { $project: { chapters: 0, memoryTricks: 0, quickExamples: 0, keyFacts: 0 } },
+  { $sort: { order: 1, createdAt: 1 } },
+];
+
 export async function getStudyOverview(_req, res, next) {
   try {
     const [
@@ -301,7 +312,7 @@ export async function getStudyOverview(_req, res, next) {
         { $sort: { count: -1 } },
       ]),
       StudyResource.find().sort({ order: 1, createdAt: 1 }).lean(),
-      StudyTopic.find().sort({ order: 1, createdAt: 1 }).lean(),
+      StudyTopic.aggregate(TOPIC_LIST_PIPELINE),
       McqQuestion.aggregate([
         {
           $match: {
@@ -476,9 +487,18 @@ export async function getStudyTopics(req, res, next) {
       const rx = new RegExp(escapeRegex(topicSearch), "i");
       filter.$or = [
         { title: rx },
+        // Slugs carry the romanised name (bangla-sandhi-uposorgo-protyoy),
+        // which is what users type when the title itself is in Bangla.
+        { slug: rx },
         { unit: rx },
         { highYieldSummary: rx },
         { keyFacts: rx },
+        // Searched because real content lives here: "Article 137-141" is a
+        // quickExamples label on the Constitution sheet, and it is exactly
+        // what the search box offers as an example.
+        { memoryTricks: rx },
+        { "quickExamples.label": rx },
+        { "quickExamples.detail": rx },
         { "chapters.heading": rx },
         { "chapters.explanation": rx },
         { "chapters.points": rx },
@@ -486,7 +506,7 @@ export async function getStudyTopics(req, res, next) {
     }
 
     const [items, subjects] = await Promise.all([
-      StudyTopic.find(filter).sort({ order: 1, createdAt: 1 }).lean(),
+      StudyTopic.aggregate([{ $match: filter }, ...TOPIC_LIST_PIPELINE]),
       StudyTopic.distinct("subject"),
     ]);
 

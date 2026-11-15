@@ -5,6 +5,9 @@ import { bdAndIntlTopics } from "./topics/bdAndIntlTopics.js";
 import { scienceIctTopics } from "./topics/scienceIctTopics.js";
 import { ethicsGeoRulesTopics } from "./topics/ethicsGeoRulesTopics.js";
 import { extraCoreTopics } from "./topics/extraCoreTopics.js";
+import { nctbBanglaTopics } from "./topics/nctbBanglaTopics.js";
+import { nctbEnglishTopics } from "./topics/nctbEnglishTopics.js";
+import { nctbMathAndCoreTopics } from "./topics/nctbMathAndCoreTopics.js";
 
 export const studyTopicsData = [
   ...banglaTopics,
@@ -14,4 +17,7 @@ export const studyTopicsData = [
   ...scienceIctTopics,
   ...ethicsGeoRulesTopics,
   ...extraCoreTopics,
+  ...nctbBanglaTopics,
+  ...nctbEnglishTopics,
+  ...nctbMathAndCoreTopics,
 ];

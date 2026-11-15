@@ -168,7 +168,7 @@ export const studyResourcesData = [
     order: 12,
   },
   {
-    title: "NCTB Official Free Digital Textbooks Portal (Classes 6–12 PDF)",
+    title: "NCTB Official Free Digital Textbooks Portal (2026 Classes 6–12 PDF)",
     slug: "book-nctb-official-ebooks-pdf",
     examTrack: "All Tracks",
     subject: "NCTB Free Textbook PDFs",
@@ -176,9 +176,14 @@ export const studyResourcesData = [
     priority: "Must-Read Core",
     authorOrPublisher: "National Curriculum & Textbook Board (nctb.gov.bd)",
     whyStudy:
-      "Download official free NCTB PDF textbooks for Bangla Grammar, Class 6–10 General Math, Bangladesh & Global Studies, General Science, Geography, and HSC Civics & ICT directly.",
-    keyTopics: ["Class 6–10 Math PDF", "Bangla Byakoron PDF", "Science & ICT PDF", "Bangladesh & Global Studies"],
-    officialUrl: "https://nctb.gov.bd/",
+      "Download official free 2026 NCTB PDF textbooks for Bangla Grammar, English Grammar and Composition, Class 9–10 General & Higher Math, Bangladesh & Global Studies, Civics, Geography, Economics, General Science, and ICT directly.",
+    keyTopics: [
+      "Bangla & English Grammar PDF",
+      "Class 9–10 Math & Higher Math",
+      "Science, ICT & Python Basics",
+      "BGS, Civics, Geo & Economics",
+    ],
+    officialUrl: "https://nctb.gov.bd/pages/static-pages/695b99afc4774958d7b70612",
     order: 13,
   },
   {
@@ -190,8 +195,8 @@ export const studyResourcesData = [
     priority: "Must-Read Core",
     authorOrPublisher: "Bangladesh Public Service Commission (bpsc.gov.bd)",
     whyStudy:
-      "Official BPSC syllabus PDFs define exact subject-wise marks distribution (200 Prelims + 900 Written + 200 Viva) and prevent wasting months studying out-of-syllabus chapters.",
-    keyTopics: ["200-Mark Prelims Map", "900-Mark Written Map", "Technical Cadre Subjects", "Viva Rules"],
+      "Official BPSC syllabus PDFs define exact subject-wise marks distribution (200 Prelims + 900 Written + 100 Viva per latest circular) and prevent wasting months studying out-of-syllabus chapters.",
+    keyTopics: ["200-Mark Prelims Map", "900-Mark Written Map", "Technical Cadre Subjects", "100-Mark Viva Rules"],
     officialUrl: "https://bpsc.gov.bd/",
     order: 14,
   },
@@ -278,5 +283,24 @@ export const studyResourcesData = [
     keyTopics: ["32-Year Age Limit", "93% Merit Quota", "9th Pay Scale Grades 1–20", "Conduct & Leave Rules"],
     officialUrl: "https://mopa.gov.bd/",
     order: 20,
+  },
+  {
+    title: "NCTB English Grammar and Composition (Classes 9–10)",
+    slug: "book-nctb-english-grammar-composition",
+    examTrack: "All Tracks",
+    subject: "English",
+    resourceType: "NCTB Core Book",
+    priority: "Must-Read Core",
+    authorOrPublisher: "National Curriculum & Textbook Board (NCTB)",
+    whyStudy:
+      "The official Classes 9–10 NCTB English textbook provides clear exam-tested foundations in Parts of Speech, 12 Tenses & Stative Verbs, Modals, Verbals, Connectors, Capitalization & Punctuation, Prefix/Suffix word formation, Formal Letters/Reports, and 1/3rd Precis Summary skills relevant to BCS, Bank, Primary & NTRCA exams.",
+    keyTopics: [
+      "Parts of Speech & Modals",
+      "Tense, Sentence & Narration",
+      "Connectors & Punctuation",
+      "Formal Letters, Reports & Summary",
+    ],
+    officialUrl: "https://nctb.gov.bd/pages/static-pages/695b99afc4774958d7b70612",
+    order: 21,
   },
 ];
