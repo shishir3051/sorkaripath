@@ -178,7 +178,9 @@ function getOrderedGuideCards(platform: DevicePlatform): GuideCardSpec[] {
         Open in <strong>Chrome</strong> (not Messenger/WhatsApp), tap{" "}
         <strong>&#8942;</strong> in the top-right corner &rarr;{" "}
         <strong>Add to home screen</strong> &rarr; <strong>Install</strong>{" "}
-        (or tap <strong>Install app</strong> when shown).
+        (or tap <strong>Install app</strong> when shown). No install option in
+        the menu? SorkariPath is probably already installed &mdash; check your
+        home screen and app drawer.
       </p>
     ),
   };
@@ -443,13 +445,34 @@ export function PwaInstallButton({
                 })}
               </div>
 
-              <div className="flex justify-end">
+              {/* Chrome often fires beforeinstallprompt a few seconds after load,
+                  i.e. after this guide has already opened. canPrompt is live, so
+                  surface the one-tap install the moment it becomes available
+                  instead of leaving "Got it" as the only way out. */}
+              <div className="flex items-center justify-end gap-2">
+                {canPrompt && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setGuideOpen(false);
+                      void handleInstallClick();
+                    }}
+                    className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-800 cursor-pointer"
+                  >
+                    <Download className="h-3.5 w-3.5" />
+                    Install now
+                  </button>
+                )}
                 <button
                   type="button"
                   onClick={() => setGuideOpen(false)}
-                  className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 cursor-pointer"
+                  className={
+                    canPrompt
+                      ? "rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 cursor-pointer"
+                      : "rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 cursor-pointer"
+                  }
                 >
-                  Got it
+                  {canPrompt ? "Not now" : "Got it"}
                 </button>
               </div>
             </div>
