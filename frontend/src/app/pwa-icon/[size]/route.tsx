@@ -5,6 +5,7 @@ export const dynamic = "force-static";
 const ICON_VARIANTS: Record<string, { pixels: number; maskable: boolean }> = {
   "192x192.png": { pixels: 192, maskable: false },
   "512x512.png": { pixels: 512, maskable: false },
+  "maskable-192x192.png": { pixels: 192, maskable: true },
   "maskable-512x512.png": { pixels: 512, maskable: true },
 };
 

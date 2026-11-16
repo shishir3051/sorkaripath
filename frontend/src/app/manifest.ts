@@ -7,6 +7,8 @@ export default function manifest(): MetadataRoute.Manifest {
     short_name: "SorkariPath",
     description:
       "Live Bangladesh Government Job circulars synced from BPSC, Bangladesh Bank, MOPA & ministries, plus 50 Topic Guru sheets, 814+ solved MCQs, and 2026 Pay Scale tools.",
+    lang: "en",
+    dir: "ltr",
     start_url: "/",
     scope: "/",
     display: "standalone",
@@ -14,6 +16,7 @@ export default function manifest(): MetadataRoute.Manifest {
     launch_handler: {
       client_mode: "focus-existing",
     },
+    prefer_related_applications: false,
     background_color: "#f6f8f7",
     theme_color: "#047857",
     categories: ["education", "reference", "productivity"],
@@ -29,6 +32,12 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "512x512",
         type: "image/png",
         purpose: "any",
+      },
+      {
+        src: "/pwa-icon/maskable-192x192.png",
+        sizes: "192x192",
+        type: "image/png",
+        purpose: "maskable",
       },
       {
         src: "/pwa-icon/maskable-512x512.png",

@@ -1,8 +1,11 @@
-const CACHE_VERSION = "sorkaripath-shell-v1";
+const CACHE_VERSION = "sorkaripath-shell-v2";
 const PRECACHE_URLS = [
+  "/",
   "/manifest.webmanifest",
   "/pwa-icon/192x192.png",
   "/pwa-icon/512x512.png",
+  "/pwa-icon/maskable-192x192.png",
+  "/pwa-icon/maskable-512x512.png",
   "/icon.svg",
 ];
 
@@ -11,7 +14,11 @@ self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE_VERSION)
-      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then((cache) =>
+        Promise.allSettled(
+          PRECACHE_URLS.map((url) => cache.add(url).catch(() => {}))
+        )
+      )
       .catch(() => {})
   );
 });

@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import Script from "next/script";
 import {
   Inter,
   JetBrains_Mono,
@@ -60,6 +61,9 @@ export default function RootLayout({
         suppressHydrationWarning
         className="min-h-screen flex flex-col bg-[#f6f8f7] text-slate-900"
       >
+        <Script id="pwa-early-install-capture" strategy="beforeInteractive">
+          {`window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__spDeferredInstallPrompt=e;});window.addEventListener("appinstalled",function(){window.__spDeferredInstallPrompt=null;});`}
+        </Script>
         <Navbar />
         <main className="flex-1">{children}</main>
         <Footer />
