@@ -542,7 +542,7 @@ export function JobsExplorer({
                   </div>
 
                   <div className="flex items-center gap-3">
-                    {safeExternalHref(job.pdfUrl, "") && (
+                    {safeExternalHref(job.pdfUrl, "") ? (
                       <a
                         href={safeExternalHref(job.pdfUrl, "")}
                         target="_blank"
@@ -553,7 +553,18 @@ export function JobsExplorer({
                         <span>Official PDF</span>
                         <ExternalLink className="h-3 w-3" />
                       </a>
-                    )}
+                    ) : safeExternalHref(job.applyUrl || job.detailUrl, "") ? (
+                      <a
+                        href={safeExternalHref(job.applyUrl || job.detailUrl, "")}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 font-bold text-slate-600 hover:text-emerald-700 hover:underline"
+                      >
+                        <Globe className="h-3.5 w-3.5" />
+                        <span>Official Portal</span>
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    ) : null}
                     <Link
                       href={`/jobs/${job.slug}`}
                       className="rounded-lg bg-slate-900 px-3.5 py-1.5 font-bold text-white hover:bg-emerald-700 transition-colors"

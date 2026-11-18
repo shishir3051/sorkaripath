@@ -1,6 +1,7 @@
 import crypto from "crypto";
 import https from "https";
 import tls from "tls";
+import * as cheerio from "cheerio";
 import { env } from "../config/env.js";
 import { sanitizeHttpUrl } from "../utils/security.js";
 import { PUBLIC_INTERMEDIATE_CAS } from "./intermediateCas.js";
@@ -355,14 +356,17 @@ export async function fetchPublicBinary(
   }
 }
 
-export async function fetchPublicHtml(url) {
+export async function fetchPublicHtml(
+  url,
+  { timeoutMs = env.SCRAPER_TIMEOUT_MS } = {}
+) {
   const safeUrl = sanitizeHttpUrl(url);
   if (!safeUrl) {
     throw new Error("Invalid scraper target URL");
   }
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), env.SCRAPER_TIMEOUT_MS);
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     const res = await fetch(safeUrl, {
@@ -385,7 +389,9 @@ export async function fetchPublicHtml(url) {
     // Some valid .gov.bd nginx hosts omit public Sectigo intermediate CA certs in their TLS handshake.
     // Retry using strict TLS (rejectUnauthorized: true) augmented with those verified public intermediate CAs.
     if (isMissingIntermediateError(err) && safeUrl.startsWith("https://")) {
-      const { buffer } = await fetchHttpsWithIntermediateCas(safeUrl);
+      const { buffer } = await fetchHttpsWithIntermediateCas(safeUrl, {
+        timeoutMs,
+      });
       const html = buffer.toString("utf8");
       if (HUMAN_VERIFICATION_REGEX.test(html)) {
         throw new Error("Source presented a human-verification challenge; skipped");
@@ -397,4 +403,57 @@ export async function fetchPublicHtml(url) {
   } finally {
     clearTimeout(timeout);
   }
+}
+
+const PDF_URL_REGEX = /\.pdf(?:$|[?#])/i;
+
+/**
+ * Extracts resolved HTTP/HTTPS PDF URLs from an HTML page (anchors, <object>, <embed>, <iframe>).
+ */
+export function extractPdfLinksFromHtml(html = "", baseUrl = "") {
+  if (!html) return [];
+  const $ = cheerio.load(html);
+  const candidates = [];
+  const seen = new Set();
+
+  const recordCandidate = (rawHref, hintText = "") => {
+    const resolved = resolveUrl(baseUrl, rawHref);
+    if (!resolved || !PDF_URL_REGEX.test(resolved) || seen.has(resolved)) {
+      return;
+    }
+    seen.add(resolved);
+    candidates.push({
+      url: resolved,
+      hint: cleanText(hintText),
+    });
+  };
+
+  $("a[href]").each((_, el) => {
+    const href = $(el).attr("href") || "";
+    recordCandidate(href, $(el).text());
+  });
+  $("object[data], embed[src], iframe[src]").each((_, el) => {
+    const src = $(el).attr("data") || $(el).attr("src") || "";
+    recordCandidate(src, $(el).attr("title") || $(el).text());
+  });
+
+  return candidates;
+}
+
+/**
+ * Runs an async worker over items with bounded concurrency while isolating per-item work.
+ */
+export async function mapWithConcurrency(items, concurrency, worker) {
+  if (!Array.isArray(items) || items.length === 0) return;
+  const workerCount = Math.min(Math.max(1, concurrency), items.length);
+  let cursor = 0;
+
+  async function next() {
+    while (cursor < items.length) {
+      const index = cursor++;
+      await worker(items[index], index);
+    }
+  }
+
+  await Promise.all(Array.from({ length: workerCount }, () => next()));
 }

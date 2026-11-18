@@ -131,23 +131,24 @@ export async function syncSingleSource(source) {
         await JobCircular.create(item);
         newInserted += 1;
       } else {
+        const updateFields = {
+          title: item.title,
+          recordType: item.recordType,
+          category: item.category,
+          detailUrl: item.detailUrl,
+          deadlineDate: item.deadlineDate,
+          deadlineRaw: item.deadlineRaw,
+          publishedDate: item.publishedDate,
+          publishedDateRaw: item.publishedDateRaw,
+          summary: item.summary,
+          highlights: item.highlights,
+        };
+        if (item.pdfUrl) {
+          updateFields.pdfUrl = item.pdfUrl;
+        }
         await JobCircular.updateOne(
           { _id: existing._id },
-          {
-            $set: {
-              title: item.title,
-              recordType: item.recordType,
-              category: item.category,
-              pdfUrl: item.pdfUrl,
-              detailUrl: item.detailUrl,
-              deadlineDate: item.deadlineDate,
-              deadlineRaw: item.deadlineRaw,
-              publishedDate: item.publishedDate,
-              publishedDateRaw: item.publishedDateRaw,
-              summary: item.summary,
-              highlights: item.highlights,
-            },
-          }
+          { $set: updateFields }
         );
         updatedCount += 1;
       }

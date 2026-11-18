@@ -1,9 +1,14 @@
+import * as cheerio from "cheerio";
 import {
+  cleanText,
   classifyRecord,
   createSourceHash,
+  extractPdfLinksFromHtml,
   fetchPublicHtml,
   formatReadableBdDate,
   makeSafeSlug,
+  mapWithConcurrency,
+  resolveUrl,
 } from "../utils.js";
 
 /**
@@ -127,6 +132,116 @@ function mapRow(row, source) {
   };
 }
 
+const UTILITY_LINK_REGEX =
+  /(?:^|\/)(?:index|applicantcopy|payment|recover|admitcard|help|circulars)(?:\.php)?(?:$|[?#])|\.(?:css|js|ico|png|jpe?g|svg)$/i;
+
+function extractTeletalkDriveLinks(html, portalUrl) {
+  let baseObj;
+  try {
+    baseObj = new URL(portalUrl);
+  } catch {
+    return [];
+  }
+
+  const $ = cheerio.load(html);
+  const drives = [];
+  const seen = new Set();
+
+  $("a[href]").each((_, el) => {
+    const rawHref = ($(el).attr("href") || "").trim();
+    if (!rawHref || rawHref.startsWith("#")) return;
+    if (UTILITY_LINK_REGEX.test(rawHref)) return;
+
+    const resolved = resolveUrl(portalUrl, rawHref);
+    if (!resolved || resolved === portalUrl) return;
+
+    try {
+      const target = new URL(resolved);
+      if (target.host !== baseObj.host) return;
+      if (target.pathname === baseObj.pathname && !target.search) return;
+    } catch {
+      return;
+    }
+
+    if (seen.has(resolved)) return;
+    seen.add(resolved);
+    drives.push({
+      url: resolved,
+      hint: cleanText($(el).text()),
+    });
+  });
+
+  return drives.slice(0, 3);
+}
+
+async function resolveTeletalkPortalPdfs(portalUrl) {
+  try {
+    const html = await fetchPublicHtml(portalUrl, { timeoutMs: 4500 });
+    const directPdfs = extractPdfLinksFromHtml(html, portalUrl);
+    if (directPdfs.length > 0) return directPdfs;
+
+    const drives = extractTeletalkDriveLinks(html, portalUrl);
+    if (drives.length === 0) return [];
+
+    const collected = [];
+    const seen = new Set();
+    await mapWithConcurrency(drives, 2, async (drive) => {
+      try {
+        const subHtml = await fetchPublicHtml(drive.url, { timeoutMs: 4000 });
+        for (const pdf of extractPdfLinksFromHtml(subHtml, drive.url)) {
+          if (seen.has(pdf.url)) continue;
+          seen.add(pdf.url);
+          collected.push({
+            url: pdf.url,
+            hint: cleanText(`${drive.hint} ${pdf.hint} ${drive.url}`),
+          });
+        }
+      } catch {
+        // Ignore broken individual sub-drive pages cleanly.
+      }
+    });
+
+    return collected;
+  } catch {
+    return [];
+  }
+}
+
+function pickBestPdfForItem(candidates, item) {
+  if (!candidates || candidates.length === 0) return "";
+  if (candidates.length === 1) return candidates[0].url;
+
+  const d =
+    item.publishedDate instanceof Date ? item.publishedDate : new Date();
+  const yyyymmdd = Number.isNaN(d.valueOf())
+    ? ""
+    : d.toISOString().slice(0, 10).replace(/-/g, "");
+  const year = yyyymmdd ? yyyymmdd.slice(0, 4) : "";
+  const titleWords = String(item.title || "")
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .filter((w) => w.length >= 4);
+
+  let bestUrl = candidates[0].url;
+  let bestScore = -1;
+
+  for (const cand of candidates) {
+    const hay = `${cand.url} ${cand.hint}`.toLowerCase();
+    let score = 0;
+    if (yyyymmdd && hay.includes(yyyymmdd)) score += 10;
+    if (year && hay.includes(year)) score += 3;
+    for (const w of titleWords) {
+      if (hay.includes(w)) score += 2;
+    }
+    if (score > bestScore) {
+      bestScore = score;
+      bestUrl = cand.url;
+    }
+  }
+
+  return bestUrl;
+}
+
 export async function parseTeletalkJobs(payload, source, limit = 400) {
   const firstPage = toJson(payload);
   const rows = Array.isArray(firstPage?.govtJobs) ? [...firstPage.govtJobs] : [];
@@ -162,5 +277,35 @@ export async function parseTeletalkJobs(payload, source, limit = 400) {
     if (key) seen.add(key);
     items.push(item);
   }
+
+  // Batch-resolve PDF attachments once per unique Teletalk application portal URL.
+  const uniquePortalUrls = Array.from(
+    new Set(
+      items
+        .map((it) => it.applyUrl)
+        .filter((u) => u && u !== source.url)
+    )
+  );
+  const portalPdfMap = new Map();
+  await mapWithConcurrency(uniquePortalUrls, 8, async (portalUrl) => {
+    const pdfs = await resolveTeletalkPortalPdfs(portalUrl);
+    if (pdfs.length > 0) {
+      portalPdfMap.set(portalUrl, pdfs);
+    }
+  });
+
+  for (const item of items) {
+    const candidates = portalPdfMap.get(item.applyUrl);
+    if (!candidates) continue;
+    const matchedPdf = pickBestPdfForItem(candidates, item);
+    if (matchedPdf) {
+      item.pdfUrl = matchedPdf;
+      item.highlights = [
+        ...item.highlights,
+        "Direct Official PDF Attached",
+      ];
+    }
+  }
+
   return items;
 }

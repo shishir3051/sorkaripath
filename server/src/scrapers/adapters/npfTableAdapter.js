@@ -4,8 +4,11 @@ import {
   cleanText,
   classifyRecord,
   createSourceHash,
+  extractPdfLinksFromHtml,
+  fetchPublicHtml,
   formatReadableBdDate,
   makeSafeSlug,
+  mapWithConcurrency,
   parseBdDate,
   resolveUrl,
 } from "../utils.js";
@@ -14,7 +17,7 @@ import {
  * Adapter for Bangladesh National Portal Framework v2 notice/exam tables
  * (bpsc.gov.bd, mopa.gov.bd, cabinet.gov.bd, railway.gov.bd, dghs.gov.bd, moedu.gov.bd)
  */
-export function parseNpfTable(html, source, limit = 15) {
+export async function parseNpfTable(html, source, limit = 15) {
   const $ = cheerio.load(html);
   const items = [];
 
@@ -100,6 +103,32 @@ export function parseNpfTable(html, source, limit = 15) {
       isActive: true,
     });
   });
+
+  // Several NPF v2 portals (e.g. MOPA go-ultimates, BPSC Non-Cadre/BCS) leave
+  // td[data-column="files"] blank in the index table and embed the real PDF on detailUrl.
+  const itemsNeedingDetailPdf = items.filter(
+    (item) => !item.pdfUrl && item.detailUrl && item.detailUrl !== source.url
+  );
+  if (itemsNeedingDetailPdf.length > 0) {
+    await mapWithConcurrency(itemsNeedingDetailPdf, 5, async (item) => {
+      try {
+        const detailHtml = await fetchPublicHtml(item.detailUrl, {
+          timeoutMs: 4500,
+        });
+        const [firstPdf] = extractPdfLinksFromHtml(detailHtml, item.detailUrl);
+        if (firstPdf?.url) {
+          item.pdfUrl = firstPdf.url;
+          item.highlights = [
+            `Official Source: ${source.organization}`,
+            `Published Date: ${item.publishedDateRaw}`,
+            "Direct Official PDF Attached",
+          ];
+        }
+      } catch {
+        // Detail page is HTML-only or unreachable; keep portal link fallback.
+      }
+    });
+  }
 
   return items;
 }
