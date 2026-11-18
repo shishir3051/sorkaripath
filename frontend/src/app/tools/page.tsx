@@ -4,7 +4,7 @@ import { BcsMarksSimulator } from "@/components/tools/BcsMarksSimulator";
 
 export default function ToolsPage() {
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
+    <div className="app-container py-8 space-y-8">
       <div>
         <span className="inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-800">
           Interactive Career Utilities

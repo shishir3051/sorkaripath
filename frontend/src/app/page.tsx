@@ -27,7 +27,7 @@ export const dynamic = "force-dynamic";
 
 async function loadOverview(): Promise<OverviewData | null> {
   try {
-    return await apiFetch<OverviewData>("/meta/overview");
+    return await apiFetch<OverviewData>("/meta/overview", { revalidate: 20 });
   } catch {
     return null;
   }
@@ -52,7 +52,7 @@ export default async function HomePage() {
               "radial-gradient(circle at 20% 25%, #34d399 0, transparent 45%), radial-gradient(circle at 80% 75%, #f43f5e 0, transparent 40%)",
           }}
         />
-        <div className="relative mx-auto max-w-7xl px-4 py-14 sm:px-6 lg:px-8 lg:py-20">
+        <div className="relative app-container py-14 lg:py-20">
           <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
             <div className="lg:col-span-7">
               <div className="flex flex-wrap items-center gap-2">
@@ -162,7 +162,7 @@ export default async function HomePage() {
       </section>
 
       {/* Main Content Container */}
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 space-y-12">
+      <div className="app-container space-y-12">
         {!overview && (
           <div className="rounded-2xl border border-amber-300 bg-amber-50 p-5 text-sm text-amber-900">
             <strong>Backend API Offline Notice:</strong> Start the Express backend (

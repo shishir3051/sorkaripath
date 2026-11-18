@@ -1,10 +1,8 @@
 import { LiveSyncConsole } from "@/components/live-sync/LiveSyncConsole";
 
-export const dynamic = "force-dynamic";
-
 export default function LiveSyncPage() {
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+    <div className="app-container py-8 space-y-6">
       <div>
         <span className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-800">
           Real-Time Web Intelligence

@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowRight,
   BookMarked,
@@ -25,9 +25,13 @@ import {
 } from "lucide-react";
 import {
   apiFetch,
+  cachedApiFetch,
   formatBdDateTime,
+  getCachedApiData,
   getOrCreateSessionId,
+  invalidateApiCache,
   safeExternalHref,
+  setCachedApiData,
 } from "@/lib/api";
 import { TopicSheetDrawer } from "@/components/study/TopicSheetDrawer";
 import { WrittenTypingVivaLab } from "@/components/study/WrittenTypingVivaLab";
@@ -146,16 +150,34 @@ export function StudyHub({
 }: {
   initialData: StudyOverviewData | null;
 }) {
+  const router = useRouter();
   const searchParams = useSearchParams();
+  const initialTab = resolveInitialTab(searchParams.get("tab"));
 
-  const [activeTab, setActiveTab] = useState<StudyTab>(() =>
-    resolveInitialTab(searchParams.get("tab"))
+  const [activeTab, setActiveTab] = useState<StudyTab>(() => initialTab);
+  const [hasOpenedWrittenViva, setHasOpenedWrittenViva] = useState(
+    () => initialTab === "written-viva"
   );
+
+  function selectStudyTab(nextTab: StudyTab) {
+    setActiveTab(nextTab);
+    if (nextTab === "written-viva") {
+      setHasOpenedWrittenViva(true);
+    }
+  }
 
   const [overview, setOverview] = useState<StudyOverviewData | null>(
-    initialData
+    () => initialData ?? getCachedApiData<StudyOverviewData>("/study/overview")
   );
   const [progress, setProgress] = useState<LearnerProgress | null>(null);
+
+  // Per-tab client caches eliminate repeated reloads & spinners when switching back and forth
+  const routineCacheRef = useRef<Map<string, StudyRoutineData>>(new Map());
+  const affairsCacheRef = useRef<
+    Map<string, { items: CurrentAffairsItem[]; total: number }>
+  >(new Map());
+  const topicListCacheRef = useRef<Map<string, StudyTopic[]>>(new Map());
+  const topicDetailCacheRef = useRef<Map<string, StudyTopic>>(new Map());
 
   // Topic Guru state
   const [topicSubject, setTopicSubject] = useState("All");
@@ -176,10 +198,17 @@ export function StudyHub({
     hasActiveTopicFilter && topicSearchState?.key !== activeFilterKey;
 
   // Topic search runs on the server so it can match keyFacts and chapter text,
-  // neither of which the trimmed list payload carries. Debounced so typing does
-  // not fire a request per keystroke.
+  // neither of which the trimmed list payload carries. Cached per filter key and debounced.
   useEffect(() => {
     if (!hasActiveTopicFilter) return;
+    const cached = topicListCacheRef.current.get(activeFilterKey);
+    if (cached) {
+      queueMicrotask(() => {
+        setTopicSearchState({ key: activeFilterKey, items: cached });
+      });
+      return;
+    }
+
     let cancelled = false;
     const handle = setTimeout(async () => {
       try {
@@ -187,18 +216,21 @@ export function StudyHub({
         if (trimmedTopicQuery) params.set("q", trimmedTopicQuery);
         if (topicSubject !== "All") params.set("subject", topicSubject);
         if (topicTrack !== "All") params.set("track", topicTrack);
-        const res = await apiFetch<{ items: StudyTopic[] }>(
-          `/study/topics?${params.toString()}`
+        const res = await cachedApiFetch<{ items: StudyTopic[] }>(
+          `/study/topics?${params.toString()}`,
+          60_000
         );
+        const items = res?.items ?? [];
+        topicListCacheRef.current.set(activeFilterKey, items);
         if (!cancelled) {
-          setTopicSearchState({ key: activeFilterKey, items: res?.items ?? [] });
+          setTopicSearchState({ key: activeFilterKey, items });
         }
       } catch {
         if (!cancelled) {
           setTopicSearchState({ key: activeFilterKey, items: [] });
         }
       }
-    }, 300);
+    }, 220);
     return () => {
       cancelled = true;
       clearTimeout(handle);
@@ -206,23 +238,35 @@ export function StudyHub({
   }, [hasActiveTopicFilter, activeFilterKey, trimmedTopicQuery, topicSubject, topicTrack]);
   const [selectedTopic, setSelectedTopic] = useState<StudyTopic | null>(() => {
     const slug = searchParams.get("topicSlug");
-    if (!slug || !initialData?.topics) return null;
-    return initialData.topics.find((t) => t.slug === slug) ?? null;
+    const seed = initialData ?? getCachedApiData<StudyOverviewData>("/study/overview");
+    if (!slug || !seed?.topics) return null;
+    return seed.topics.find((t) => t.slug === slug) ?? null;
   });
 
-  // The list payload omits chapters, memory tricks and quick examples so that
-  // /study/overview stays small. Fetch the full sheet once a topic is opened;
-  // until it arrives the summary renders and the heavy sections stay hidden.
+  // Fetch the full sheet once a topic is opened (with in-memory cache so reopening is instant).
   useEffect(() => {
     const slug = selectedTopic?.slug;
     if (!slug || selectedTopic?.chapters) return;
+
+    const cachedFull = topicDetailCacheRef.current.get(slug);
+    if (cachedFull) {
+      queueMicrotask(() => {
+        setSelectedTopic((current) =>
+          current?.slug === slug ? { ...current, ...cachedFull } : current
+        );
+      });
+      return;
+    }
+
     let cancelled = false;
     (async () => {
       try {
-        const res = await apiFetch<{ topic: StudyTopic }>(
-          `/study/topics/${encodeURIComponent(slug)}`
+        const res = await cachedApiFetch<{ topic: StudyTopic }>(
+          `/study/topics/${encodeURIComponent(slug)}`,
+          120_000
         );
         if (cancelled || !res?.topic) return;
+        topicDetailCacheRef.current.set(slug, res.topic);
         setSelectedTopic((current) =>
           current?.slug === slug ? { ...current, ...res.topic } : current
         );
@@ -237,19 +281,31 @@ export function StudyHub({
 
   // 30-Day Routine state
   const [routineData, setRoutineData] = useState<StudyRoutineData | null>(
-    initialData?.routine ?? null
+    () =>
+      initialData?.routine ??
+      getCachedApiData<StudyOverviewData>("/study/overview")?.routine ??
+      null
   );
   const [routineTrack, setRoutineTrack] = useState(
-    initialData?.routine?.track ?? "BCS"
+    () =>
+      initialData?.routine?.track ??
+      getCachedApiData<StudyOverviewData>("/study/overview")?.routine?.track ??
+      "BCS"
   );
   const [loadingRoutine, setLoadingRoutine] = useState(false);
 
   // Current Affairs state
   const [affairsItems, setAffairsItems] = useState<CurrentAffairsItem[]>(
-    initialData?.currentAffairs ?? []
+    () =>
+      initialData?.currentAffairs ??
+      getCachedApiData<StudyOverviewData>("/study/overview")?.currentAffairs ??
+      []
   );
   const [affairsTotal, setAffairsTotal] = useState<number>(
-    initialData?.stats.affairsCount ?? 0
+    () =>
+      initialData?.stats.affairsCount ??
+      getCachedApiData<StudyOverviewData>("/study/overview")?.stats.affairsCount ??
+      0
   );
   const [topic, setTopic] = useState("All");
   const [language, setLanguage] = useState<"All" | "en" | "bn">("All");
@@ -262,28 +318,49 @@ export function StudyHub({
   const [syncingNews, setSyncingNews] = useState(false);
   const [syncNotice, setSyncNotice] = useState<string | null>(null);
 
+  const requestedSlug = searchParams.get("topicSlug");
+
   useEffect(() => {
     const sid = getOrCreateSessionId();
-    apiFetch<LearnerProgress>(`/progress/${encodeURIComponent(sid)}`)
+    cachedApiFetch<LearnerProgress>(
+      `/progress/${encodeURIComponent(sid)}`,
+      20_000
+    )
       .then((res) => setProgress(res))
       .catch(() => {});
 
-    if (!overview) {
-      apiFetch<StudyOverviewData>("/study/overview")
-        .then((res) => {
-          setOverview(res);
-          setAffairsItems(res.currentAffairs);
-          setAffairsTotal(res.stats.affairsCount);
-          setRoutineData(res.routine);
-          const slug = searchParams.get("topicSlug");
-          if (slug) {
-            const matched = res.topics.find((t) => t.slug === slug);
-            if (matched) setSelectedTopic(matched);
-          }
-        })
-        .catch(() => {});
+    if (initialData) {
+      setCachedApiData("/study/overview", initialData, 60_000);
+      if (initialData.routine) {
+        routineCacheRef.current.set(initialData.routine.track, initialData.routine);
+      }
+      affairsCacheRef.current.set("All::All::", {
+        items: initialData.currentAffairs,
+        total: initialData.stats.affairsCount,
+      });
+      return;
     }
-  }, [overview, searchParams]);
+
+    cachedApiFetch<StudyOverviewData>("/study/overview", 60_000)
+      .then((res) => {
+        setOverview(res);
+        setAffairsItems(res.currentAffairs);
+        setAffairsTotal(res.stats.affairsCount);
+        setRoutineData(res.routine);
+        if (res.routine) {
+          routineCacheRef.current.set(res.routine.track, res.routine);
+        }
+        affairsCacheRef.current.set("All::All::", {
+          items: res.currentAffairs,
+          total: res.stats.affairsCount,
+        });
+        if (requestedSlug) {
+          const matched = res.topics.find((t) => t.slug === requestedSlug);
+          if (matched) setSelectedTopic(matched);
+        }
+      })
+      .catch(() => {});
+  }, [initialData, requestedSlug]);
 
   function openLectureSheet(sheet: StudyTopic) {
     setSelectedTopic(sheet);
@@ -302,16 +379,24 @@ export function StudyHub({
         body: JSON.stringify({ topicSlug: slug }),
       }
     );
+    invalidateApiCache(`/progress/${encodeURIComponent(sid)}`);
     setProgress(res);
   }
 
   async function handleSelectRoutineTrack(nextTrack: string) {
     setRoutineTrack(nextTrack);
+    const cached = routineCacheRef.current.get(nextTrack);
+    if (cached) {
+      setRoutineData(cached);
+      return;
+    }
     setLoadingRoutine(true);
     try {
-      const res = await apiFetch<StudyRoutineData>(
-        `/study/routine?track=${encodeURIComponent(nextTrack)}`
+      const res = await cachedApiFetch<StudyRoutineData>(
+        `/study/routine?track=${encodeURIComponent(nextTrack)}`,
+        120_000
       );
+      routineCacheRef.current.set(nextTrack, res);
       setRoutineData(res);
     } finally {
       setLoadingRoutine(false);
@@ -327,14 +412,26 @@ export function StudyHub({
         body: JSON.stringify({ track: routineTrack, dayNumber }),
       }
     );
+    invalidateApiCache(`/progress/${encodeURIComponent(sid)}`);
     setProgress(res);
   }
 
   async function fetchFilteredAffairs(
     nextTopic = topic,
     nextLang = language,
-    nextQ = affairsQuery
+    nextQ = affairsQuery,
+    forceFresh = false
   ) {
+    const cacheKey = `${nextTopic}::${nextLang}::${nextQ.trim()}`;
+    if (!forceFresh) {
+      const cached = affairsCacheRef.current.get(cacheKey);
+      if (cached) {
+        setAffairsItems(cached.items);
+        setAffairsTotal(cached.total);
+        return;
+      }
+    }
+
     setLoadingAffairs(true);
     try {
       const params = new URLSearchParams({ limit: "30" });
@@ -342,9 +439,15 @@ export function StudyHub({
       if (nextLang !== "All") params.set("language", nextLang);
       if (nextQ.trim()) params.set("q", nextQ.trim());
 
-      const res = await apiFetch<AffairsListResponse>(
-        `/study/current-affairs?${params.toString()}`
-      );
+      const apiUrl = `/study/current-affairs?${params.toString()}`;
+      if (forceFresh) invalidateApiCache(apiUrl);
+      const res = forceFresh
+        ? await apiFetch<AffairsListResponse>(apiUrl)
+        : await cachedApiFetch<AffairsListResponse>(apiUrl, 45_000);
+      affairsCacheRef.current.set(cacheKey, {
+        items: res.items,
+        total: res.total,
+      });
       setAffairsItems(res.items);
       setAffairsTotal(res.total);
     } finally {
@@ -366,9 +469,13 @@ export function StudyHub({
         method: "POST",
         body: JSON.stringify({ targetType: "current_affairs" }),
       });
+      invalidateApiCache("/study");
+      affairsCacheRef.current.clear();
       const freshOverview = await apiFetch<StudyOverviewData>("/study/overview");
+      setCachedApiData("/study/overview", freshOverview, 60_000);
       setOverview(freshOverview);
-      await fetchFilteredAffairs(topic, language, affairsQuery);
+      await fetchFilteredAffairs(topic, language, affairsQuery, true);
+      router.refresh();
       setSyncNotice(
         `Live RSS sync completed: checked ${res.log?.sourcesChecked ?? 5} feeds, fetched ${res.log?.totalFetched ?? 0} headlines (${res.log?.newInserted ?? 0} new).`
       );
@@ -487,7 +594,7 @@ export function StudyHub({
             <button
               key={tab.id}
               type="button"
-              onClick={() => setActiveTab(tab.id as StudyTab)}
+              onClick={() => selectStudyTab(tab.id as StudyTab)}
               className={`inline-flex items-center gap-2 rounded-xl px-4 py-2.5 text-xs sm:text-sm font-bold transition-colors cursor-pointer ${
                 activeTab === tab.id
                   ? "bg-emerald-700 text-white shadow-sm"
@@ -570,7 +677,7 @@ export function StudyHub({
           </div>
 
           {/* Topics Grid */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 print:hidden">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 print:hidden">
             {filteredTopics.map((item) => {
               const isDone = completedTopicsSet.has(item.slug);
               const isOpen = selectedTopic?.slug === item.slug;
@@ -871,7 +978,7 @@ export function StudyHub({
               Loading {routineTrack} 30-day routine...
             </div>
           ) : (
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
               {(routineData?.days ?? []).map((item) => {
                 const done = completedDaysSet.has(item.day);
                 const matchingSheet = item.topicSlug
@@ -1161,8 +1268,10 @@ export function StudyHub({
       )}
 
       {/* TAB: WRITTEN EXAM, TYPING SPEED SIMULATOR & VIVA VOCE PREP */}
-      {activeTab === "written-viva" && (
-        <section className="space-y-6">
+      {hasOpenedWrittenViva && (
+        <section
+          className={activeTab === "written-viva" ? "space-y-6" : "hidden"}
+        >
           <WrittenTypingVivaLab />
         </section>
       )}
@@ -1247,7 +1356,7 @@ export function StudyHub({
               </div>
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {booksList.map((book) => (
                 <article
                   key={book._id}
@@ -1356,7 +1465,7 @@ export function StudyHub({
                 </Link>
               </div>
 
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {overview?.pastPapers.map((paper) => (
                   <article
                     key={paper.examSeries}

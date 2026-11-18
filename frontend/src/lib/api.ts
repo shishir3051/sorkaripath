@@ -1,5 +1,14 @@
 const isServer = typeof window === "undefined";
 
+interface ApiCacheEntry {
+  data: unknown;
+  expiresAt: number;
+}
+
+const CLIENT_CACHE_LIMIT = 80;
+const clientResponseCache = new Map<string, ApiCacheEntry>();
+const inFlightRequests = new Map<string, Promise<unknown>>();
+
 function normalizeUrl(value?: string | null): string {
   return (value || "").trim().replace(/\/+$/, "");
 }
@@ -21,18 +30,72 @@ function getApiBaseUrl() {
   return normalizeUrl(process.env.NEXT_PUBLIC_API_BASE_URL) || "/api/v1";
 }
 
+export interface ApiFetchOptions extends RequestInit {
+  revalidate?: number;
+}
+
+export function getCachedApiData<T>(path: string): T | null {
+  if (isServer) return null;
+  const hit = clientResponseCache.get(path);
+  if (!hit) return null;
+  if (Date.now() > hit.expiresAt) {
+    clientResponseCache.delete(path);
+    return null;
+  }
+  return hit.data as T;
+}
+
+export function setCachedApiData<T>(
+  path: string,
+  data: T,
+  ttlMs = 60_000
+): void {
+  if (isServer || ttlMs <= 0) return;
+  if (clientResponseCache.has(path)) {
+    clientResponseCache.delete(path);
+  } else if (clientResponseCache.size >= CLIENT_CACHE_LIMIT) {
+    const oldestKey = clientResponseCache.keys().next().value;
+    if (oldestKey !== undefined) {
+      clientResponseCache.delete(oldestKey);
+    }
+  }
+  clientResponseCache.set(path, {
+    data,
+    expiresAt: Date.now() + ttlMs,
+  });
+}
+
+export function invalidateApiCache(prefix?: string): void {
+  if (isServer) return;
+  if (!prefix) {
+    clientResponseCache.clear();
+    return;
+  }
+  for (const key of clientResponseCache.keys()) {
+    if (key.startsWith(prefix)) {
+      clientResponseCache.delete(key);
+    }
+  }
+}
+
 export async function apiFetch<T>(
   path: string,
-  options: RequestInit = {}
+  options: ApiFetchOptions = {}
 ): Promise<T> {
+  const { revalidate, ...fetchOptions } = options;
   const url = `${getApiBaseUrl()}${path}`;
+  const serverCacheInit: RequestInit & { next?: { revalidate: number } } =
+    isServer && typeof revalidate === "number"
+      ? { next: { revalidate } }
+      : { cache: "no-store" };
+
   const res = await fetch(url, {
-    ...options,
+    ...fetchOptions,
     headers: {
       "Content-Type": "application/json",
-      ...(options.headers || {}),
+      ...(fetchOptions.headers || {}),
     },
-    cache: "no-store",
+    ...serverCacheInit,
   });
 
   const payload = await res.json().catch(() => ({}));
@@ -41,6 +104,39 @@ export async function apiFetch<T>(
   }
 
   return payload.data as T;
+}
+
+export async function cachedApiFetch<T>(
+  path: string,
+  ttlMs = 60_000,
+  options: ApiFetchOptions = {}
+): Promise<T> {
+  const method = (options.method || "GET").toUpperCase();
+  if (isServer || method !== "GET" || ttlMs <= 0) {
+    return apiFetch<T>(path, options);
+  }
+
+  const cached = getCachedApiData<T>(path);
+  if (cached !== null) {
+    return cached;
+  }
+
+  const pending = inFlightRequests.get(path);
+  if (pending) {
+    return pending as Promise<T>;
+  }
+
+  const req = apiFetch<T>(path, options)
+    .then((data) => {
+      setCachedApiData(path, data, ttlMs);
+      return data;
+    })
+    .finally(() => {
+      inFlightRequests.delete(path);
+    });
+
+  inFlightRequests.set(path, req);
+  return req;
 }
 
 export function getOrCreateSessionId(): string {

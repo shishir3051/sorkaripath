@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Briefcase,
   Building2,
@@ -19,10 +19,14 @@ import {
 } from "lucide-react";
 import {
   apiFetch,
+  cachedApiFetch,
   formatBdDateTime,
   formatNoticeDate,
   formatReadableText,
+  getCachedApiData,
+  invalidateApiCache,
   safeExternalHref,
+  setCachedApiData,
 } from "@/lib/api";
 import type { JobCircular } from "@/lib/types";
 import { OriginBadge, RecordTypeBadge } from "@/components/ui/Badges";
@@ -73,6 +77,7 @@ export function JobsExplorer({
   initialData?: JobsResponse | null;
   sourceCount?: number | null;
 }) {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [q, setQ] = useState(searchParams.get("q") || "");
   const [category, setCategory] = useState(searchParams.get("category") || "All");
@@ -84,6 +89,7 @@ export function JobsExplorer({
 
   const [data, setData] = useState<JobsResponse | null>(initialData);
   const [loading, setLoading] = useState(!initialData);
+  const [fetching, setFetching] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [error, setError] = useState("");
   const [syncNotice, setSyncNotice] = useState("");
@@ -103,27 +109,65 @@ export function JobsExplorer({
     return params.toString();
   }, [q, category, recordType, origin, page]);
 
-  const fetchJobs = useCallback(async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const res = await apiFetch<JobsResponse>(`/jobs?${buildParams()}`);
-      setData(res);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load circulars");
-    } finally {
-      setLoading(false);
-    }
-  }, [buildParams]);
+  const fetchJobs = useCallback(
+    async (forceFresh = false) => {
+      const apiPath = `/jobs?${buildParams()}`;
+      if (forceFresh) {
+        invalidateApiCache("/jobs");
+      } else {
+        const cached = getCachedApiData<JobsResponse>(apiPath);
+        if (cached) {
+          setData(cached);
+          setLoading(false);
+          setError("");
+          return;
+        }
+      }
+
+      setFetching(true);
+      setError("");
+      try {
+        const res = await cachedApiFetch<JobsResponse>(apiPath, 30_000);
+        setData(res);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Failed to load circulars");
+      } finally {
+        setLoading(false);
+        setFetching(false);
+      }
+    },
+    [buildParams]
+  );
 
   useEffect(() => {
+    const apiPath = `/jobs?${buildParams()}`;
     if (skippedFirstEffect.current) {
       skippedFirstEffect.current = false;
+      if (initialData) {
+        setCachedApiData(apiPath, initialData, 30_000);
+      }
       return;
     }
 
     let active = true;
-    apiFetch<JobsResponse>(`/jobs?${buildParams()}`)
+    const cached = getCachedApiData<JobsResponse>(apiPath);
+    if (cached) {
+      queueMicrotask(() => {
+        if (!active) return;
+        setData(cached);
+        setError("");
+        setLoading(false);
+        setFetching(false);
+      });
+      return () => {
+        active = false;
+      };
+    }
+
+    queueMicrotask(() => {
+      if (active) setFetching(true);
+    });
+    cachedApiFetch<JobsResponse>(apiPath, 30_000)
       .then((res) => {
         if (!active) return;
         setError("");
@@ -134,13 +178,16 @@ export function JobsExplorer({
         setError(err instanceof Error ? err.message : "Failed to load circulars");
       })
       .finally(() => {
-        if (active) setLoading(false);
+        if (active) {
+          setLoading(false);
+          setFetching(false);
+        }
       });
 
     return () => {
       active = false;
     };
-  }, [buildParams]);
+  }, [buildParams, initialData]);
 
   useEffect(() => {
     mountedRef.current = true;
@@ -150,7 +197,7 @@ export function JobsExplorer({
   }, []);
 
   useEffect(() => {
-    fetchJobsRef.current = fetchJobs;
+    fetchJobsRef.current = () => fetchJobs(true);
   }, [fetchJobs]);
 
   useEffect(() => {
@@ -170,6 +217,8 @@ export function JobsExplorer({
           setSyncNotice(
             `Auto-synced ${fresh} new live notice(s) from official portals.`
           );
+          invalidateApiCache("/meta");
+          router.refresh();
         }
         await fetchJobsRef.current();
       } catch {
@@ -182,7 +231,7 @@ export function JobsExplorer({
     return () => {
       clearTimeout(timer);
     };
-  }, [data?.syncMeta?.isStale]);
+  }, [data?.syncMeta?.isStale, router]);
 
   function resetAllFilters() {
     setQ("");
@@ -205,7 +254,10 @@ export function JobsExplorer({
         } items (${res.log?.newInserted ?? 0} new).`
       );
       setPage(1);
-      await fetchJobs();
+      invalidateApiCache("/jobs");
+      invalidateApiCache("/meta");
+      router.refresh();
+      await fetchJobs(true);
     } catch (err) {
       setSyncNotice(err instanceof Error ? err.message : "Sync failed");
     } finally {
@@ -423,47 +475,53 @@ export function JobsExplorer({
             </span>
           </div>
 
-          <div className="grid gap-4">
+          <div
+            className={`grid gap-4 xl:grid-cols-2 transition-opacity duration-150 ${
+              fetching ? "opacity-60" : "opacity-100"
+            }`}
+          >
             {data.items.map((job) => (
               <article
                 key={job._id}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:border-emerald-400 transition-all"
+                className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:border-emerald-400 transition-all"
               >
-                <div className="flex flex-wrap items-center gap-2 mb-2.5">
-                  <OriginBadge origin={job.origin} />
-                  <RecordTypeBadge type={job.recordType} />
-                  <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold text-slate-700">
-                    {job.category}
-                  </span>
-                  {job.gradeRange && (
-                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
-                      {job.gradeRange}
+                <div>
+                  <div className="flex flex-wrap items-center gap-2 mb-2.5">
+                    <OriginBadge origin={job.origin} />
+                    <RecordTypeBadge type={job.recordType} />
+                    <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold text-slate-700">
+                      {job.category}
                     </span>
-                  )}
-                  <div className="ml-auto flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
-                    <span className="inline-flex items-center gap-1 text-slate-700 font-semibold">
-                      <Calendar className="h-3.5 w-3.5 text-emerald-700" />
-                      Published: {formatNoticeDate(job.publishedDate, job.publishedDateRaw)}
-                    </span>
-                    {(job.updatedAt || job.createdAt) && (
-                      <span className="inline-flex items-center gap-1 text-[11px] text-slate-400">
-                        <Clock className="h-3 w-3" />
-                        Synced: {formatBdDateTime(job.updatedAt || job.createdAt)}
+                    {job.gradeRange && (
+                      <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
+                        {job.gradeRange}
                       </span>
                     )}
+                    <div className="ml-auto flex flex-wrap items-center gap-3 text-xs font-medium text-slate-500">
+                      <span className="inline-flex items-center gap-1 text-slate-700 font-semibold">
+                        <Calendar className="h-3.5 w-3.5 text-emerald-700" />
+                        Published: {formatNoticeDate(job.publishedDate, job.publishedDateRaw)}
+                      </span>
+                      {(job.updatedAt || job.createdAt) && (
+                        <span className="inline-flex items-center gap-1 text-[11px] text-slate-400">
+                          <Clock className="h-3 w-3" />
+                          Synced: {formatBdDateTime(job.updatedAt || job.createdAt)}
+                        </span>
+                      )}
+                    </div>
                   </div>
+
+                  <Link
+                    href={`/jobs/${job.slug}`}
+                    className="block text-base sm:text-lg font-extrabold text-slate-900 hover:text-emerald-700 leading-snug"
+                  >
+                    {job.title}
+                  </Link>
+
+                  <p className="mt-1.5 text-sm text-slate-600 line-clamp-2">
+                    {formatReadableText(job.summary)}
+                  </p>
                 </div>
-
-                <Link
-                  href={`/jobs/${job.slug}`}
-                  className="block text-base sm:text-lg font-extrabold text-slate-900 hover:text-emerald-700 leading-snug"
-                >
-                  {job.title}
-                </Link>
-
-                <p className="mt-1.5 text-sm text-slate-600 line-clamp-2">
-                  {formatReadableText(job.summary)}
-                </p>
 
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100 text-xs">
                   <div className="flex flex-wrap items-center gap-4 text-slate-600">

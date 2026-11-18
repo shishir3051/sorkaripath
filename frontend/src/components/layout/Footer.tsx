@@ -15,7 +15,7 @@ const OFFICIAL_PORTALS = [
 export function Footer() {
   return (
     <footer className="border-t border-slate-200 bg-slate-950 text-slate-300 mt-16">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <div className="app-container py-12">
         <div className="grid gap-8 md:grid-cols-3">
           <div>
             <h3 className="text-base font-bold text-white">

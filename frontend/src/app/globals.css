@@ -23,6 +23,27 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+@layer components {
+  /* Full-width responsive page shell: balanced gutters across mobile, laptop, and full-screen monitors */
+  .app-container {
+    width: 100%;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+
+  @media (min-width: 640px) {
+    .app-container {
+      padding-inline: 1.5rem;
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .app-container {
+      padding-inline: 2rem;
+    }
+  }
+}
+
 /* Custom scrollbar for clean reading panels */
 ::-webkit-scrollbar {
   width: 8px;

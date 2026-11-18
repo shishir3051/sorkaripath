@@ -24,27 +24,24 @@ export default async function JobsPage({
   if (sp.recordType && sp.recordType !== "All") params.set("recordType", sp.recordType);
   if (sp.origin && sp.origin !== "All") params.set("origin", sp.origin);
 
-  let initialData: JobsResponse | null = null;
-  try {
-    initialData = await apiFetch<JobsResponse>(`/jobs?${params.toString()}`);
-  } catch {
-    initialData = null;
-  }
+  const [jobsResult, overviewResult] = await Promise.allSettled([
+    apiFetch<JobsResponse>(`/jobs?${params.toString()}`, { revalidate: 15 }),
+    apiFetch<{ stats?: { enabledSources?: number } }>("/meta/overview", {
+      revalidate: 30,
+    }),
+  ]);
 
+  const initialData: JobsResponse | null =
+    jobsResult.status === "fulfilled" ? jobsResult.value : null;
   // Read the portal count from the live sync config rather than hardcoding it,
   // so this copy cannot drift as sources are added or disabled.
-  let sourceCount: number | null = null;
-  try {
-    const overview = await apiFetch<{ stats?: { enabledSources?: number } }>(
-      "/meta/overview"
-    );
-    sourceCount = overview?.stats?.enabledSources ?? null;
-  } catch {
-    sourceCount = null;
-  }
+  const sourceCount: number | null =
+    overviewResult.status === "fulfilled"
+      ? (overviewResult.value?.stats?.enabledSources ?? null)
+      : null;
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+    <div className="app-container py-8 space-y-6">
       <div>
         <span className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-800">
           Live Circulars &amp; Official Notice Board

@@ -34,15 +34,32 @@ const ALL_MOBILE_LINKS = [
 export function Navbar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [pendingNav, setPendingNav] = useState<{
+    from: string;
+    to: string;
+  } | null>(null);
+
+  const activeTarget =
+    pendingNav && pendingNav.from === pathname ? pendingNav.to : null;
+  const currentPath = activeTarget ?? pathname;
 
   const isActive = (href: string) =>
-    href === "/" ? pathname === "/" : pathname.startsWith(href);
+    href === "/" ? currentPath === "/" : currentPath.startsWith(href);
 
-  const liveSyncActive = pathname.startsWith("/live-sync");
+  const liveSyncActive = currentPath.startsWith("/live-sync");
+
+  const handleLinkSelect = (href: string, closeMobile = false) => {
+    if (href !== pathname) {
+      setPendingNav({ from: pathname, to: href });
+    }
+    if (closeMobile) {
+      setMobileOpen(false);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8">
+      <div className="app-container flex h-16 items-center justify-between gap-4">
         {/* Brand Logo */}
         <Link
           href="/"
@@ -79,6 +96,12 @@ export function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
+                prefetch={
+                  item.href === "/practice" || item.href === "/tools"
+                    ? true
+                    : undefined
+                }
+                onClick={() => handleLinkSelect(item.href)}
                 className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition-all ${
                   active
                     ? "bg-emerald-700 text-white shadow-sm"
@@ -97,6 +120,8 @@ export function Navbar() {
           <PwaInstallButton variant="navbar" />
           <Link
             href="/live-sync"
+            prefetch={true}
+            onClick={() => handleLinkSelect("/live-sync")}
             className={`hidden sm:inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
               liveSyncActive
                 ? "bg-slate-900 text-white shadow-sm"
@@ -137,7 +162,14 @@ export function Navbar() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  onClick={() => setMobileOpen(false)}
+                  prefetch={
+                    item.href === "/practice" ||
+                    item.href === "/tools" ||
+                    item.href === "/live-sync"
+                      ? true
+                      : undefined
+                  }
+                  onClick={() => handleLinkSelect(item.href, true)}
                   className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
                     active
                       ? "bg-emerald-700 text-white"

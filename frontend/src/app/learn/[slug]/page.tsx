@@ -32,7 +32,8 @@ export default async function LessonDetailPage({
   let data: LessonDetailResponse | null = null;
   try {
     data = await apiFetch<LessonDetailResponse>(
-      `/learn/${encodeURIComponent(slug)}`
+      `/learn/${encodeURIComponent(slug)}`,
+      { revalidate: 60 }
     );
   } catch {
     data = null;
@@ -45,7 +46,7 @@ export default async function LessonDetailPage({
   const { lesson, prevLesson, nextLesson, relatedMcqCount } = data;
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
+    <div className="app-container py-8 space-y-8">
       <Link
         href="/learn"
         className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-700 hover:underline"
@@ -102,7 +103,7 @@ export default async function LessonDetailPage({
       </div>
 
       {/* Sections */}
-      <div className="space-y-5">
+      <div className="grid gap-5 xl:grid-cols-2">
         {(lesson.sections || []).map((sec) => (
           <section
             key={sec.heading}

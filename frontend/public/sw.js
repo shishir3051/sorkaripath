@@ -1,4 +1,4 @@
-const CACHE_VERSION = "sorkaripath-shell-v2";
+const CACHE_VERSION = "sorkaripath-shell-v3";
 const PRECACHE_URLS = [
   "/",
   "/manifest.webmanifest",
@@ -44,7 +44,12 @@ self.addEventListener("fetch", (event) => {
 
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith("/api/") || url.pathname.startsWith("/_next/")) {
+  if (
+    url.pathname.startsWith("/api/") ||
+    url.pathname.startsWith("/_next/") ||
+    url.searchParams.has("_rsc") ||
+    request.headers.get("RSC") === "1"
+  ) {
     return;
   }
 

@@ -129,7 +129,7 @@ export function AcademyExplorer({ modules }: { modules: LearningModule[] }) {
       </div>
 
       {/* Modules Grid */}
-      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {filtered.map((mod) => {
           const isDone = completedSlugs.includes(mod.slug);
           return (

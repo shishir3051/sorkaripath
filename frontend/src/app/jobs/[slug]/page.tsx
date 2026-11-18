@@ -42,7 +42,10 @@ export default async function JobDetailPage({
 
   let data: JobDetailResponse | null = null;
   try {
-    data = await apiFetch<JobDetailResponse>(`/jobs/${encodeURIComponent(slug)}`);
+    data = await apiFetch<JobDetailResponse>(
+      `/jobs/${encodeURIComponent(slug)}`,
+      { revalidate: 20 }
+    );
   } catch {
     data = null;
   }
@@ -56,7 +59,7 @@ export default async function JobDetailPage({
   const safeApplyUrl = safeExternalHref(job.applyUrl, "");
 
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8 space-y-8">
+    <div className="app-container py-8 space-y-8">
       <Link
         href="/jobs"
         className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-700 hover:underline"
@@ -229,7 +232,7 @@ export default async function JobDetailPage({
               All 26 Modules →
             </Link>
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {relatedLessons.map((lesson) => (
               <Link
                 key={lesson.slug}

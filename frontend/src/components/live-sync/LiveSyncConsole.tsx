@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Activity,
   CheckCircle2,
@@ -11,7 +12,14 @@ import {
   RefreshCw,
   XCircle,
 } from "lucide-react";
-import { apiFetch, formatBdDateTime, safeExternalHref } from "@/lib/api";
+import {
+  apiFetch,
+  cachedApiFetch,
+  formatBdDateTime,
+  getCachedApiData,
+  invalidateApiCache,
+  safeExternalHref,
+} from "@/lib/api";
 import type { SyncLog, WebSource } from "@/lib/types";
 
 interface SyncStatusResponse {
@@ -21,8 +29,13 @@ interface SyncStatusResponse {
 }
 
 export function LiveSyncConsole() {
-  const [status, setStatus] = useState<SyncStatusResponse | null>(null);
-  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+  const [status, setStatus] = useState<SyncStatusResponse | null>(() =>
+    getCachedApiData<SyncStatusResponse>("/sync/status")
+  );
+  const [loading, setLoading] = useState(
+    () => getCachedApiData<SyncStatusResponse>("/sync/status") === null
+  );
   const [syncingKey, setSyncingKey] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
@@ -39,10 +52,16 @@ export function LiveSyncConsole() {
   const [summary, setSummary] = useState("");
   const [publishing, setPublishing] = useState(false);
 
-  const loadStatus = useCallback(async () => {
-    setLoading(true);
+  const loadStatus = useCallback(async (forceFresh = false) => {
+    if (forceFresh) {
+      invalidateApiCache("/sync/status");
+    } else if (!getCachedApiData<SyncStatusResponse>("/sync/status")) {
+      setLoading(true);
+    }
     try {
-      const data = await apiFetch<SyncStatusResponse>("/sync/status");
+      const data = forceFresh
+        ? await apiFetch<SyncStatusResponse>("/sync/status")
+        : await cachedApiFetch<SyncStatusResponse>("/sync/status", 20_000);
       setStatus(data);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load sync status");
@@ -53,7 +72,7 @@ export function LiveSyncConsole() {
 
   useEffect(() => {
     let active = true;
-    apiFetch<SyncStatusResponse>("/sync/status")
+    cachedApiFetch<SyncStatusResponse>("/sync/status", 20_000)
       .then((data) => {
         if (active) setStatus(data);
       })
@@ -85,7 +104,10 @@ export function LiveSyncConsole() {
       setMessage(
         `Sync (${res.status}) completed in ${res.log.durationMs}ms — checked ${res.log.sourcesChecked} source(s), fetched ${res.log.totalFetched} notices, inserted ${res.log.newInserted} new.`
       );
-      await loadStatus();
+      invalidateApiCache("/jobs");
+      invalidateApiCache("/meta");
+      await loadStatus(true);
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Live sync failed");
     } finally {
@@ -116,6 +138,9 @@ export function LiveSyncConsole() {
         }),
       });
       setMessage("Custom circular published to MongoDB successfully!");
+      invalidateApiCache("/jobs");
+      invalidateApiCache("/meta");
+      router.refresh();
       setTitle("");
       setOrganization("");
       setSummary("");

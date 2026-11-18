@@ -1,23 +1,38 @@
+import { Suspense } from "react";
 import { apiFetch } from "@/lib/api";
 import type { LearningModule } from "@/lib/types";
 import { AcademyExplorer } from "@/components/learn/AcademyExplorer";
+import { RouteLoadingShell } from "@/components/layout/RouteLoadingShell";
 
 export const dynamic = "force-dynamic";
 
 async function loadModules(): Promise<LearningModule[]> {
   try {
-    const res = await apiFetch<{ items: LearningModule[] }>("/learn");
+    const res = await apiFetch<{ items: LearningModule[] }>("/learn", {
+      revalidate: 60,
+    });
     return res.items;
   } catch {
     return [];
   }
 }
 
-export default async function LearnPage() {
+async function LearnContent() {
   const modules = await loadModules();
+  if (modules.length === 0) {
+    return (
+      <div className="rounded-2xl border border-amber-300 bg-amber-50 p-6 text-sm text-amber-900">
+        Could not load modules from Express API. Ensure the backend server is
+        running and seeded.
+      </div>
+    );
+  }
+  return <AcademyExplorer modules={modules} />;
+}
 
+export default function LearnPage() {
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8 space-y-6">
+    <div className="app-container py-8 space-y-6">
       <div>
         <span className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-800">
           Complete A-to-Z Career Encyclopedia
@@ -32,14 +47,11 @@ export default async function LearnPage() {
         </p>
       </div>
 
-      {modules.length === 0 ? (
-        <div className="rounded-2xl border border-amber-300 bg-amber-50 p-6 text-sm text-amber-900">
-          Could not load modules from Express API. Ensure the backend server is
-          running and seeded.
-        </div>
-      ) : (
-        <AcademyExplorer modules={modules} />
-      )}
+      <Suspense
+        fallback={<RouteLoadingShell variant="cards" includeHeader={false} />}
+      >
+        <LearnContent />
+      </Suspense>
     </div>
   );
 }

@@ -32,6 +32,12 @@ function getLocalDevOrigins(): string[] {
 const nextConfig: NextConfig = {
   ...(process.env.NEXT_DIST_DIR ? { distDir: process.env.NEXT_DIST_DIR } : {}),
   allowedDevOrigins: getLocalDevOrigins(),
+  experimental: {
+    staleTimes: {
+      dynamic: 45,
+      static: 300,
+    },
+  },
   turbopack: {
     root: configDir,
     rules: {

@@ -25,7 +25,13 @@ import {
   X,
   XCircle,
 } from "lucide-react";
-import { apiFetch, formatBdDateTime, getOrCreateSessionId } from "@/lib/api";
+import {
+  apiFetch,
+  cachedApiFetch,
+  formatBdDateTime,
+  getOrCreateSessionId,
+  invalidateApiCache,
+} from "@/lib/api";
 import type {
   LearnerProgress,
   McqQuestion,
@@ -316,6 +322,10 @@ export function PracticeArena() {
   });
   const [loadingVault, setLoadingVault] = useState(false);
 
+  const archiveCacheRef = useRef<Map<string, ArchiveResponse>>(new Map());
+  const searchCacheRef = useRef<Map<string, SmartSearchResponse>>(new Map());
+  const vaultLoadedRef = useRef(false);
+
   // AI Fresh Quiz State
   const [isAiQuiz, setIsAiQuiz] = useState(false);
   const [aiTopicPrompt, setAiTopicPrompt] = useState("");
@@ -323,17 +333,30 @@ export function PracticeArena() {
   const [generatingAi, setGeneratingAi] = useState(false);
   const [aiNotice, setAiNotice] = useState<string | null>(null);
 
-  const loadMetaAndVault = useCallback(async () => {
+  const loadMetaAndVault = useCallback(async (forceFresh = false) => {
     const sid = getOrCreateSessionId();
     try {
+      if (forceFresh) {
+        invalidateApiCache("/practice/attempts");
+        invalidateApiCache("/practice/mistakes");
+        invalidateApiCache(`/progress/${encodeURIComponent(sid)}`);
+      }
       const [metaRes, histRes, progRes, vaultRes] = await Promise.all([
-        apiFetch<QuestionsResponse>("/practice/questions?limit=1&includeAnswers=false"),
-        apiFetch<QuizAttempt[]>(
-          `/practice/attempts?sessionId=${encodeURIComponent(sid)}`
+        cachedApiFetch<QuestionsResponse>(
+          "/practice/questions?limit=1&includeAnswers=false",
+          60_000
         ),
-        apiFetch<LearnerProgress>(`/progress/${encodeURIComponent(sid)}`),
-        apiFetch<MistakeVaultResponse>(
-          `/practice/mistakes?sessionId=${encodeURIComponent(sid)}`
+        cachedApiFetch<QuizAttempt[]>(
+          `/practice/attempts?sessionId=${encodeURIComponent(sid)}`,
+          30_000
+        ),
+        cachedApiFetch<LearnerProgress>(
+          `/progress/${encodeURIComponent(sid)}`,
+          30_000
+        ),
+        cachedApiFetch<MistakeVaultResponse>(
+          `/practice/mistakes?sessionId=${encodeURIComponent(sid)}`,
+          30_000
         ),
       ]);
       setSubjects(["All", ...metaRes.subjects]);
@@ -342,6 +365,7 @@ export function PracticeArena() {
       setAttempts(histRes);
       setBookmarkedQIds(new Set(progRes.bookmarkedQuestionIds ?? []));
       setVault(vaultRes);
+      vaultLoadedRef.current = true;
     } catch {
       // handled gracefully in UI
     }
@@ -349,15 +373,25 @@ export function PracticeArena() {
 
   const loadArchive = useCallback(
     async (seriesName?: string, trackName?: string) => {
+      const sp = new URLSearchParams();
+      if (seriesName && seriesName !== "All") sp.set("examSeries", seriesName);
+      if (trackName && trackName !== "All") sp.set("examTrack", trackName);
+      const qs = sp.toString();
+      const apiPath = `/practice/archive${qs ? `?${qs}` : ""}`;
+
+      const cached = archiveCacheRef.current.get(apiPath);
+      if (cached) {
+        setArchiveData(cached);
+        setRevealedArchiveIds(new Set());
+        setSelfTestPicks({});
+        setLoadingArchive(false);
+        return;
+      }
+
       setLoadingArchive(true);
       try {
-        const sp = new URLSearchParams();
-        if (seriesName && seriesName !== "All") sp.set("examSeries", seriesName);
-        if (trackName && trackName !== "All") sp.set("examTrack", trackName);
-        const qs = sp.toString();
-        const res = await apiFetch<ArchiveResponse>(
-          `/practice/archive${qs ? `?${qs}` : ""}`
-        );
+        const res = await cachedApiFetch<ArchiveResponse>(apiPath, 120_000);
+        archiveCacheRef.current.set(apiPath, res);
         setArchiveData(res);
         setRevealedArchiveIds(new Set());
         setSelfTestPicks({});
@@ -370,14 +404,22 @@ export function PracticeArena() {
 
   const runSmartSearch = useCallback(
     async (qText = searchQuery, sub = searchSubject) => {
+      const params = new URLSearchParams();
+      if (qText.trim()) params.set("q", qText.trim());
+      if (sub && sub !== "All") params.set("subject", sub);
+      const apiPath = `/practice/search?${params.toString()}`;
+
+      const cached = searchCacheRef.current.get(apiPath);
+      if (cached) {
+        setSearchResults(cached);
+        setLoadingSearch(false);
+        return;
+      }
+
       setLoadingSearch(true);
       try {
-        const params = new URLSearchParams();
-        if (qText.trim()) params.set("q", qText.trim());
-        if (sub && sub !== "All") params.set("subject", sub);
-        const res = await apiFetch<SmartSearchResponse>(
-          `/practice/search?${params.toString()}`
-        );
+        const res = await cachedApiFetch<SmartSearchResponse>(apiPath, 60_000);
+        searchCacheRef.current.set(apiPath, res);
         setSearchResults(res);
       } finally {
         setLoadingSearch(false);
@@ -386,31 +428,51 @@ export function PracticeArena() {
     [searchQuery, searchSubject]
   );
 
-  const refreshVault = useCallback(async () => {
-    setLoadingVault(true);
-    try {
-      const sid = getOrCreateSessionId();
-      const res = await apiFetch<MistakeVaultResponse>(
-        `/practice/mistakes?sessionId=${encodeURIComponent(sid)}`
-      );
-      setVault(res);
-    } finally {
-      setLoadingVault(false);
-    }
-  }, []);
+  const refreshVault = useCallback(
+    async (options?: { silent?: boolean; forceFresh?: boolean }) => {
+      const silent = options?.silent ?? vaultLoadedRef.current;
+      const forceFresh = options?.forceFresh ?? false;
+      if (!silent) {
+        setLoadingVault(true);
+      }
+      try {
+        const sid = getOrCreateSessionId();
+        const apiPath = `/practice/mistakes?sessionId=${encodeURIComponent(sid)}`;
+        if (forceFresh) invalidateApiCache(apiPath);
+        const res = forceFresh
+          ? await apiFetch<MistakeVaultResponse>(apiPath)
+          : await cachedApiFetch<MistakeVaultResponse>(apiPath, 30_000);
+        setVault(res);
+        vaultLoadedRef.current = true;
+      } finally {
+        if (!silent) {
+          setLoadingVault(false);
+        }
+      }
+    },
+    []
+  );
 
   useEffect(() => {
     let active = true;
     const sid = getOrCreateSessionId();
 
     Promise.all([
-      apiFetch<QuestionsResponse>("/practice/questions?limit=1&includeAnswers=false"),
-      apiFetch<QuizAttempt[]>(
-        `/practice/attempts?sessionId=${encodeURIComponent(sid)}`
+      cachedApiFetch<QuestionsResponse>(
+        "/practice/questions?limit=1&includeAnswers=false",
+        60_000
       ),
-      apiFetch<LearnerProgress>(`/progress/${encodeURIComponent(sid)}`),
-      apiFetch<MistakeVaultResponse>(
-        `/practice/mistakes?sessionId=${encodeURIComponent(sid)}`
+      cachedApiFetch<QuizAttempt[]>(
+        `/practice/attempts?sessionId=${encodeURIComponent(sid)}`,
+        30_000
+      ),
+      cachedApiFetch<LearnerProgress>(
+        `/progress/${encodeURIComponent(sid)}`,
+        30_000
+      ),
+      cachedApiFetch<MistakeVaultResponse>(
+        `/practice/mistakes?sessionId=${encodeURIComponent(sid)}`,
+        30_000
       ),
     ])
       .then(([metaRes, histRes, progRes, vaultRes]) => {
@@ -421,6 +483,7 @@ export function PracticeArena() {
         setAttempts(histRes);
         setBookmarkedQIds(new Set(progRes.bookmarkedQuestionIds ?? []));
         setVault(vaultRes);
+        vaultLoadedRef.current = true;
       })
       .catch(() => {});
 
@@ -429,16 +492,20 @@ export function PracticeArena() {
       if (initialSeries !== "All") sp.set("examSeries", initialSeries);
       if (initialTrack !== "All") sp.set("examTrack", initialTrack);
       const qs = sp.toString();
-      apiFetch<ArchiveResponse>(`/practice/archive${qs ? `?${qs}` : ""}`)
+      const apiPath = `/practice/archive${qs ? `?${qs}` : ""}`;
+      cachedApiFetch<ArchiveResponse>(apiPath, 120_000)
         .then((res) => {
+          archiveCacheRef.current.set(apiPath, res);
           if (active) setArchiveData(res);
         })
         .catch(() => {});
     } else if (initialMode === "search") {
       const sp = new URLSearchParams();
       if (initialSubject !== "All") sp.set("subject", initialSubject);
-      apiFetch<SmartSearchResponse>(`/practice/search?${sp.toString()}`)
+      const apiPath = `/practice/search?${sp.toString()}`;
+      cachedApiFetch<SmartSearchResponse>(apiPath, 60_000)
         .then((res) => {
+          searchCacheRef.current.set(apiPath, res);
           if (active) setSearchResults(res);
         })
         .catch(() => {});
@@ -492,7 +559,7 @@ export function PracticeArena() {
     } else if (nextMode === "search" && !searchResults) {
       runSmartSearch(searchQuery, searchSubject);
     } else if (nextMode === "mistakes") {
-      refreshVault();
+      refreshVault({ silent: vaultLoadedRef.current });
     }
   }
 
@@ -692,7 +759,7 @@ export function PracticeArena() {
         body: JSON.stringify(payload),
       });
       setResult(res);
-      await loadMetaAndVault();
+      await loadMetaAndVault(true);
     } finally {
       setSubmitting(false);
     }
@@ -707,9 +774,11 @@ export function PracticeArena() {
         body: JSON.stringify({ questionId }),
       }
     );
+    invalidateApiCache(`/progress/${encodeURIComponent(sid)}`);
+    invalidateApiCache(`/practice/mistakes?sessionId=${encodeURIComponent(sid)}`);
     setBookmarkedQIds(new Set(res.bookmarkedQuestionIds ?? []));
     if (mode === "mistakes") {
-      await refreshVault();
+      await refreshVault({ silent: true, forceFresh: true });
     }
   }
 
@@ -1612,7 +1681,7 @@ export function PracticeArena() {
               Loading Job Solution paper...
             </div>
           ) : (
-            <div className="space-y-4">
+            <div className="grid gap-4 xl:grid-cols-2">
               {(archiveData?.items ?? []).map((item, idx) => {
                 const isSaved = bookmarkedQIds.has(item._id);
                 const isRevealed =
@@ -1836,7 +1905,7 @@ export function PracticeArena() {
                     No matching questions found. Try another keyword or choose Subject: All.
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="grid gap-3 xl:grid-cols-2">
                     {searchResults?.questions.map((q) => {
                       const isSaved = bookmarkedQIds.has(q._id);
                       return (
