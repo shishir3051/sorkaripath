@@ -136,7 +136,7 @@ export function RegisterClient() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
           {step === "form"
             ? "Create Your Study Account"
             : "Confirm Your Gmail / Email"}
@@ -149,13 +149,13 @@ export function RegisterClient() {
       </div>
 
       {notice && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs sm:text-sm font-semibold text-emerald-900">
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs sm:text-sm font-medium text-emerald-900">
           {notice}
         </div>
       )}
 
       {error && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs sm:text-sm font-semibold text-rose-900">
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs sm:text-sm font-medium text-rose-900">
           {error}
         </div>
       )}
@@ -165,7 +165,7 @@ export function RegisterClient() {
           <div className="space-y-1.5">
             <label
               htmlFor="reg-name"
-              className="block text-xs font-bold uppercase tracking-wider text-slate-600"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
             >
               Full Name
             </label>
@@ -189,7 +189,7 @@ export function RegisterClient() {
           <div className="space-y-1.5">
             <label
               htmlFor="reg-email"
-              className="block text-xs font-bold uppercase tracking-wider text-slate-600"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
             >
               Gmail / Email Address
             </label>
@@ -212,7 +212,7 @@ export function RegisterClient() {
             <div className="space-y-1.5">
               <label
                 htmlFor="reg-password"
-                className="block text-xs font-bold uppercase tracking-wider text-slate-600"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
               >
                 Password (min 6 chars)
               </label>
@@ -247,7 +247,7 @@ export function RegisterClient() {
             <div className="space-y-1.5">
               <label
                 htmlFor="reg-confirm"
-                className="block text-xs font-bold uppercase tracking-wider text-slate-600"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
               >
                 Confirm Password
               </label>
@@ -271,7 +271,7 @@ export function RegisterClient() {
           <button
             type="submit"
             disabled={busy}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-extrabold text-white hover:bg-emerald-800 disabled:opacity-60 transition-colors cursor-pointer"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60 transition-colors cursor-pointer"
           >
             {busy ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -286,7 +286,7 @@ export function RegisterClient() {
           <div className="space-y-1.5">
             <label
               htmlFor="reg-otp"
-              className="block text-xs font-bold uppercase tracking-wider text-slate-600"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
             >
               6-Digit Verification Code
             </label>
@@ -299,14 +299,14 @@ export function RegisterClient() {
               value={otp}
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
               placeholder="123456"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center font-mono text-xl font-extrabold tracking-[0.35em] text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center font-mono text-xl font-bold tracking-[0.35em] text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
             />
           </div>
 
           <button
             type="submit"
             disabled={busy}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-extrabold text-white hover:bg-emerald-800 disabled:opacity-60 transition-colors cursor-pointer"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60 transition-colors cursor-pointer"
           >
             {busy ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -324,7 +324,7 @@ export function RegisterClient() {
                 setError("");
                 setNotice("");
               }}
-              className="font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
+              className="font-medium text-slate-600 hover:text-slate-900 cursor-pointer"
             >
               Edit registration info
             </button>
@@ -332,7 +332,7 @@ export function RegisterClient() {
               type="button"
               disabled={busy || cooldown > 0}
               onClick={handleResend}
-              className="inline-flex items-center gap-1 font-bold text-emerald-700 hover:underline disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center gap-1 font-semibold text-emerald-700 hover:underline disabled:opacity-50 cursor-pointer"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               <span>
@@ -347,7 +347,7 @@ export function RegisterClient() {
         <span>Already have an account?</span>
         <Link
           href={loginHref}
-          className="font-extrabold text-emerald-700 hover:underline"
+          className="font-semibold text-emerald-700 hover:underline"
         >
           Sign in instead →
         </Link>

@@ -48,13 +48,13 @@ export function AuthFormShell({
       <div className="mx-auto max-w-5xl grid gap-8 lg:grid-cols-12 items-start">
         {/* Left Study Lock Info Panel */}
         <div className="lg:col-span-5 rounded-3xl bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-900 p-6 sm:p-8 text-white shadow-xl space-y-6">
-          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-200 ring-1 ring-white/20">
+          <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-200 ring-1 ring-white/20">
             <LockKeyhole className="h-3.5 w-3.5 text-emerald-300" />
             <span>{badge}</span>
           </div>
 
           <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight leading-snug">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight leading-snug">
               {title}
             </h1>
             <p className="mt-2 text-sm text-emerald-100/85 leading-relaxed">
@@ -71,7 +71,7 @@ export function AuthFormShell({
                     <Icon className="h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-xs font-extrabold text-white">
+                    <p className="text-xs font-semibold text-white">
                       {item.title}
                     </p>
                     <p className="text-xs text-emerald-100/75 leading-relaxed">
@@ -84,7 +84,7 @@ export function AuthFormShell({
           </div>
 
           <div className="rounded-2xl bg-black/20 p-4 text-xs text-emerald-100/90 space-y-1.5">
-            <div className="flex items-center gap-1.5 font-bold text-emerald-300">
+            <div className="flex items-center gap-1.5 font-semibold text-emerald-300">
               <ShieldCheck className="h-4 w-4" />
               <span>Public Portal Stays Open</span>
             </div>

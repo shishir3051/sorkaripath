@@ -72,6 +72,18 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    targetTrack: {
+      type: String,
+      trim: true,
+      maxlength: 80,
+      default: "BCS & General Govt",
+    },
+    bio: {
+      type: String,
+      trim: true,
+      maxlength: 240,
+      default: "",
+    },
     aiStats: {
       totalRequests: { type: Number, default: 0 },
       apiCalls: { type: Number, default: 0 },
@@ -96,6 +108,8 @@ export function toSafeUser(user) {
     role: user.role === "admin" ? "admin" : "user",
     isEmailVerified: Boolean(user.isEmailVerified),
     passwordSetupPending: Boolean(user.passwordSetupPending),
+    targetTrack: user.targetTrack || "BCS & General Govt",
+    bio: user.bio || "",
     lastLoginAt: user.lastLoginAt || null,
     createdAt: user.createdAt || null,
     aiStats: {

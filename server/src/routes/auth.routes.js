@@ -1,17 +1,21 @@
 import { Router } from "express";
 import { z } from "zod";
 import {
+  changePassword,
   forgotPassword,
   getMe,
+  getProfile,
   login,
   logout,
   register,
   requestLoginOtp,
   resendOtp,
   resetPassword,
+  updateProfile,
   verifyEmail,
   verifyLoginOtp,
 } from "../controllers/auth.controller.js";
+import { requireAuth } from "../middleware/auth.js";
 import { createRateLimiter } from "../middleware/rateLimiter.js";
 import { validateBody } from "../middleware/validate.js";
 
@@ -69,12 +73,43 @@ const resetPasswordSchema = z.object({
   newPassword: passwordField,
 });
 
+const updateProfileSchema = z.object({
+  name: z
+    .string()
+    .trim()
+    .min(2, "Full name must be at least 2 characters")
+    .max(80, "Name must be 80 characters or fewer")
+    .optional(),
+  targetTrack: z.string().trim().min(2).max(80).optional(),
+  bio: z.string().trim().max(240).optional(),
+});
+
+const changePasswordSchema = z.object({
+  currentPassword: z.string().max(128).optional().default(""),
+  newPassword: passwordField,
+});
+
 const authLimiter = createRateLimiter({ windowMs: 60_000, max: 15 });
 const otpLimiter = createRateLimiter({ windowMs: 60_000, max: 8 });
 
 const router = Router();
 
 router.get("/me", getMe);
+router.get("/profile", requireAuth, getProfile);
+router.patch(
+  "/profile",
+  requireAuth,
+  authLimiter,
+  validateBody(updateProfileSchema),
+  updateProfile
+);
+router.post(
+  "/change-password",
+  requireAuth,
+  authLimiter,
+  validateBody(changePasswordSchema),
+  changePassword
+);
 router.post("/register", otpLimiter, validateBody(registerSchema), register);
 router.post("/verify-email", authLimiter, validateBody(verifyEmailSchema), verifyEmail);
 router.post("/resend-otp", otpLimiter, validateBody(resendOtpSchema), resendOtp);

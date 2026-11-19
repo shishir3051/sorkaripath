@@ -20,6 +20,7 @@ export const config = {
     "/study/:path*",
     "/learn/:path*",
     "/practice/:path*",
+    "/profile/:path*",
     "/admin/:path*",
   ],
 };

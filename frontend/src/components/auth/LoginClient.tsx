@@ -163,7 +163,7 @@ export function LoginClient() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900">
+        <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
           {mode === "verify_pending"
             ? "Verify Your Gmail / Email"
             : "Sign In to SorkariPath"}
@@ -184,7 +184,7 @@ export function LoginClient() {
               setError("");
               setNotice("");
             }}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+            className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
               mode === "password"
                 ? "bg-white text-slate-900 shadow-xs"
                 : "text-slate-600 hover:text-slate-900"
@@ -200,7 +200,7 @@ export function LoginClient() {
               setError("");
               setNotice("");
             }}
-            className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+            className={`inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
               mode === "otp"
                 ? "bg-white text-slate-900 shadow-xs"
                 : "text-slate-600 hover:text-slate-900"
@@ -213,13 +213,13 @@ export function LoginClient() {
       )}
 
       {notice && (
-        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs sm:text-sm font-semibold text-emerald-900">
+        <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs sm:text-sm font-medium text-emerald-900">
           {notice}
         </div>
       )}
 
       {error && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs sm:text-sm font-semibold text-rose-900">
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-xs sm:text-sm font-medium text-rose-900">
           {error}
         </div>
       )}
@@ -229,7 +229,7 @@ export function LoginClient() {
           <div className="space-y-1.5">
             <label
               htmlFor="login-email"
-              className="block text-xs font-bold uppercase tracking-wider text-slate-600"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
             >
               Gmail / Email Address
             </label>
@@ -252,13 +252,13 @@ export function LoginClient() {
             <div className="flex items-center justify-between">
               <label
                 htmlFor="login-password"
-                className="block text-xs font-bold uppercase tracking-wider text-slate-600"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
               >
                 Password
               </label>
               <Link
                 href="/forgot-password"
-                className="text-xs font-bold text-emerald-700 hover:underline"
+                className="text-xs font-semibold text-emerald-700 hover:underline"
               >
                 Forgot password?
               </Link>
@@ -293,7 +293,7 @@ export function LoginClient() {
           <button
             type="submit"
             disabled={busy}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-extrabold text-white hover:bg-emerald-800 disabled:opacity-60 transition-colors cursor-pointer"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60 transition-colors cursor-pointer"
           >
             {busy ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -313,7 +313,7 @@ export function LoginClient() {
           <div className="space-y-1.5">
             <label
               htmlFor="otp-email"
-              className="block text-xs font-bold uppercase tracking-wider text-slate-600"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
             >
               Gmail / Email Address
             </label>
@@ -336,7 +336,7 @@ export function LoginClient() {
             <div className="space-y-1.5">
               <label
                 htmlFor="login-otp-code"
-                className="block text-xs font-bold uppercase tracking-wider text-slate-600"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
               >
                 6-Digit Gmail Sign-In Code
               </label>
@@ -349,7 +349,7 @@ export function LoginClient() {
                 value={otp}
                 onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
                 placeholder="123456"
-                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center font-mono text-xl font-extrabold tracking-[0.35em] text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center font-mono text-xl font-bold tracking-[0.35em] text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
               />
             </div>
           )}
@@ -357,7 +357,7 @@ export function LoginClient() {
           <button
             type="submit"
             disabled={busy}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-extrabold text-white hover:bg-emerald-800 disabled:opacity-60 transition-colors cursor-pointer"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60 transition-colors cursor-pointer"
           >
             {busy ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -384,7 +384,7 @@ export function LoginClient() {
                   setOtp("");
                   setNotice("");
                 }}
-                className="font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
+                className="font-medium text-slate-600 hover:text-slate-900 cursor-pointer"
               >
                 Change email
               </button>
@@ -392,7 +392,7 @@ export function LoginClient() {
                 type="button"
                 disabled={busy || cooldown > 0}
                 onClick={() => handleResend("login_otp")}
-                className="inline-flex items-center gap-1 font-bold text-emerald-700 hover:underline disabled:opacity-50 cursor-pointer"
+                className="inline-flex items-center gap-1 font-semibold text-emerald-700 hover:underline disabled:opacity-50 cursor-pointer"
               >
                 <RefreshCw className="h-3.5 w-3.5" />
                 <span>
@@ -413,7 +413,7 @@ export function LoginClient() {
           <div className="space-y-1.5">
             <label
               htmlFor="verify-pending-otp"
-              className="block text-xs font-bold uppercase tracking-wider text-slate-600"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
             >
               6-Digit Verification Code
             </label>
@@ -426,14 +426,14 @@ export function LoginClient() {
               value={otp}
               onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
               placeholder="123456"
-              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center font-mono text-xl font-extrabold tracking-[0.35em] text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center font-mono text-xl font-bold tracking-[0.35em] text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
             />
           </div>
 
           <button
             type="submit"
             disabled={busy}
-            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-extrabold text-white hover:bg-emerald-800 disabled:opacity-60 transition-colors cursor-pointer"
+            className="w-full inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-5 py-3 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60 transition-colors cursor-pointer"
           >
             {busy ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -451,7 +451,7 @@ export function LoginClient() {
                 setError("");
                 setNotice("");
               }}
-              className="font-semibold text-slate-600 hover:text-slate-900 cursor-pointer"
+              className="font-medium text-slate-600 hover:text-slate-900 cursor-pointer"
             >
               Back to password login
             </button>
@@ -459,7 +459,7 @@ export function LoginClient() {
               type="button"
               disabled={busy || cooldown > 0}
               onClick={() => handleResend("verify_email")}
-              className="inline-flex items-center gap-1 font-bold text-emerald-700 hover:underline disabled:opacity-50 cursor-pointer"
+              className="inline-flex items-center gap-1 font-semibold text-emerald-700 hover:underline disabled:opacity-50 cursor-pointer"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               <span>
@@ -474,7 +474,7 @@ export function LoginClient() {
         <span>New to SorkariPath?</span>
         <Link
           href={registerHref}
-          className="font-extrabold text-emerald-700 hover:underline"
+          className="font-semibold text-emerald-700 hover:underline"
         >
           Create free account →
         </Link>

@@ -20,6 +20,7 @@ import {
   Radio,
   Sparkles,
   Target,
+  User as UserIcon,
   X,
 } from "lucide-react";
 
@@ -57,6 +58,7 @@ export function Navbar() {
 
   const liveSyncActive = currentPath.startsWith("/live-sync");
   const adminActive = currentPath.startsWith("/admin");
+  const profileActive = currentPath.startsWith("/profile");
 
   useEffect(() => {
     if (!accountMenuOpen) return;
@@ -102,14 +104,14 @@ export function Navbar() {
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="text-base xl:text-lg font-extrabold tracking-tight text-slate-900">
+              <span className="text-base xl:text-lg font-bold tracking-tight text-slate-900">
                 SorkariPath
               </span>
-              <span className="hidden 2xl:inline-block shrink-0 whitespace-nowrap rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-800">
+              <span className="hidden 2xl:inline-block shrink-0 whitespace-nowrap rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-800">
                 BD A–Z
               </span>
             </div>
-            <p className="hidden 2xl:block text-[11px] font-medium text-slate-500 leading-none mt-0.5 whitespace-nowrap">
+            <p className="hidden 2xl:block text-[11px] font-normal text-slate-500 leading-none mt-0.5 whitespace-nowrap">
               Govt Job Portal &amp; Academy
             </p>
           </div>
@@ -136,10 +138,10 @@ export function Navbar() {
                 }
                 title={isLocked ? "Sign in required to unlock study section" : undefined}
                 onClick={() => handleLinkSelect(item.href)}
-                className={`inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2 2xl:px-2.5 py-1.5 text-xs 2xl:text-[13px] font-semibold transition-all ${
+                className={`inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2 2xl:px-2.5 py-1.5 text-xs 2xl:text-[13px] transition-all ${
                   active
-                    ? "bg-emerald-700 text-white shadow-sm"
-                    : "text-slate-600 hover:bg-white hover:text-slate-900"
+                    ? "bg-emerald-700 font-semibold text-white shadow-sm"
+                    : "font-medium text-slate-600 hover:bg-white hover:text-slate-900"
                 }`}
               >
                 <Icon className="hidden xl:block h-3.5 w-3.5 shrink-0" />
@@ -160,7 +162,7 @@ export function Navbar() {
             href="/live-sync"
             prefetch={true}
             onClick={() => handleLinkSelect("/live-sync")}
-            className={`hidden xl:inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl px-2.5 py-2 text-xs font-bold transition-all ${
+            className={`hidden xl:inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl px-2.5 py-2 text-xs font-semibold transition-all ${
               liveSyncActive
                 ? "bg-slate-900 text-white shadow-sm"
                 : "border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
@@ -180,13 +182,13 @@ export function Navbar() {
                 onClick={() => setAccountMenuOpen((prev) => !prev)}
                 aria-expanded={accountMenuOpen}
                 aria-haspopup="menu"
-                className={`inline-flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
-                  accountMenuOpen || adminActive
+                className={`inline-flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
+                  accountMenuOpen || adminActive || profileActive
                     ? "border-emerald-300 bg-emerald-50/70 text-slate-900"
                     : "border-slate-200 bg-white text-slate-800 hover:bg-slate-50"
                 }`}
               >
-                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-emerald-700 text-[11px] font-extrabold text-white">
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-emerald-700 text-[11px] font-bold text-white">
                   {user.name.charAt(0).toUpperCase()}
                 </span>
                 <span className="max-w-[96px] truncate">
@@ -212,11 +214,11 @@ export function Navbar() {
                 >
                   <div className="rounded-xl bg-slate-50 px-3 py-2.5">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-extrabold text-slate-900 truncate">
+                      <p className="text-xs font-semibold text-slate-900 truncate">
                         {user.name}
                       </p>
                       <span
-                        className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase ${
+                        className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
                           user.role === "admin"
                             ? "bg-amber-100 text-amber-900"
                             : "bg-emerald-100 text-emerald-800"
@@ -230,14 +232,28 @@ export function Navbar() {
                     </p>
                   </div>
 
+                  <Link
+                    href="/profile"
+                    role="menuitem"
+                    onClick={() => handleLinkSelect("/profile")}
+                    className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition-colors ${
+                      profileActive
+                        ? "bg-emerald-50 text-emerald-900 font-semibold"
+                        : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    <UserIcon className="h-4 w-4 text-emerald-700" />
+                    <span>My Profile &amp; Progress</span>
+                  </Link>
+
                   {user.role === "admin" && (
                     <Link
                       href="/admin"
                       role="menuitem"
                       onClick={() => handleLinkSelect("/admin")}
-                      className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-colors ${
+                      className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition-colors ${
                         adminActive
-                          ? "bg-amber-100 text-amber-950"
+                          ? "bg-amber-100 text-amber-950 font-semibold"
                           : "text-slate-700 hover:bg-amber-50 hover:text-amber-950"
                       }`}
                     >
@@ -250,9 +266,9 @@ export function Navbar() {
                     href="/live-sync"
                     role="menuitem"
                     onClick={() => handleLinkSelect("/live-sync")}
-                    className={`xl:hidden flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-colors ${
+                    className={`xl:hidden flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium transition-colors ${
                       liveSyncActive
-                        ? "bg-emerald-50 text-emerald-900"
+                        ? "bg-emerald-50 text-emerald-900 font-semibold"
                         : "text-slate-700 hover:bg-slate-50"
                     }`}
                   >
@@ -268,7 +284,7 @@ export function Navbar() {
                       setAccountMenuOpen(false);
                       void logout("/");
                     }}
-                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-medium text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
                   >
                     <LogOut className="h-4 w-4" />
                     <span>Sign Out</span>
@@ -281,7 +297,7 @@ export function Navbar() {
               <Link
                 href="/login"
                 onClick={() => handleLinkSelect("/login")}
-                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl bg-emerald-700 px-3.5 py-2 text-xs font-bold text-white hover:bg-emerald-800 transition-colors shadow-xs"
+                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl bg-emerald-700 px-3.5 py-2 text-xs font-semibold text-white hover:bg-emerald-800 transition-colors shadow-xs"
               >
                 <LogIn className="h-3.5 w-3.5" />
                 <span>Sign In</span>
@@ -319,10 +335,10 @@ export function Navbar() {
                   href={item.href}
                   prefetch={false}
                   onClick={() => handleLinkSelect(item.href, true)}
-                  className={`flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
+                  className={`flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-sm transition-colors ${
                     active
-                      ? "bg-emerald-700 text-white"
-                      : "text-slate-700 hover:bg-emerald-50 hover:text-emerald-900"
+                      ? "bg-emerald-700 font-semibold text-white"
+                      : "font-medium text-slate-700 hover:bg-emerald-50 hover:text-emerald-900"
                   }`}
                 >
                   <span className="flex items-center gap-2.5">
@@ -339,19 +355,27 @@ export function Navbar() {
             {user ? (
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2.5">
                 <div className="min-w-0">
-                  <p className="text-xs font-extrabold text-slate-900 truncate">
+                  <p className="text-xs font-semibold text-slate-900 truncate">
                     {user.name}
                   </p>
                   <p className="text-[11px] text-slate-500 truncate">
                     {user.email} • {user.role.toUpperCase()}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <Link
+                    href="/profile"
+                    onClick={() => handleLinkSelect("/profile", true)}
+                    className="inline-flex items-center gap-1 rounded-lg bg-emerald-100 px-3 py-1.5 text-xs font-semibold text-emerald-900"
+                  >
+                    <UserIcon className="h-3.5 w-3.5" />
+                    <span>Profile</span>
+                  </Link>
                   {user.role === "admin" && (
                     <Link
                       href="/admin"
                       onClick={() => handleLinkSelect("/admin", true)}
-                      className="inline-flex items-center gap-1 rounded-lg bg-amber-100 px-3 py-1.5 text-xs font-bold text-amber-900"
+                      className="inline-flex items-center gap-1 rounded-lg bg-amber-100 px-3 py-1.5 text-xs font-semibold text-amber-900"
                     >
                       <Crown className="h-3.5 w-3.5" />
                       <span>Admin</span>
@@ -363,7 +387,7 @@ export function Navbar() {
                       setMobileOpen(false);
                       void logout("/");
                     }}
-                    className="inline-flex items-center gap-1 rounded-lg bg-rose-50 border border-rose-200 px-3 py-1.5 text-xs font-bold text-rose-700 cursor-pointer"
+                    className="inline-flex items-center gap-1 rounded-lg bg-rose-50 border border-rose-200 px-3 py-1.5 text-xs font-semibold text-rose-700 cursor-pointer"
                   >
                     <LogOut className="h-3.5 w-3.5" />
                     <span>Sign Out</span>
@@ -374,7 +398,7 @@ export function Navbar() {
               <Link
                 href="/login"
                 onClick={() => handleLinkSelect("/login", true)}
-                className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-700 px-3 py-2.5 text-xs font-bold text-white hover:bg-emerald-800 transition-colors"
+                className="flex w-full items-center justify-center gap-1.5 rounded-xl bg-emerald-700 px-3 py-2.5 text-xs font-semibold text-white hover:bg-emerald-800 transition-colors"
               >
                 <LogIn className="h-4 w-4" />
                 <span>Sign In</span>

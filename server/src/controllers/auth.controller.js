@@ -2,6 +2,12 @@ import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import { env } from "../config/env.js";
 import { User, toSafeUser } from "../models/User.js";
+import { AiUsageLog } from "../models/AiUsageLog.js";
+import { JobCircular } from "../models/JobCircular.js";
+import { LearnerProgress } from "../models/LearnerProgress.js";
+import { LearningModule } from "../models/LearningModule.js";
+import { QuizAttempt } from "../models/QuizAttempt.js";
+import { StudyTopic } from "../models/StudyTopic.js";
 import {
   clearAuthCookie,
   resolveUserFromRequest,
@@ -540,6 +546,183 @@ export async function getMe(req, res, next) {
       data: {
         authenticated: Boolean(user),
         user: user || null,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getProfile(req, res, next) {
+  try {
+    const sessionId = `user_${req.user.id}`;
+    const [
+      user,
+      progress,
+      totalLessonsCount,
+      totalTopicsCount,
+      recentAttempts,
+      recentAiLogs,
+    ] = await Promise.all([
+      User.findById(req.user.id),
+      LearnerProgress.findOne({ sessionId }).lean(),
+      LearningModule.countDocuments(),
+      StudyTopic.countDocuments(),
+      QuizAttempt.find({ sessionId }).sort({ createdAt: -1 }).limit(10).lean(),
+      AiUsageLog.find({ userEmail: req.user.email })
+        .sort({ createdAt: -1 })
+        .limit(15)
+        .select(
+          "feature modelUsed promptTokens outputTokens thoughtsTokens totalTokens isCacheHit label createdAt"
+        )
+        .lean(),
+    ]);
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User account not found.",
+      });
+    }
+
+    const bookmarkedSlugs = progress?.bookmarkedJobSlugs || [];
+    const bookmarkedJobs =
+      bookmarkedSlugs.length > 0
+        ? await JobCircular.find({
+            slug: { $in: bookmarkedSlugs },
+            isActive: true,
+          })
+            .select("title slug organization deadlineDate deadlineRaw category")
+            .limit(20)
+            .lean()
+        : [];
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          ...toSafeUser(user),
+          isPrimaryAdmin: isConfiguredAdminEmail(user.email),
+        },
+        studyStats: {
+          completedLessonsCount: progress?.completedLessonSlugs?.length || 0,
+          totalLessonsCount,
+          completedTopicsCount: progress?.completedTopicSlugs?.length || 0,
+          totalTopicsCount,
+          completedRoutineDaysCount:
+            progress?.completedRoutineDays?.length || 0,
+          routineTrack: progress?.routineTrack || "BCS",
+          wrongQuestionsCount: progress?.wrongQuestionIds?.length || 0,
+          bookmarkedQuestionsCount:
+            progress?.bookmarkedQuestionIds?.length || 0,
+          bookmarkedJobsCount: bookmarkedSlugs.length,
+          highlightsCount: progress?.studyHighlights?.length || 0,
+        },
+        bookmarkedJobs,
+        recentAttempts,
+        recentAiLogs: recentAiLogs.map((log) => ({
+          id: String(log._id),
+          feature: log.feature,
+          modelUsed: log.modelUsed,
+          promptTokens: Number(log.promptTokens) || 0,
+          outputTokens: Number(log.outputTokens) || 0,
+          thoughtsTokens: Number(log.thoughtsTokens) || 0,
+          totalTokens: Number(log.totalTokens) || 0,
+          isCacheHit: Boolean(log.isCacheHit),
+          label: log.label || "",
+          createdAt: log.createdAt,
+        })),
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function updateProfile(req, res, next) {
+  try {
+    const { name, targetTrack, bio } = req.validatedBody;
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User account not found.",
+      });
+    }
+
+    if (name !== undefined) user.name = name;
+    if (targetTrack !== undefined) user.targetTrack = targetTrack;
+    if (bio !== undefined) user.bio = bio;
+    await user.save();
+
+    if (targetTrack !== undefined) {
+      await LearnerProgress.updateOne(
+        { sessionId: `user_${user._id}` },
+        { $set: { targetTrack } },
+        { upsert: true }
+      );
+    }
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          ...toSafeUser(user),
+          isPrimaryAdmin: isConfiguredAdminEmail(user.email),
+        },
+        message: "Profile updated successfully.",
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function changePassword(req, res, next) {
+  try {
+    const { currentPassword, newPassword } = req.validatedBody;
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User account not found.",
+      });
+    }
+
+    if (user.passwordHash && !user.passwordSetupPending) {
+      if (!currentPassword) {
+        return res.status(400).json({
+          success: false,
+          message: "Current password is required.",
+        });
+      }
+      const matches = await bcrypt.compare(currentPassword, user.passwordHash);
+      if (!matches) {
+        return res.status(400).json({
+          success: false,
+          message: "Current password is incorrect.",
+        });
+      }
+    }
+
+    user.passwordHash = await bcrypt.hash(newPassword, BCRYPT_ROUNDS);
+    user.passwordSetupPending = false;
+    user.pendingPasswordHash = null;
+    user.pendingName = null;
+    user.tokenVersion = (user.tokenVersion || 0) + 1;
+    await user.save();
+
+    const token = signAuthToken(user);
+    setAuthCookie(res, req, token);
+
+    res.json({
+      success: true,
+      data: {
+        user: {
+          ...toSafeUser(user),
+          isPrimaryAdmin: isConfiguredAdminEmail(user.email),
+        },
+        message: "Password updated successfully.",
       },
     });
   } catch (err) {

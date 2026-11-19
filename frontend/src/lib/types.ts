@@ -19,6 +19,8 @@ export interface AuthUser {
   role: UserRole;
   isEmailVerified: boolean;
   passwordSetupPending?: boolean;
+  targetTrack?: string;
+  bio?: string;
   lastLoginAt?: string | null;
   createdAt?: string | null;
   isPrimaryAdmin?: boolean;

@@ -54,10 +54,10 @@ export default async function AdminPage() {
   return (
     <div className="app-container py-8 space-y-6">
       <div>
-        <span className="inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-amber-900">
+        <span className="inline-block rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-amber-900">
           Platform Administration
         </span>
-        <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold text-slate-900">
+        <h1 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
           SorkariPath Admin Dashboard
         </h1>
         <p className="mt-1 text-sm text-slate-600">

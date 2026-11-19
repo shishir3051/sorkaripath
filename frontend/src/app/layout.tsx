@@ -16,19 +16,22 @@ import { getServerSession } from "@/lib/serverAuth";
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-inter",
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
 const bangla = Noto_Sans_Bengali({
   subsets: ["bengali"],
   variable: "--font-bangla-src",
+  weight: ["400", "500", "600", "700"],
   display: "swap",
 });
 
 const mono = JetBrains_Mono({
   subsets: ["latin"],
-  variable: "--font-mono",
-  weight: ["400", "500", "600"],
+  variable: "--font-mono-src",
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
