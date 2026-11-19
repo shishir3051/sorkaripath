@@ -6,18 +6,37 @@ import {
   CheckCircle2,
   HelpCircle,
   Lightbulb,
+  ListOrdered,
   Loader2,
   Sparkles,
+  Table2,
   XCircle,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
 import type { McqQuestion, StudyTopic } from "@/lib/types";
+
+interface TutorRuleStep {
+  stepNumber: number;
+  ruleTitle: string;
+  formula: string;
+  exampleHeader: string;
+  breakdownLines: string[];
+  moreExamples: string[];
+}
+
+interface TutorSummaryTable {
+  title: string;
+  headers: string[];
+  rows: string[][];
+}
 
 interface TutorResult {
   topicTitle: string;
   subject: string;
   explanationEn: string;
   explanationBn: string;
+  ruleSteps?: TutorRuleStep[];
+  summaryTable?: TutorSummaryTable | null;
   keyPoints: string[];
   workedExamples: Array<{ label: string; detail: string }>;
   memoryTip: string;
@@ -27,6 +46,150 @@ interface TutorResult {
     keySlotUsed: number;
     totalKeys: number;
   };
+}
+
+function formatSummaryTableTitle(rawTitle?: string): string {
+  const trimmed = rawTitle?.trim() ?? "";
+  if (!trimmed) return "সংক্ষেপে মনে রাখার চার্ট";
+  return trimmed.includes("সংক্ষেপে মনে রাখার চার্ট")
+    ? trimmed
+    : `সংক্ষেপে মনে রাখার চার্ট — ${trimmed}`;
+}
+
+function TutorRuleStepsSection({ steps }: { steps: TutorRuleStep[] }) {
+  return (
+    <div className="space-y-2.5">
+      <p className="text-xs font-extrabold uppercase tracking-wider text-indigo-900 flex items-center gap-1.5">
+        <ListOrdered className="h-4 w-4 text-indigo-600 shrink-0" />
+        <span>ধাপে ধাপে সূত্র ও বিশ্লেষণ (Step-by-Step Rule Breakdown)</span>
+      </p>
+      <div className="space-y-2.5">
+        {steps.map((step, sIdx) => {
+          const breakdownLines = (step.breakdownLines ?? []).filter(
+            (line) => line.trim().length > 0
+          );
+          const moreExamples = (step.moreExamples ?? []).filter(
+            (ex) => ex.trim().length > 0
+          );
+
+          return (
+            <div
+              key={`${step.stepNumber}-${sIdx}`}
+              className="rounded-xl border border-slate-200 bg-slate-50/70 p-3.5 space-y-2.5"
+            >
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <span className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-indigo-700 text-[11px] font-extrabold text-white">
+                    {step.stepNumber || sIdx + 1}
+                  </span>
+                  <h5 className="text-xs sm:text-sm font-extrabold text-slate-900 font-bangla">
+                    {step.ruleTitle}
+                  </h5>
+                </div>
+                {step.formula?.trim() && (
+                  <code className="rounded-lg border border-indigo-200 bg-white px-2.5 py-1 text-[11px] sm:text-xs font-bold text-indigo-900 font-mono whitespace-pre-wrap">
+                    {step.formula}
+                  </code>
+                )}
+              </div>
+
+              {step.exampleHeader?.trim() && (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-1.5 text-xs sm:text-sm font-bold text-emerald-950 font-bangla">
+                  <span className="text-emerald-800 mr-1.5">উদাহরণ:</span>
+                  <span>{step.exampleHeader}</span>
+                </div>
+              )}
+
+              {breakdownLines.length > 0 && (
+                <div className="rounded-lg border border-slate-200/80 bg-white px-3 py-2.5 space-y-1.5">
+                  <p className="text-[11px] font-extrabold uppercase tracking-wider text-slate-500 font-bangla">
+                    বিশ্লেষণ:
+                  </p>
+                  <ol className="space-y-1 text-xs sm:text-sm text-slate-800 leading-relaxed font-bangla">
+                    {breakdownLines.map((line, lIdx) => (
+                      <li key={lIdx} className="flex items-start gap-2">
+                        <span
+                          className="mt-0.5 text-indigo-600 font-bold shrink-0"
+                          aria-hidden="true"
+                        >
+                          &rarr;
+                        </span>
+                        <span className="whitespace-pre-line">{line}</span>
+                      </li>
+                    ))}
+                  </ol>
+                </div>
+              )}
+
+              {moreExamples.length > 0 && (
+                <div className="flex flex-wrap items-center gap-1.5 pt-0.5 font-bangla">
+                  <span className="text-[11px] font-bold text-slate-600">
+                    একইভাবে:
+                  </span>
+                  {moreExamples.map((ex, eIdx) => (
+                    <span
+                      key={eIdx}
+                      className="inline-flex items-center rounded-full border border-slate-200 bg-white px-2.5 py-0.5 text-[11px] font-semibold text-slate-800"
+                    >
+                      {ex}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function TutorSummaryTableCard({ table }: { table: TutorSummaryTable }) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+      <div className="flex items-center gap-1.5 bg-slate-100 px-4 py-2.5 text-xs font-extrabold text-slate-900 font-bangla border-b border-slate-200">
+        <Table2 className="h-4 w-4 text-emerald-700 shrink-0" />
+        <span>{formatSummaryTableTitle(table.title)}</span>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-left text-xs sm:text-sm font-bangla">
+          <thead className="bg-emerald-900 text-white">
+            <tr>
+              {table.headers.map((header, hIdx) => (
+                <th
+                  key={`${header}-${hIdx}`}
+                  className="px-4 py-2.5 font-bold whitespace-nowrap"
+                >
+                  {header}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-slate-200">
+            {table.rows.map((row, rIdx) => (
+              <tr
+                key={rIdx}
+                className={rIdx % 2 === 1 ? "bg-slate-50/70" : "bg-white"}
+              >
+                {row.map((cell, cIdx) => (
+                  <td
+                    key={cIdx}
+                    className={`px-4 py-2.5 leading-relaxed whitespace-pre-line ${
+                      cIdx === 0
+                        ? "font-bold text-slate-900"
+                        : "text-slate-700"
+                    }`}
+                  >
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 }
 
 interface GeneratedQuizResult {
@@ -56,6 +219,9 @@ export function TopicAiLab({
   const questionInputRef = useRef<HTMLInputElement>(null);
   const [question, setQuestion] = useState("");
   const [askingTutor, setAskingTutor] = useState(false);
+  const [tutorAction, setTutorAction] = useState<
+    "breakdown" | "shortcut" | "ask" | null
+  >(null);
   const [tutorError, setTutorError] = useState<string | null>(null);
   const [tutorData, setTutorData] = useState<TutorResult | null>(null);
 
@@ -72,8 +238,12 @@ export function TopicAiLab({
     },
   }));
 
-  async function handleAskTutor(customQuestion?: string) {
+  async function handleAskTutor(
+    customQuestion?: string,
+    action: "breakdown" | "shortcut" | "ask" = "ask"
+  ) {
     const qText = (customQuestion ?? question).trim();
+    setTutorAction(action);
     setAskingTutor(true);
     setTutorError(null);
     try {
@@ -92,6 +262,7 @@ export function TopicAiLab({
       );
     } finally {
       setAskingTutor(false);
+      setTutorAction(null);
     }
   }
 
@@ -150,10 +321,29 @@ export function TopicAiLab({
           <button
             type="button"
             disabled={askingTutor}
-            onClick={() => handleAskTutor("")}
+            onClick={() =>
+              handleAskTutor(
+                `Break down every main rule of "${topic.title}" step-by-step with detailed বিশ্লেষণ/derivation and a quick summary chart.`,
+                "breakdown"
+              )
+            }
+            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-700 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-800 disabled:opacity-60 cursor-pointer"
+          >
+            {askingTutor && tutorAction === "breakdown" ? (
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            ) : (
+              <ListOrdered className="h-3.5 w-3.5" />
+            )}
+            <span>Step-by-Step Breakdown</span>
+          </button>
+
+          <button
+            type="button"
+            disabled={askingTutor}
+            onClick={() => handleAskTutor("", "shortcut")}
             className="inline-flex items-center gap-1.5 rounded-xl border border-indigo-200 bg-white px-3 py-1.5 text-xs font-bold text-indigo-800 hover:bg-indigo-50 disabled:opacity-60 cursor-pointer"
           >
-            {askingTutor ? (
+            {askingTutor && tutorAction === "shortcut" ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
               <Lightbulb className="h-3.5 w-3.5" />
@@ -189,7 +379,7 @@ export function TopicAiLab({
           type="text"
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
-          placeholder="Ask e.g. 'সমাস চেনার সহজ উপায় কী?' or 'Explain this formula trap with 2 examples'"
+          placeholder="Ask e.g. 'নে + অন = নয়ন কীভাবে হয়?' or 'Explain Conditional / Profit-Loss step-by-step'"
           className="flex-1 rounded-xl border border-indigo-200 bg-white px-3.5 py-2 text-xs sm:text-sm text-slate-800 focus:border-indigo-500 focus:outline-none"
         />
         <button
@@ -197,7 +387,11 @@ export function TopicAiLab({
           disabled={askingTutor || question.trim().length < 2}
           className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-slate-900 px-4 py-2 text-xs font-bold text-white hover:bg-slate-800 disabled:opacity-50 cursor-pointer"
         >
-          <HelpCircle className="h-3.5 w-3.5" />
+          {askingTutor && tutorAction === "ask" ? (
+            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          ) : (
+            <HelpCircle className="h-3.5 w-3.5" />
+          )}
           <span>Ask Gemini Tutor</span>
         </button>
       </form>
@@ -209,7 +403,7 @@ export function TopicAiLab({
       )}
 
       {tutorData && (
-        <div className="rounded-xl border border-indigo-200 bg-white p-4 space-y-3 shadow-xs">
+        <div className="rounded-xl border border-indigo-200 bg-white p-4 space-y-3.5 shadow-xs">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs font-extrabold uppercase tracking-wider text-indigo-800">
               {tutorData.topicTitle}
@@ -227,50 +421,62 @@ export function TopicAiLab({
               <p className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-800 mb-1">
                 বাংলা সহজ ব্যাখ্যা ও কৌশল
               </p>
-              <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-bangla">
+              <p className="text-xs sm:text-sm text-slate-800 leading-relaxed font-bangla whitespace-pre-line">
                 {tutorData.explanationBn}
               </p>
             </div>
           )}
 
           {tutorData.explanationEn && (
-            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
+            <p className="text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-line">
               {tutorData.explanationEn}
             </p>
           )}
 
-          {tutorData.keyPoints.length > 0 && (
-            <ul className="space-y-1 text-xs text-slate-700">
+          {tutorData.ruleSteps && tutorData.ruleSteps.length > 0 && (
+            <TutorRuleStepsSection steps={tutorData.ruleSteps} />
+          )}
+
+          {tutorData.summaryTable &&
+            (tutorData.summaryTable.headers?.length ?? 0) > 0 &&
+            (tutorData.summaryTable.rows?.length ?? 0) > 0 && (
+              <TutorSummaryTableCard table={tutorData.summaryTable} />
+            )}
+
+          {(tutorData.keyPoints?.length ?? 0) > 0 && (
+            <ul className="space-y-1 text-xs text-slate-700 font-bangla">
               {tutorData.keyPoints.map((pt, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <span className="text-indigo-600 font-bold">&bull;</span>
-                  <span>{pt}</span>
+                  <span className="whitespace-pre-line">{pt}</span>
                 </li>
               ))}
             </ul>
           )}
 
-          {tutorData.workedExamples.length > 0 && (
+          {(tutorData.workedExamples?.length ?? 0) > 0 && (
             <div className="grid gap-2 sm:grid-cols-2">
               {tutorData.workedExamples.map((ex, i) => (
                 <div
                   key={i}
                   className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-xs"
                 >
-                  <p className="font-bold text-slate-900">{ex.label}</p>
-                  <p className="text-slate-600 mt-0.5">{ex.detail}</p>
+                  <p className="font-bold text-slate-900 font-bangla">{ex.label}</p>
+                  <p className="text-slate-600 mt-0.5 leading-relaxed font-bangla whitespace-pre-line">
+                    {ex.detail}
+                  </p>
                 </div>
               ))}
             </div>
           )}
 
           {tutorData.memoryTip && (
-            <p className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-950 font-semibold">
+            <p className="rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-950 font-semibold font-bangla whitespace-pre-line">
               Memory Tip: {tutorData.memoryTip}
             </p>
           )}
 
-          {tutorData.followUpQuestions.length > 0 && (
+          {(tutorData.followUpQuestions?.length ?? 0) > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 pt-1">
               <span className="text-[11px] font-bold text-slate-500">Next ask:</span>
               {tutorData.followUpQuestions.map((fq, idx) => (
@@ -279,7 +485,7 @@ export function TopicAiLab({
                   type="button"
                   onClick={() => {
                     setQuestion(fq);
-                    handleAskTutor(fq);
+                    handleAskTutor(fq, "ask");
                   }}
                   className="rounded-full border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[11px] font-semibold text-indigo-800 hover:bg-indigo-100 cursor-pointer"
                 >

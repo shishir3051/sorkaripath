@@ -22,9 +22,31 @@ const VALID_TRACKS = [
   "Govt Rules 2026",
 ];
 
+const BANGLA_DIGIT_MAP = {
+  "০": "0",
+  "১": "1",
+  "২": "2",
+  "৩": "3",
+  "৪": "4",
+  "৫": "5",
+  "৬": "6",
+  "৭": "7",
+  "৮": "8",
+  "৯": "9",
+};
+
 function cleanText(value, maxLen = 1800) {
   if (typeof value !== "string") return "";
   return value.trim().slice(0, maxLen);
+}
+
+function cleanScalarText(value, maxLen = 3500) {
+  if (typeof value === "string") return value.trim().slice(0, maxLen);
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return String(value).slice(0, maxLen);
+  }
+  if (typeof value === "boolean") return String(value).slice(0, maxLen);
+  return "";
 }
 
 function normalizeStringList(items, maxItems = 6, maxLen = 280) {
@@ -35,15 +57,123 @@ function normalizeStringList(items, maxItems = 6, maxLen = 280) {
     .slice(0, maxItems);
 }
 
-function normalizeExamples(items, maxItems = 3) {
+function normalizeScalarList(items, maxItems = 8, maxLen = 360) {
   if (!Array.isArray(items)) return [];
-  return items
-    .map((entry) => ({
-      label: cleanText(entry?.label || "", 120),
-      detail: cleanText(entry?.detail || "", 400),
-    }))
-    .filter((entry) => entry.label && entry.detail)
-    .slice(0, maxItems);
+  const output = [];
+  for (const item of items) {
+    if (output.length >= maxItems) break;
+    const text = cleanScalarText(item, maxLen);
+    if (text) output.push(text);
+  }
+  return output;
+}
+
+function normalizeExamples(items, maxItems = 5, maxDetailLen = 900) {
+  if (!Array.isArray(items)) return [];
+  const output = [];
+  for (const entry of items) {
+    if (output.length >= maxItems) break;
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+    const label = cleanScalarText(entry.label, 160);
+    const detail = cleanScalarText(entry.detail, maxDetailLen);
+    if (label && detail) {
+      output.push({ label, detail });
+    }
+  }
+  return output;
+}
+
+function parseStepNumber(rawStep, fallbackStep) {
+  if (typeof rawStep === "number" && Number.isInteger(rawStep)) {
+    return rawStep >= 1 && rawStep <= 6 ? rawStep : fallbackStep;
+  }
+  if (typeof rawStep === "string") {
+    const normalized = rawStep
+      .trim()
+      .replace(/[০-৯]/g, (digit) => BANGLA_DIGIT_MAP[digit] ?? digit);
+    const parsed = Number(normalized);
+    if (Number.isInteger(parsed) && parsed >= 1 && parsed <= 6) {
+      return parsed;
+    }
+  }
+  return fallbackStep;
+}
+
+function normalizeRuleSteps(items, maxItems = 6) {
+  if (!Array.isArray(items)) return [];
+  const output = [];
+  const usedSteps = new Set();
+
+  for (const entry of items) {
+    if (output.length >= maxItems) break;
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) continue;
+
+    const ruleTitle = cleanScalarText(entry.ruleTitle, 180);
+    const formula = cleanScalarText(entry.formula, 220);
+    const exampleHeader = cleanScalarText(entry.exampleHeader, 220);
+    const breakdownLines = normalizeScalarList(entry.breakdownLines, 6, 280);
+    const moreExamples = normalizeScalarList(entry.moreExamples, 5, 160);
+
+    const resolvedTitle = ruleTitle || exampleHeader || formula;
+    const hasContent =
+      breakdownLines.length > 0 ||
+      Boolean(formula) ||
+      Boolean(exampleHeader) ||
+      moreExamples.length > 0;
+
+    if (!resolvedTitle || !hasContent) continue;
+
+    let stepNumber = parseStepNumber(entry.stepNumber, output.length + 1);
+    if (usedSteps.has(stepNumber)) {
+      const nextSequential = output.length + 1;
+      stepNumber = !usedSteps.has(nextSequential)
+        ? nextSequential
+        : [1, 2, 3, 4, 5, 6].find((n) => !usedSteps.has(n)) ?? nextSequential;
+    }
+    usedSteps.add(stepNumber);
+
+    output.push({
+      stepNumber,
+      ruleTitle: resolvedTitle,
+      formula,
+      exampleHeader,
+      breakdownLines,
+      moreExamples,
+    });
+  }
+
+  return output;
+}
+
+function normalizeSummaryTable(rawTable) {
+  if (!rawTable || typeof rawTable !== "object" || Array.isArray(rawTable)) {
+    return null;
+  }
+
+  const headers = normalizeScalarList(rawTable.headers, 5, 80);
+  if (headers.length === 0 || !Array.isArray(rawTable.rows)) {
+    return null;
+  }
+
+  const rows = [];
+  for (const rawRow of rawTable.rows) {
+    if (rows.length >= 8) break;
+    if (!Array.isArray(rawRow)) continue;
+
+    const cells = headers.map((_, colIdx) => cleanScalarText(rawRow[colIdx], 200));
+    if (cells.every((cell) => !cell)) continue;
+    rows.push(cells);
+  }
+
+  if (rows.length === 0) {
+    return null;
+  }
+
+  return {
+    title: cleanScalarText(rawTable.title, 160) || "সংক্ষেপে মনে রাখার চার্ট",
+    headers,
+    rows,
+  };
 }
 
 async function loadGroundedTopic(topicSlug) {
@@ -80,12 +210,73 @@ function buildTutorPrompt({ topic, subject, question }) {
   const effectiveSubject = topic?.subject || subject || "All";
   const effectiveQuestion =
     question ||
-    `Give a crisp high-yield revision summary, common exam traps in BD govt exams, worked examples, and a quick memory mnemonic for "${topic?.title || effectiveSubject}".`;
+    `Give a complete step-by-step high-yield breakdown with decomposed rule steps, common exam traps in BD govt exams, worked examples, a quick-revision chart, and a memory mnemonic for "${topic?.title || effectiveSubject}".`;
+
+  const schemaExample = {
+    topicTitle: "Short clear title of the concept explained",
+    subject: effectiveSubject,
+    explanationEn:
+      "Clear exam-focused explanation in English with exact grammar/technical definitions, formulas, and common BD exam trap alerts",
+    explanationBn:
+      "সহজ, স্বাভাবিক ও পরীক্ষার উপযোগী বাংলায় বিস্তারিত মূল ব্যাখ্যা (নিয়ম কীভাবে কাজ করে, শর্ত এবং পরীক্ষার ফাঁদসহ)",
+    keyPoints: [
+      "4 to 8 high-yield bullet points for BCS, Combined Bank, Primary, NTRCA & Grade 11-20 exams",
+    ],
+    ruleSteps: [
+      {
+        stepNumber: 1,
+        ruleTitle: "১. এ + স্বরবর্ণ = অয় (এ → অয়)",
+        formula: "এ-কার (ে) + ভিন্ন স্বরবর্ণ = অয়্ + স্বরবর্ণ",
+        exampleHeader: "নে + অন = নয়ন",
+        breakdownLines: [
+          "পূর্বপদ বিশ্লেষণ: ন্ + এ",
+          "পরপদ বিশ্লেষণ: অ + ন",
+          "ধ্বনি পরিবর্তন: এ → অয়",
+          "মধ্যবর্তী সংযোগ: ন্ + (অয়) + অন",
+          "চূড়ান্ত মিলন: (ন্+অ)=ন + (য়্+অ)=য় + ন ⇒ নয়ন",
+        ],
+        moreExamples: ["শে + অন = শয়ন", "চে + অন = চয়ন"],
+      },
+    ],
+    summaryTable: {
+      title: "সংক্ষেপে মনে রাখার চার্ট",
+      headers: ["ধরন / ধাপ", "মূল সূত্র / নিয়ম", "উদাহরণ ও পরীক্ষা টিপস"],
+      rows: [
+        ["এ + স্বর", "এ → অয়", "নে + অন = নয়ন, শে + অন = শয়ন"],
+        ["ঐ + স্বর", "ঐ → আয়", "নৈ + অক = নায়ক, গৈ + অক = গায়ক"],
+      ],
+    },
+    workedExamples: [
+      {
+        label: "Example 1 / Past Exam Trap",
+        detail:
+          "Detailed multi-line step-by-step worked solution showing each intermediate step, final answer, and why common distractors fail",
+      },
+    ],
+    memoryTip: "One memorable Bangla/English mnemonic, rhyme, or 5-second exam shortcut",
+    followUpQuestions: ["2 to 3 smart follow-up questions the student can ask next"],
+  };
 
   return [
     "You are SorkariPath's senior Bangladesh Government Job Exam Mentor (BCS, Combined Bank SO/Officer, Primary Assistant Teacher, NTRCA, and Ministry Grade 11-20).",
-    "Answer accurately, concisely, and practically for exam candidates in Bangladesh.",
-    "For Bangla Language/Literature, BD Constitution, Govt Rules, or Bangla-medium exams, write rich natural Bangla inside `explanationBn` and clear English exam notes inside `explanationEn`.",
+    "Teach step-by-step with textbook precision so candidates understand every intermediate transformation, not just the final answer.",
+    "",
+    "LANGUAGE & CLARITY RULES:",
+    "- Write natural, authoritative, exam-ready Bangla in `explanationBn`, `ruleSteps`, `summaryTable`, `workedExamples`, and `memoryTip` (keep English grammar sentences/terms crisp in English alongside Bangla guidance).",
+    "- Write crisp English technical/grammar clarity in `explanationEn` (precise rules, formulas, constitutional articles, or exam terminology).",
+    "",
+    "STEP-BY-STEP BREAKDOWN RULES (`ruleSteps` - 1 to 6 ordered steps):",
+    "- Show explicit line-by-line `breakdownLines` tailored to the subject (never skip intermediate steps):",
+    "  * Bangla (সন্ধি, সমাস, প্রত্যয়, কারক, উপসর্গ, ধাতু, বানান): break letter-by-letter/phoneme-by-phoneme (`ন্ + এ`, `অ + ন`, `এ → অয়`, `ন্ + (অয়) + অন = নয়ন`) or clause-by-clause (`ব্যাসবাক্য`, পূর্বপদ/পরপদ, পদলোপ, অর্থের প্রাধান্য, প্রত্যয়/বিভক্তি).",
+    "  * English (Tense, Clause, Conditionals, Voice, Narration, Right Form of Verbs, Correction): show clause split, trigger word/marker, exact grammar formula rule, and word-by-word transformation step-by-step.",
+    "  * Math & Mental Ability / General Science & ICT: explicitly show (1) Given values (প্রদত্ত মান), (2) Formula chosen (নির্বাচিত সূত্র), (3) Line-by-line substitution & algebraic/binary/logic simplification, and (4) Final unit/answer + shortcut verification.",
+    "  * Bangladesh Affairs, International Affairs, Ethics & Governance, Geography & Govt Rules: break down by constitutional article / statutory section / historical trigger -> mechanism / calculation / timeline -> exceptions & BPSC/Bank MCQ traps.",
+    "",
+    "QUICK-REVISION CHART (`summaryTable`):",
+    "- ALWAYS populate `summaryTable` as a quick-revision chart (`সংক্ষেপে মনে রাখার চার্ট`, up to 5 columns and up to 8 rows).",
+    "- Every row inside `rows` MUST have the exact same cell count as `headers`.",
+    "",
+    "IMPORTANT: The sample values inside the JSON schema below only show the expected structure and granularity. Replace every field completely with accurate content answering the Student Request and Selected Subject below.",
     "",
     "--- ATTACHED LECTURE CONTEXT ---",
     formatTopicContext(topic),
@@ -94,18 +285,7 @@ function buildTutorPrompt({ topic, subject, question }) {
     `Student Request: ${effectiveQuestion}`,
     "",
     "Return ONLY valid JSON matching this exact schema (no markdown fences):",
-    JSON.stringify({
-      topicTitle: "Short title of the concept explained",
-      subject: "Subject name",
-      explanationEn: "Clear 2-4 sentence exam-focused explanation in English with any formula or rule trap",
-      explanationBn: "সহজ ও স্পষ্ট বাংলায় ২-৪ বাক্যের মূল ব্যাখ্যা ও পরীক্ষার শর্টকাট কৌশল",
-      keyPoints: ["4 to 6 high-yield bullet points for BCS/Bank/Primary MCQ & Written"],
-      workedExamples: [
-        { label: "Example 1 / Past Trap", detail: "Short worked step-by-step example" },
-      ],
-      memoryTip: "One memorable shortcut, mnemonic, or rule of thumb",
-      followUpQuestions: ["2 smart follow-up questions the student can ask next"],
-    }),
+    JSON.stringify(schemaExample),
   ].join("\n");
 }
 
@@ -211,13 +391,14 @@ function sanitizeGeneratedMcqs(rawQuestions, { subject, examTrack, defaultDiffic
 
 /**
  * Answers a candidate's study doubt or summarizes a Topic Guru lecture sheet
- * with bilingual English + Bangla notes, worked examples, and shortcuts.
+ * with bilingual English + Bangla notes, step-by-step rule breakdowns,
+ * quick-revision chart, worked examples, and shortcuts.
  */
 export async function explainStudyTopicWithAi({
   topicSlug = "",
   subject = "All",
   question = "",
-}) {
+} = {}) {
   const cleanQuestion = cleanText(question, 600);
   const topic = await loadGroundedTopic(topicSlug);
 
@@ -235,18 +416,20 @@ export async function explainStudyTopicWithAi({
 
   const { data, modelUsed, keySlotUsed, totalKeys } = await generateJsonWithGemini({
     contents: prompt,
-    timeoutMs: 22_000,
+    timeoutMs: 28_000,
   });
 
   return {
-    topicTitle: cleanText(data?.topicTitle, 180) || topic?.title || "Study Tutor Note",
-    subject: cleanText(data?.subject, 80) || topic?.subject || subject || "All",
-    explanationEn: cleanText(data?.explanationEn, 2400),
-    explanationBn: cleanText(data?.explanationBn, 2400),
-    keyPoints: normalizeStringList(data?.keyPoints, 7, 320),
-    workedExamples: normalizeExamples(data?.workedExamples, 4),
-    memoryTip: cleanText(data?.memoryTip, 400),
-    followUpQuestions: normalizeStringList(data?.followUpQuestions, 3, 180),
+    topicTitle: cleanScalarText(data?.topicTitle, 180) || topic?.title || "Study Tutor Note",
+    subject: cleanScalarText(data?.subject, 80) || topic?.subject || subject || "All",
+    explanationEn: cleanScalarText(data?.explanationEn, 3500),
+    explanationBn: cleanScalarText(data?.explanationBn, 3500),
+    keyPoints: normalizeScalarList(data?.keyPoints, 8, 360),
+    ruleSteps: normalizeRuleSteps(data?.ruleSteps, 6),
+    summaryTable: normalizeSummaryTable(data?.summaryTable),
+    workedExamples: normalizeExamples(data?.workedExamples, 5, 900),
+    memoryTip: cleanScalarText(data?.memoryTip, 600),
+    followUpQuestions: normalizeScalarList(data?.followUpQuestions, 4, 220),
     meta: {
       modelUsed,
       keySlotUsed,

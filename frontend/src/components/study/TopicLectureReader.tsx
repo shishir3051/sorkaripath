@@ -341,7 +341,7 @@ export function TopicLectureReader({
                         type="button"
                         onClick={() =>
                           aiLabRef.current?.focusWithPrompt(
-                            `Explain "${ch.heading}" (${topic.title}) in simple steps with extra exam shortcuts and common traps.`
+                            `Break down "${ch.heading}" (${topic.title}) step-by-step with detailed বিশ্লেষণ/derivation, worked examples, common exam traps, and a quick-memory summary chart.`
                           )
                         }
                         className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-white px-2.5 py-1 text-[11px] font-bold text-indigo-800 transition-colors duration-200 ease-in-out hover:bg-indigo-50 cursor-pointer print:hidden"
