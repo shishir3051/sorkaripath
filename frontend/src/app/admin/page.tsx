@@ -52,21 +52,17 @@ export default async function AdminPage() {
   }
 
   return (
-    <div className="app-container py-4 sm:py-5 space-y-3.5">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-block rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-amber-900">
-              Platform Administration
-            </span>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-              SorkariPath Admin Dashboard
-            </h1>
-          </div>
-          <p className="mt-0.5 text-xs sm:text-sm text-slate-600">
-            Manage learner accounts, role permissions, Gemini AI usage, job circulars, and live sync operations.
-          </p>
-        </div>
+    <div className="app-container py-5 sm:py-6 space-y-4 sm:space-y-5">
+      <div className="space-y-1">
+        <span className="inline-block rounded-full bg-amber-100 px-3 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-amber-900">
+          Platform Administration
+        </span>
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+          SorkariPath Admin Dashboard
+        </h1>
+        <p className="text-xs sm:text-sm text-slate-600">
+          Manage learner accounts, role permissions, Gemini AI usage, job circulars, and live sync operations.
+        </p>
       </div>
 
       <AdminDashboard initialData={initialData} />

@@ -336,29 +336,29 @@ export function AdminDashboard({
   const showCirculars = activeTab === "all" || activeTab === "circulars";
 
   return (
-    <div className="space-y-4">
-      {/* Compact Control Banner */}
-      <div className="rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950 to-teal-900 px-4 py-3.5 sm:px-5 sm:py-4 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
-        <div className="space-y-1 min-w-0">
+    <div className="space-y-5">
+      {/* Comfortable-Compact Control Banner */}
+      <div className="rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950 to-teal-900 px-5 py-4 sm:px-6 sm:py-5 text-white shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-1.5 min-w-0">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/15 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-amber-300 ring-1 ring-amber-300/30">
               <Crown className="h-3 w-3" />
               <span>Administrator Control Panel</span>
             </span>
-            <h2 className="text-base sm:text-lg font-bold tracking-tight truncate">
-              {currentUser?.name} ({currentUser?.email})
-            </h2>
           </div>
+          <h2 className="text-lg font-bold tracking-tight truncate">
+            Signed in as {currentUser?.name} ({currentUser?.email})
+          </h2>
           <p className="text-xs text-emerald-100/80">
-            Manage registered accounts, role &amp; user deletion, Gemini AI
-            token usage, curated circulars, and live sync.
+            Manage registered accounts, roles &amp; deletion, Gemini AI token
+            usage, curated circulars, and live sync.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2 shrink-0">
           <Link
             href="/live-sync"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-white/10 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/20"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-white/10 px-3.5 py-2 text-xs font-semibold text-white hover:bg-white/20"
           >
             <Radio className="h-3.5 w-3.5 text-emerald-300" />
             <span>Sync Console</span>
@@ -367,7 +367,7 @@ export function AdminDashboard({
             type="button"
             disabled={syncing}
             onClick={handleAdminSync}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-400 px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-emerald-300 disabled:opacity-60 cursor-pointer"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-400 px-3.5 py-2 text-xs font-semibold text-slate-950 hover:bg-emerald-300 disabled:opacity-60 cursor-pointer"
           >
             {syncing ? (
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -380,84 +380,76 @@ export function AdminDashboard({
       </div>
 
       {message && (
-        <div className="rounded-lg border border-emerald-300 bg-emerald-50 px-3.5 py-2 text-xs sm:text-sm font-medium text-emerald-900">
+        <div className="rounded-xl border border-emerald-300 bg-emerald-50 px-4 py-2.5 text-xs sm:text-sm font-medium text-emerald-900">
           {message}
         </div>
       )}
       {error && (
-        <div className="rounded-lg border border-rose-300 bg-rose-50 px-3.5 py-2 text-xs sm:text-sm font-medium text-rose-900">
+        <div className="rounded-xl border border-rose-300 bg-rose-50 px-4 py-2.5 text-xs sm:text-sm font-medium text-rose-900">
           {error}
         </div>
       )}
 
-      {/* Compact KPI Strip */}
+      {/* KPI Strip */}
       {stats && (
-        <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-xs">
+        <div className="grid gap-3.5 grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-xs">
             <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-500">
-              <span>Users</span>
-              <Users className="h-3.5 w-3.5 text-emerald-700" />
+              <span>Registered Users</span>
+              <Users className="h-4 w-4 text-emerald-700" />
             </div>
-            <div className="mt-1 flex items-baseline justify-between gap-2">
-              <p className="text-lg font-bold text-slate-900">
-                {stats.totalUsers}
-              </p>
-              <span className="text-[11px] text-slate-500 truncate">
-                {stats.verifiedUsers} ver • {stats.adminUsers} admin
-              </span>
-            </div>
+            <p className="mt-1.5 text-xl font-bold text-slate-900">
+              {stats.totalUsers}
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500">
+              {stats.verifiedUsers} verified • {stats.adminUsers} admin
+            </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-xs">
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-xs">
             <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-500">
               <span>Gemini Tokens</span>
-              <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+              <Sparkles className="h-4 w-4 text-indigo-600" />
             </div>
-            <div className="mt-1 flex items-baseline justify-between gap-2">
-              <p className="text-lg font-bold text-indigo-700">
-                {formatCount(aiSummary?.totalTokens)}
-              </p>
-              <span className="text-[11px] text-slate-500 truncate">
-                {formatCount(aiSummary?.promptTokens)} in /{" "}
-                {formatCount(aiSummary?.outputTokens)} out
-              </span>
-            </div>
+            <p className="mt-1.5 text-xl font-bold text-indigo-700">
+              {formatCount(aiSummary?.totalTokens)}
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500 truncate">
+              {formatCount(aiSummary?.promptTokens)} in •{" "}
+              {formatCount(aiSummary?.outputTokens)} out
+            </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-xs">
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-xs">
             <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-500">
               <span>AI Assistant Calls</span>
-              <Bot className="h-3.5 w-3.5 text-emerald-600" />
+              <Bot className="h-4 w-4 text-emerald-600" />
             </div>
-            <div className="mt-1 flex items-baseline justify-between gap-2">
-              <p className="text-lg font-bold text-slate-900">
-                {formatCount(aiSummary?.totalRequests)}
-              </p>
-              <span className="text-[11px] text-slate-500 truncate">
-                {formatCount(aiSummary?.apiCalls)} API •{" "}
-                {formatCount(aiSummary?.uniqueUsersCount)} users
-              </span>
-            </div>
+            <p className="mt-1.5 text-xl font-bold text-slate-900">
+              {formatCount(aiSummary?.totalRequests)}
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500 truncate">
+              {formatCount(aiSummary?.apiCalls)} API •{" "}
+              {formatCount(aiSummary?.uniqueUsersCount)} users
+            </p>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-xs">
+          <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-xs">
             <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-500">
               <span>Content Pool</span>
-              <Shield className="h-3.5 w-3.5 text-amber-600" />
+              <Shield className="h-4 w-4 text-amber-600" />
             </div>
-            <div className="mt-1 flex items-baseline justify-between gap-2">
-              <p className="text-lg font-bold text-slate-900">
-                {formatCount(stats.totalCirculars)}
-              </p>
-              <span className="text-[11px] text-slate-500 truncate">
-                {stats.topicCount} sh • {stats.lessonCount} mod • {stats.mcqCount} MCQ
-              </span>
-            </div>
+            <p className="mt-1.5 text-xl font-bold text-slate-900">
+              {formatCount(stats.totalCirculars)} Circulars
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500 truncate">
+              {stats.topicCount} sheets • {stats.lessonCount} mod • {stats.mcqCount} MCQs
+            </p>
           </div>
         </div>
       )}
 
-      {/* Compact Section Switcher */}
+      {/* Section Switcher */}
       <div className="flex flex-wrap items-center gap-1.5 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xs w-fit">
         {(
           [
@@ -471,7 +463,7 @@ export function AdminDashboard({
             key={key}
             type="button"
             onClick={() => setActiveTab(key)}
-            className={`rounded-lg px-3 py-1 text-xs font-semibold transition-colors cursor-pointer ${
+            className={`rounded-lg px-3.5 py-1.5 text-xs font-semibold transition-colors cursor-pointer ${
               activeTab === key
                 ? "bg-emerald-700 text-white"
                 : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
@@ -484,38 +476,38 @@ export function AdminDashboard({
 
       {/* User Management & Delete Controls */}
       {showUsers && (
-        <section className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
-          <div className="border-b border-slate-200 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+        <section className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+          <div className="border-b border-slate-200 px-5 py-3.5 flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h3 className="text-sm font-bold text-slate-900">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900">
                 User Accounts &amp; Role Permissions
               </h3>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-xs text-slate-500">
                 Promote/demote roles or delete non-primary user accounts and clear their records.
               </p>
             </div>
-            <div className="relative w-full sm:w-56">
-              <Search className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+            <div className="relative w-full sm:w-64">
+              <Search className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
               <input
                 type="search"
                 value={userSearch}
                 onChange={(e) => setUserSearch(e.target.value)}
-                placeholder="Filter users..."
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 py-1 text-xs text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
+                placeholder="Filter users by name or email..."
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-8 pr-3 py-1.5 text-xs sm:text-sm text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
               />
             </div>
           </div>
 
-          <div className="overflow-x-auto max-h-80 overflow-y-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="sticky top-0 z-10 bg-slate-50 text-[10px] font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-200">
+          <div className="overflow-x-auto max-h-96 overflow-y-auto">
+            <table className="w-full text-left text-xs sm:text-sm">
+              <thead className="sticky top-0 z-10 bg-slate-50 text-[11px] font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-200">
                 <tr>
-                  <th className="px-4 py-2">User</th>
-                  <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2">Role</th>
-                  <th className="px-3 py-2">AI Usage</th>
-                  <th className="px-3 py-2">Last Login</th>
-                  <th className="px-4 py-2 text-right">Actions</th>
+                  <th className="px-5 py-2.5">User</th>
+                  <th className="px-4 py-2.5">Status</th>
+                  <th className="px-4 py-2.5">Role</th>
+                  <th className="px-4 py-2.5">AI Usage</th>
+                  <th className="px-4 py-2.5">Last Login</th>
+                  <th className="px-5 py-2.5 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -529,20 +521,20 @@ export function AdminDashboard({
 
                   return (
                     <tr key={u.id} className="hover:bg-slate-50/70">
-                      <td className="px-4 py-2">
-                        <p className="font-semibold text-slate-900 leading-tight">
+                      <td className="px-5 py-2.5">
+                        <p className="font-semibold text-slate-900 leading-snug">
                           {u.name}
                         </p>
-                        <p className="text-[11px] text-slate-500">{u.email}</p>
+                        <p className="text-xs text-slate-500">{u.email}</p>
                       </td>
-                      <td className="px-3 py-2">
-                        <div className="flex flex-wrap items-center gap-1">
+                      <td className="px-4 py-2.5">
+                        <div className="flex flex-wrap items-center gap-1.5">
                           {u.isEmailVerified ? (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
-                              <UserCheck className="h-2.5 w-2.5" /> Verified
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-800">
+                              <UserCheck className="h-3 w-3" /> Verified
                             </span>
                           ) : (
-                            <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                            <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-800">
                               Unverified
                             </span>
                           )}
@@ -553,33 +545,33 @@ export function AdminDashboard({
                           )}
                         </div>
                       </td>
-                      <td className="px-3 py-2">
+                      <td className="px-4 py-2.5">
                         {u.role === "admin" ? (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-900">
-                            <Crown className="h-2.5 w-2.5" />
+                          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-semibold text-amber-900">
+                            <Crown className="h-3 w-3" />
                             {lockedPrimary ? "Primary Admin" : "Admin"}
                           </span>
                         ) : (
-                          <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-semibold text-slate-700">
+                          <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-700">
                             User
                           </span>
                         )}
                       </td>
-                      <td className="px-3 py-2">
+                      <td className="px-4 py-2.5">
                         {userAiCalls > 0 ? (
-                          <span className="font-mono text-[11px] font-semibold text-indigo-700">
+                          <span className="font-mono text-xs font-semibold text-indigo-700">
                             {formatCount(userAiTokens)} tok ({userAiCalls})
                           </span>
                         ) : (
-                          <span className="text-[11px] text-slate-400">—</span>
+                          <span className="text-xs text-slate-400">—</span>
                         )}
                       </td>
-                      <td className="px-3 py-2 text-[11px] text-slate-500 whitespace-nowrap">
+                      <td className="px-4 py-2.5 text-xs text-slate-500 whitespace-nowrap">
                         {formatBdDateTime(u.lastLoginAt, "Not logged in")}
                       </td>
-                      <td className="px-4 py-2 text-right">
+                      <td className="px-5 py-2.5 text-right">
                         {lockedPrimary || isSelf ? (
-                          <span className="text-[11px] font-medium text-slate-400">
+                          <span className="text-xs font-medium text-slate-400">
                             {isSelf ? "Current session" : "Protected"}
                           </span>
                         ) : isConfirmingDelete ? (
@@ -588,12 +580,12 @@ export function AdminDashboard({
                               type="button"
                               disabled={isDeletingThis}
                               onClick={() => handleDeleteUser(u)}
-                              className="inline-flex items-center gap-1 rounded-md bg-rose-700 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-rose-800 disabled:opacity-50 cursor-pointer"
+                              className="inline-flex items-center gap-1 rounded-lg bg-rose-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-rose-800 disabled:opacity-50 cursor-pointer"
                             >
                               {isDeletingThis ? (
-                                <Loader2 className="h-3 w-3 animate-spin" />
+                                <Loader2 className="h-3.5 w-3.5 animate-spin" />
                               ) : (
-                                <Trash2 className="h-3 w-3" />
+                                <Trash2 className="h-3.5 w-3.5" />
                               )}
                               <span>
                                 {isDeletingThis ? "Deleting..." : "Confirm Delete"}
@@ -603,19 +595,19 @@ export function AdminDashboard({
                               type="button"
                               disabled={isDeletingThis}
                               onClick={() => setConfirmDeleteUserId(null)}
-                              className="rounded-md border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-100 cursor-pointer"
+                              className="rounded-lg border border-slate-200 px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-100 cursor-pointer"
                             >
                               Cancel
                             </button>
                           </div>
                         ) : (
-                          <div className="inline-flex items-center justify-end gap-1.5">
+                          <div className="inline-flex items-center justify-end gap-2">
                             {u.role === "admin" ? (
                               <button
                                 type="button"
                                 disabled={busyUserId === u.id}
                                 onClick={() => handleRoleChange(u, "user")}
-                                className="rounded-md border border-slate-200 px-2.5 py-1 text-[11px] font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50 cursor-pointer"
+                                className="rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-semibold text-slate-700 hover:bg-slate-100 disabled:opacity-50 cursor-pointer"
                               >
                                 {busyUserId === u.id ? "..." : "Set User"}
                               </button>
@@ -624,7 +616,7 @@ export function AdminDashboard({
                                 type="button"
                                 disabled={busyUserId === u.id}
                                 onClick={() => handleRoleChange(u, "admin")}
-                                className="rounded-md bg-emerald-700 px-2.5 py-1 text-[11px] font-semibold text-white hover:bg-emerald-800 disabled:opacity-50 cursor-pointer"
+                                className="rounded-lg bg-emerald-700 px-3 py-1.5 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-50 cursor-pointer"
                               >
                                 {busyUserId === u.id ? "..." : "Make Admin"}
                               </button>
@@ -634,9 +626,9 @@ export function AdminDashboard({
                               disabled={busyUserId === u.id}
                               onClick={() => setConfirmDeleteUserId(u.id)}
                               title={`Delete ${u.email}`}
-                              className="inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-50 cursor-pointer"
+                              className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-50 cursor-pointer"
                             >
-                              <Trash2 className="h-3 w-3" />
+                              <Trash2 className="h-3.5 w-3.5" />
                               <span>Delete</span>
                             </button>
                           </div>
@@ -649,7 +641,7 @@ export function AdminDashboard({
                   <tr>
                     <td
                       colSpan={6}
-                      className="px-4 py-6 text-center text-xs text-slate-500"
+                      className="px-5 py-6 text-center text-xs sm:text-sm text-slate-500"
                     >
                       No users match &ldquo;{userSearch}&rdquo;.
                     </td>
@@ -663,35 +655,35 @@ export function AdminDashboard({
 
       {/* Gemini AI Assistant Users & Token Usage */}
       {showAi && (
-        <section className="rounded-xl border border-indigo-200 bg-white shadow-xs overflow-hidden">
-          <div className="border-b border-indigo-100 bg-gradient-to-r from-indigo-50/70 via-white to-emerald-50/40 px-4 py-2.5 flex flex-wrap items-center justify-between gap-2">
+        <section className="rounded-2xl border border-indigo-200 bg-white shadow-xs overflow-hidden">
+          <div className="border-b border-indigo-100 bg-gradient-to-r from-indigo-50/70 via-white to-emerald-50/40 px-5 py-3.5 flex flex-wrap items-center justify-between gap-2.5">
             <div>
-              <h3 className="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
                 <Cpu className="h-4 w-4 text-indigo-600" />
                 <span>Gemini AI Assistant — Users &amp; Token Usage</span>
               </h3>
-              <p className="text-[11px] text-slate-600">
-                Per-user Gemini invocation count and prompt/output/total tokens.
+              <p className="text-xs text-slate-600 mt-0.5">
+                Per-user Gemini invocation count and prompt, output, and total tokens.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-1.5 text-[11px]">
-              <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 font-semibold text-indigo-900">
-                {formatCount(aiSummary?.uniqueUsersCount)} Users
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              <span className="rounded-full bg-indigo-100 px-3 py-1 font-semibold text-indigo-900">
+                {formatCount(aiSummary?.uniqueUsersCount)} Active Users
               </span>
-              <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 font-semibold text-emerald-900">
+              <span className="rounded-full bg-emerald-100 px-3 py-1 font-semibold text-emerald-900">
                 {formatCount(aiSummary?.totalTokens)} Tokens
               </span>
               {recentAiLogs.length > 0 && (
                 <button
                   type="button"
                   onClick={() => setShowRecentAiLogs((v) => !v)}
-                  className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-white px-2.5 py-0.5 font-semibold text-indigo-700 hover:bg-indigo-50 cursor-pointer"
+                  className="inline-flex items-center gap-1 rounded-full border border-indigo-200 bg-white px-3 py-1 font-semibold text-indigo-700 hover:bg-indigo-50 cursor-pointer"
                 >
-                  <span>Logs ({recentAiLogs.length})</span>
+                  <span>Recent Logs ({recentAiLogs.length})</span>
                   {showRecentAiLogs ? (
-                    <ChevronUp className="h-3 w-3" />
+                    <ChevronUp className="h-3.5 w-3.5" />
                   ) : (
-                    <ChevronDown className="h-3 w-3" />
+                    <ChevronDown className="h-3.5 w-3.5" />
                   )}
                 </button>
               )}
@@ -699,34 +691,34 @@ export function AdminDashboard({
           </div>
 
           {aiUserBreakdown.length === 0 ? (
-            <div className="px-4 py-5 text-center text-xs text-slate-500">
+            <div className="px-5 py-6 text-center text-xs sm:text-sm text-slate-500">
               No Gemini AI Assistant requests recorded yet. Token usage per user
               will appear here automatically.
             </div>
           ) : (
-            <div className="overflow-x-auto max-h-64 overflow-y-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="sticky top-0 z-10 bg-slate-50 text-[10px] font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-200">
+            <div className="overflow-x-auto max-h-72 overflow-y-auto">
+              <table className="w-full text-left text-xs sm:text-sm">
+                <thead className="sticky top-0 z-10 bg-slate-50 text-[11px] font-semibold uppercase tracking-wider text-slate-500 border-b border-slate-200">
                   <tr>
-                    <th className="px-4 py-2">User</th>
-                    <th className="px-3 py-2">Features</th>
-                    <th className="px-3 py-2 text-right">Calls</th>
-                    <th className="px-3 py-2 text-right">Prompt</th>
-                    <th className="px-3 py-2 text-right">Output</th>
-                    <th className="px-3 py-2 text-right">Total Tok</th>
-                    <th className="px-4 py-2 text-right">Last Used</th>
+                    <th className="px-5 py-2.5">User</th>
+                    <th className="px-4 py-2.5">Features</th>
+                    <th className="px-4 py-2.5 text-right">Calls</th>
+                    <th className="px-4 py-2.5 text-right">Prompt</th>
+                    <th className="px-4 py-2.5 text-right">Output</th>
+                    <th className="px-4 py-2.5 text-right">Total Tok</th>
+                    <th className="px-5 py-2.5 text-right">Last Used</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {aiUserBreakdown.map((entry) => (
                     <tr key={entry.userEmail} className="hover:bg-slate-50/70">
-                      <td className="px-4 py-2">
+                      <td className="px-5 py-2.5">
                         <div className="flex items-center gap-1.5">
                           <span className="font-semibold text-slate-900">
                             {entry.userName}
                           </span>
                           <span
-                            className={`rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase ${
+                            className={`rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${
                               entry.role === "admin"
                                 ? "bg-amber-100 text-amber-900"
                                 : entry.role === "guest"
@@ -737,35 +729,35 @@ export function AdminDashboard({
                             {entry.role}
                           </span>
                         </div>
-                        <p className="text-[11px] text-slate-500">
+                        <p className="text-xs text-slate-500">
                           {entry.userEmail}
                         </p>
                       </td>
-                      <td className="px-3 py-2">
+                      <td className="px-4 py-2.5">
                         <div className="flex flex-wrap gap-1">
                           {entry.features.study_tutor > 0 && (
-                            <span className="rounded bg-indigo-50 px-1.5 py-0.5 text-[10px] font-semibold text-indigo-800">
+                            <span className="rounded bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-800">
                               Tutor:{entry.features.study_tutor}
                             </span>
                           )}
                           {entry.features.generate_mcqs > 0 && (
-                            <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+                            <span className="rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
                               MCQ:{entry.features.generate_mcqs}
                             </span>
                           )}
                           {entry.features.circular_discover > 0 && (
-                            <span className="rounded bg-sky-50 px-1.5 py-0.5 text-[10px] font-semibold text-sky-800">
+                            <span className="rounded bg-sky-50 px-2 py-0.5 text-[11px] font-semibold text-sky-800">
                               Circ:{entry.features.circular_discover}
                             </span>
                           )}
                           {entry.features.circular_analyze > 0 && (
-                            <span className="rounded bg-amber-50 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900">
+                            <span className="rounded bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-900">
                               PDF:{entry.features.circular_analyze}
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="px-3 py-2 text-right font-mono text-slate-700">
+                      <td className="px-4 py-2.5 text-right font-mono text-xs text-slate-700">
                         <span className="font-semibold text-slate-900">
                           {formatCount(entry.totalRequests)}
                         </span>
@@ -775,18 +767,18 @@ export function AdminDashboard({
                           </span>
                         )}
                       </td>
-                      <td className="px-3 py-2 text-right font-mono text-slate-600">
+                      <td className="px-4 py-2.5 text-right font-mono text-xs text-slate-600">
                         {formatCount(entry.promptTokens)}
                       </td>
-                      <td className="px-3 py-2 text-right font-mono text-slate-600">
+                      <td className="px-4 py-2.5 text-right font-mono text-xs text-slate-600">
                         {formatCount(
                           entry.outputTokens + (entry.thoughtsTokens || 0)
                         )}
                       </td>
-                      <td className="px-3 py-2 text-right font-mono font-semibold text-indigo-700">
+                      <td className="px-4 py-2.5 text-right font-mono text-xs font-semibold text-indigo-700">
                         {formatCount(entry.totalTokens)}
                       </td>
-                      <td className="px-4 py-2 text-right text-[11px] text-slate-500 whitespace-nowrap">
+                      <td className="px-5 py-2.5 text-right text-xs text-slate-500 whitespace-nowrap">
                         {formatBdDateTime(entry.lastUsedAt, "—")}
                       </td>
                     </tr>
@@ -797,12 +789,12 @@ export function AdminDashboard({
           )}
 
           {recentAiLogs.length > 0 && showRecentAiLogs && (
-            <div className="border-t border-slate-200 bg-slate-50/60 px-4 py-3 space-y-2">
-              <h4 className="text-[11px] font-semibold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+            <div className="border-t border-slate-200 bg-slate-50/60 px-5 py-3.5 space-y-2.5">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
                 <Activity className="h-3.5 w-3.5 text-indigo-600" />
                 <span>Recent Gemini AI Requests (Latest 25)</span>
               </h4>
-              <div className="divide-y divide-slate-200/80 rounded-lg border border-slate-200 bg-white max-h-56 overflow-y-auto">
+              <div className="divide-y divide-slate-200/80 rounded-xl border border-slate-200 bg-white max-h-64 overflow-y-auto">
                 {recentAiLogs.map((log) => {
                   const feat = FEATURE_META[log.feature] || {
                     label: log.feature,
@@ -811,7 +803,7 @@ export function AdminDashboard({
                   return (
                     <div
                       key={log.id}
-                      className="px-3.5 py-2 flex flex-wrap items-center justify-between gap-2 text-xs"
+                      className="px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs"
                     >
                       <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-1.5">
@@ -823,20 +815,20 @@ export function AdminDashboard({
                           <span className="font-semibold text-slate-900">
                             {log.userName}
                           </span>
-                          <span className="text-[11px] text-slate-500">
+                          <span className="text-slate-500">
                             ({log.userEmail})
                           </span>
                         </div>
                         {log.label && (
-                          <p className="text-[11px] text-slate-600 truncate mt-0.5">
+                          <p className="text-slate-600 truncate mt-0.5">
                             {log.label}
                           </p>
                         )}
                       </div>
 
-                      <div className="shrink-0 text-right font-mono text-[11px]">
+                      <div className="shrink-0 text-right font-mono">
                         {log.isCacheHit ? (
-                          <span className="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
+                          <span className="rounded bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
                             Cache Hit (0)
                           </span>
                         ) : (
@@ -851,7 +843,7 @@ export function AdminDashboard({
                             </span>
                           </span>
                         )}
-                        <p className="text-[10px] text-slate-400 font-sans">
+                        <p className="text-[10px] text-slate-400 font-sans mt-0.5">
                           {formatBdDateTime(log.createdAt, "")}
                         </p>
                       </div>
@@ -864,33 +856,33 @@ export function AdminDashboard({
         </section>
       )}
 
-      {/* Compact Circular Publishing & Recent Circulars */}
+      {/* Circular Publishing & Recent Circulars */}
       {showCirculars && (
-        <div className="grid gap-4 lg:grid-cols-12">
+        <div className="grid gap-5 lg:grid-cols-12">
           <form
             onSubmit={handlePublishCircular}
-            className="lg:col-span-5 rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-2.5"
+            className="lg:col-span-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-3"
           >
             <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5">
-                <PlusCircle className="h-4 w-4 text-emerald-700" />
-                <h3 className="text-sm font-bold text-slate-900">
+              <div className="flex items-center gap-2">
+                <PlusCircle className="h-4.5 w-4.5 text-emerald-700" />
+                <h3 className="text-sm sm:text-base font-bold text-slate-900">
                   Publish Curated Circular
                 </h3>
               </div>
-              <span className="text-[10px] font-medium text-slate-500">
+              <span className="text-[11px] font-medium text-slate-500">
                 Admin Session
               </span>
             </div>
 
-            <div className="grid gap-2.5 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               <input
                 type="text"
                 required
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="Circular Title"
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs sm:text-sm focus:border-emerald-600 focus:bg-white focus:outline-none"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm focus:border-emerald-600 focus:bg-white focus:outline-none"
               />
               <input
                 type="text"
@@ -898,15 +890,15 @@ export function AdminDashboard({
                 value={organization}
                 onChange={(e) => setOrganization(e.target.value)}
                 placeholder="Organization (e.g. BPSC)"
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs sm:text-sm focus:border-emerald-600 focus:bg-white focus:outline-none"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm focus:border-emerald-600 focus:bg-white focus:outline-none"
               />
             </div>
 
-            <div className="grid gap-2.5 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               <select
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
-                className="rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs sm:text-sm"
+                className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm"
               >
                 <option value="BCS">BCS</option>
                 <option value="Bank & Financial">Bank &amp; Financial</option>
@@ -920,23 +912,23 @@ export function AdminDashboard({
                 value={gradeRange}
                 onChange={(e) => setGradeRange(e.target.value)}
                 placeholder="Grade Range"
-                className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs sm:text-sm"
+                className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm"
               />
             </div>
 
-            <div className="grid gap-2.5 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               <input
                 type="date"
                 value={deadlineDate}
                 onChange={(e) => setDeadlineDate(e.target.value)}
-                className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs sm:text-sm"
+                className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm"
               />
               <input
                 type="url"
                 value={applyUrl}
                 onChange={(e) => setApplyUrl(e.target.value)}
                 placeholder="Official Apply URL"
-                className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs sm:text-sm"
+                className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm"
               />
             </div>
 
@@ -946,20 +938,20 @@ export function AdminDashboard({
               value={summary}
               onChange={(e) => setSummary(e.target.value)}
               placeholder="Summary of vacancies, qualification & key dates..."
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs sm:text-sm"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm"
             />
             <button
               type="submit"
               disabled={publishing}
-              className="w-full rounded-lg bg-emerald-700 px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60 cursor-pointer"
+              className="w-full rounded-xl bg-emerald-700 px-4 py-2.5 text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60 cursor-pointer"
             >
               {publishing ? "Publishing..." : "Publish Circular"}
             </button>
           </form>
 
-          <div className="lg:col-span-7 rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
-            <div className="border-b border-slate-200 px-4 py-2.5 flex items-center justify-between">
-              <h3 className="text-sm font-bold text-slate-900">
+          <div className="lg:col-span-7 rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+            <div className="border-b border-slate-200 px-5 py-3.5 flex items-center justify-between">
+              <h3 className="text-sm sm:text-base font-bold text-slate-900">
                 Recent Active Circulars
               </h3>
               <Link
@@ -969,20 +961,20 @@ export function AdminDashboard({
                 View Public Board →
               </Link>
             </div>
-            <div className="divide-y divide-slate-100 max-h-[280px] overflow-y-auto">
+            <div className="divide-y divide-slate-100 max-h-[340px] overflow-y-auto">
               {(data?.recentCirculars || []).map((c) => (
                 <div
                   key={c._id}
-                  className="px-4 py-2 flex items-center justify-between gap-2.5 hover:bg-slate-50/70"
+                  className="px-5 py-2.5 flex items-center justify-between gap-3 hover:bg-slate-50/70"
                 >
                   <div className="min-w-0">
                     <Link
                       href={`/jobs/${c.slug}`}
-                      className="text-xs sm:text-sm font-semibold text-slate-900 hover:text-emerald-700 line-clamp-1"
+                      className="text-sm font-semibold text-slate-900 hover:text-emerald-700 line-clamp-1"
                     >
                       {c.title}
                     </Link>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-xs text-slate-500">
                       {c.organization} • {c.category} • {c.origin}
                     </p>
                   </div>
@@ -990,9 +982,9 @@ export function AdminDashboard({
                     type="button"
                     disabled={busyDeleteId === c._id}
                     onClick={() => handleDeleteCircular(c._id, c.title)}
-                    className="shrink-0 inline-flex items-center gap-1 rounded-md border border-rose-200 bg-rose-50 px-2 py-1 text-[11px] font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-50 cursor-pointer"
+                    className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-rose-50 px-2.5 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-50 cursor-pointer"
                   >
-                    <Trash2 className="h-3 w-3" />
+                    <Trash2 className="h-3.5 w-3.5" />
                     <span>{busyDeleteId === c._id ? "..." : "Remove"}</span>
                   </button>
                 </div>

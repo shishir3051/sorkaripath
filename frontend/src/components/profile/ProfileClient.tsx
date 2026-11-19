@@ -241,84 +241,87 @@ export function ProfileClient({
   const isPrimaryAdmin = Boolean(user?.isPrimaryAdmin);
 
   return (
-    <div className="space-y-4">
-      {/* Compact Identity Overview Bar */}
-      <div className="rounded-2xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-900 px-4 py-3.5 sm:px-5 sm:py-4 text-white shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
-        <div className="flex items-start gap-3 min-w-0">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/15 text-lg font-bold text-white ring-1 ring-white/25">
+    <div className="space-y-5">
+      {/* Comfortable-Compact Identity Overview Bar */}
+      <div className="rounded-2xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-900 px-5 py-4 sm:px-6 sm:py-5 text-white shadow-sm flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+        <div className="flex items-start gap-3.5 min-w-0">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-white/15 text-xl font-bold text-white ring-1 ring-white/25">
             {(user?.name || "U").charAt(0).toUpperCase()}
           </div>
-          <div className="space-y-1 min-w-0">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <h2 className="text-lg font-bold tracking-tight truncate">
+          <div className="space-y-1.5 min-w-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <h2 className="text-lg sm:text-xl font-bold tracking-tight truncate">
                 {user?.name}
               </h2>
               {user?.role === "admin" ? (
-                <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 px-2 py-0.5 text-[11px] font-semibold text-amber-200 ring-1 ring-amber-300/30">
+                <span className="inline-flex items-center gap-1 rounded-full bg-amber-400/20 px-2.5 py-0.5 text-[11px] font-semibold text-amber-200 ring-1 ring-amber-300/30">
                   <Crown className="h-3 w-3" />
                   <span>{isPrimaryAdmin ? "Primary Admin" : "Admin"}</span>
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2 py-0.5 text-[11px] font-semibold text-emerald-100">
+                <span className="inline-flex items-center gap-1 rounded-full bg-white/15 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-100">
                   <UserCheck className="h-3 w-3" />
                   <span>Learner</span>
                 </span>
               )}
               {user?.isEmailVerified && (
-                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/20 px-2 py-0.5 text-[11px] font-semibold text-emerald-200">
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-400/20 px-2.5 py-0.5 text-[11px] font-semibold text-emerald-200">
                   <CheckCircle2 className="h-3 w-3" />
                   <span>Verified Gmail</span>
                 </span>
               )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-emerald-100/90">
-              <span className="font-medium break-all">{user?.email}</span>
-              <span className="rounded bg-white/10 px-2 py-0.5">
+            <p className="text-xs sm:text-sm text-emerald-100/90 break-all">
+              {user?.email}
+            </p>
+
+            <div className="flex flex-wrap items-center gap-2 text-[11px] text-emerald-100/90">
+              <span className="rounded-md bg-white/10 px-2.5 py-0.5">
                 Track: {user?.targetTrack || "BCS & General Govt"}
               </span>
-              <span className="rounded bg-white/10 px-2 py-0.5">
+              <span className="rounded-md bg-white/10 px-2.5 py-0.5">
                 Joined: {formatBdDateTime(user?.createdAt, "—")}
               </span>
-              <span className="rounded bg-white/10 px-2 py-0.5">
+              <span className="rounded-md bg-white/10 px-2.5 py-0.5">
                 Last Login: {formatBdDateTime(user?.lastLoginAt, "Active now")}
               </span>
             </div>
 
             {user?.bio && (
-              <p className="text-xs text-emerald-100/80 truncate max-w-2xl">
+              <p className="text-xs text-emerald-100/80 line-clamp-2 max-w-2xl">
                 {user.bio}
               </p>
             )}
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-1.5 shrink-0">
+        <div className="flex flex-wrap gap-2 shrink-0">
           <Link
             href="/study"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/25 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-3.5 py-2 text-xs font-semibold text-white hover:bg-white/25 transition-colors"
           >
             <GraduationCap className="h-3.5 w-3.5 text-emerald-300" />
             <span>Study Hub</span>
           </Link>
           <Link
             href="/learn"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/25 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-3.5 py-2 text-xs font-semibold text-white hover:bg-white/25 transition-colors"
           >
             <BookOpen className="h-3.5 w-3.5 text-emerald-300" />
-            <span>A–Z</span>
+            <span>A–Z Academy</span>
           </Link>
           <Link
             href="/practice"
-            className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-xs font-semibold text-white hover:bg-white/25 transition-colors"
+            className="inline-flex items-center gap-1.5 rounded-xl bg-white/15 px-3.5 py-2 text-xs font-semibold text-white hover:bg-white/25 transition-colors"
           >
             <Target className="h-3.5 w-3.5 text-emerald-300" />
-            <span>MCQs</span>
+            <span>MCQ Arena</span>
           </Link>
           {user?.role === "admin" && (
             <Link
               href="/admin"
-              className="inline-flex items-center gap-1.5 rounded-lg bg-amber-400 px-3 py-1.5 text-xs font-semibold text-slate-950 hover:bg-amber-300 transition-colors"
+              className="inline-flex items-center gap-1.5 rounded-xl bg-amber-400 px-3.5 py-2 text-xs font-semibold text-slate-950 hover:bg-amber-300 transition-colors"
             >
               <Crown className="h-3.5 w-3.5" />
               <span>Admin Panel</span>
@@ -327,100 +330,90 @@ export function ProfileClient({
         </div>
       </div>
 
-      {/* Compact Study & AI KPI Strip */}
-      <div className="grid gap-3 grid-cols-2 lg:grid-cols-4">
-        <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-xs">
+      {/* Study & AI KPI Strip */}
+      <div className="grid gap-3.5 grid-cols-2 lg:grid-cols-4">
+        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-xs">
           <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-500">
             <span>A–Z Academy</span>
-            <BookOpen className="h-3.5 w-3.5 text-emerald-700" />
+            <BookOpen className="h-4 w-4 text-emerald-700" />
           </div>
-          <div className="mt-1 flex items-baseline justify-between gap-2">
-            <p className="text-lg font-bold text-slate-900">
-              {stats?.completedLessonsCount ?? 0} / {stats?.totalLessonsCount ?? 26}
-            </p>
-            <span className="text-[11px] text-slate-500">Modules</span>
-          </div>
+          <p className="mt-1.5 text-xl font-bold text-slate-900">
+            {stats?.completedLessonsCount ?? 0} / {stats?.totalLessonsCount ?? 26}
+          </p>
+          <p className="mt-0.5 text-xs text-slate-500">Modules completed</p>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-xs">
+        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-xs">
           <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-500">
             <span>Topic Sheets</span>
-            <Layers className="h-3.5 w-3.5 text-indigo-600" />
+            <Layers className="h-4 w-4 text-indigo-600" />
           </div>
-          <div className="mt-1 flex items-baseline justify-between gap-2">
-            <p className="text-lg font-bold text-slate-900">
-              {stats?.completedTopicsCount ?? 0} / {stats?.totalTopicsCount ?? 50}
-            </p>
-            <span className="text-[11px] text-slate-500 truncate">
-              {stats?.highlightsCount ?? 0} notes
-            </span>
-          </div>
+          <p className="mt-1.5 text-xl font-bold text-slate-900">
+            {stats?.completedTopicsCount ?? 0} / {stats?.totalTopicsCount ?? 50}
+          </p>
+          <p className="mt-0.5 text-xs text-slate-500 truncate">
+            {stats?.highlightsCount ?? 0} study highlights saved
+          </p>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-xs">
+        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-xs">
           <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-500">
             <span>30-Day Routine</span>
-            <CalendarCheck className="h-3.5 w-3.5 text-amber-600" />
+            <CalendarCheck className="h-4 w-4 text-amber-600" />
           </div>
-          <div className="mt-1 flex items-baseline justify-between gap-2">
-            <p className="text-lg font-bold text-slate-900">
-              {stats?.completedRoutineDaysCount ?? 0} / 30d
-            </p>
-            <span className="text-[11px] text-slate-500 truncate">
-              {stats?.wrongQuestionsCount ?? 0} vault
-            </span>
-          </div>
+          <p className="mt-1.5 text-xl font-bold text-slate-900">
+            {stats?.completedRoutineDaysCount ?? 0} / 30 Days
+          </p>
+          <p className="mt-0.5 text-xs text-slate-500 truncate">
+            {stats?.wrongQuestionsCount ?? 0} in Mistake Vault
+          </p>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 shadow-xs">
+        <div className="rounded-2xl border border-slate-200 bg-white px-4 py-3.5 shadow-xs">
           <div className="flex items-center justify-between text-[11px] font-semibold uppercase tracking-wider text-slate-500">
             <span>Gemini Tokens</span>
-            <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+            <Sparkles className="h-4 w-4 text-indigo-600" />
           </div>
-          <div className="mt-1 flex items-baseline justify-between gap-2">
-            <p className="text-lg font-bold text-indigo-700">
-              {formatCount(aiStats?.totalTokens)}
-            </p>
-            <span className="text-[11px] text-slate-500 truncate">
-              {formatCount(aiStats?.totalRequests)} calls ({formatCount(aiStats?.apiCalls)} API)
-            </span>
-          </div>
+          <p className="mt-1.5 text-xl font-bold text-indigo-700">
+            {formatCount(aiStats?.totalTokens)}
+          </p>
+          <p className="mt-0.5 text-xs text-slate-500 truncate">
+            {formatCount(aiStats?.totalRequests)} requests ({formatCount(aiStats?.apiCalls)} API)
+          </p>
         </div>
       </div>
 
-      {/* Compact Profile Info & Password Forms */}
-      <div className="grid gap-4 lg:grid-cols-2">
+      {/* Profile Info & Password Forms */}
+      <div className="grid gap-5 lg:grid-cols-2">
         <form
           onSubmit={handleSaveProfile}
-          className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-3"
+          className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-3.5"
         >
-          <div className="flex items-center justify-between gap-2">
-            <div>
-              <h3 className="text-sm font-semibold text-slate-900">
-                Profile Information &amp; Study Goal
-              </h3>
-              <p className="text-[11px] text-slate-500">
-                Update display name, exam track, and study goal.
-              </p>
-            </div>
+          <div>
+            <h3 className="text-sm sm:text-base font-semibold text-slate-900">
+              Profile Information &amp; Study Goal
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Update display name, primary exam track, and study goal note.
+            </p>
           </div>
 
           {profileMessage && (
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-900">
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs font-medium text-emerald-900">
               {profileMessage}
             </div>
           )}
           {profileError && (
-            <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-900">
+            <div className="rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs font-medium text-rose-900">
               {profileError}
             </div>
           )}
 
-          <div className="grid gap-2.5 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1">
               <label
                 htmlFor="profile-name"
-                className="block text-[11px] font-semibold uppercase tracking-wider text-slate-600"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
               >
                 Full Name
               </label>
@@ -432,14 +425,14 @@ export function ProfileClient({
                 maxLength={80}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
               />
             </div>
 
             <div className="space-y-1">
               <label
                 htmlFor="profile-track"
-                className="block text-[11px] font-semibold uppercase tracking-wider text-slate-600"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
               >
                 Target Exam Track
               </label>
@@ -447,7 +440,7 @@ export function ProfileClient({
                 id="profile-track"
                 value={targetTrack}
                 onChange={(e) => setTargetTrack(e.target.value)}
-                className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
+                className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
               >
                 {TARGET_TRACKS.map((tr) => (
                   <option key={tr} value={tr}>
@@ -461,7 +454,7 @@ export function ProfileClient({
           <div className="space-y-1">
             <label
               htmlFor="profile-bio"
-              className="block text-[11px] font-semibold uppercase tracking-wider text-slate-600"
+              className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
             >
               Study Goal / Bio (Optional)
             </label>
@@ -472,19 +465,19 @@ export function ProfileClient({
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               placeholder="e.g. Targeting 47th BCS Cadre & Bangladesh Bank AD..."
-              className="w-full rounded-lg border border-slate-200 bg-slate-50 px-3 py-1.5 text-sm text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2 text-sm text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
             />
           </div>
 
           <button
             type="submit"
             disabled={savingProfile}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-emerald-700 px-4 py-2 text-xs font-semibold text-white hover:bg-emerald-800 disabled:opacity-60 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-xl bg-emerald-700 px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-emerald-800 disabled:opacity-60 transition-colors cursor-pointer"
           >
             {savingProfile ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <Save className="h-3.5 w-3.5" />
+              <Save className="h-4 w-4" />
             )}
             <span>{savingProfile ? "Saving..." : "Save Profile"}</span>
           </button>
@@ -492,43 +485,43 @@ export function ProfileClient({
 
         <form
           onSubmit={handlePasswordUpdate}
-          className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs space-y-3"
+          className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs space-y-3.5"
         >
           <div className="flex items-start justify-between gap-2">
             <div>
-              <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-1.5">
-                <KeyRound className="h-3.5 w-3.5 text-emerald-700" />
+              <h3 className="text-sm sm:text-base font-semibold text-slate-900 flex items-center gap-2">
+                <KeyRound className="h-4 w-4 text-emerald-700" />
                 <span>
                   {needsInitialPassword ? "Set Account Password" : "Change Password"}
                 </span>
               </h3>
-              <p className="text-[11px] text-slate-500">
+              <p className="text-xs text-slate-500 mt-0.5">
                 {needsInitialPassword
                   ? "Set a password so you can also sign in with Gmail & Password."
-                  : "Update your password to keep your study account secure."}
+                  : "Update your password to keep your study workspace secure."}
               </p>
             </div>
             <button
               type="button"
               onClick={() => setShowPasswords((v) => !v)}
-              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-[11px] font-medium text-slate-600 hover:bg-slate-50 cursor-pointer"
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-50 cursor-pointer"
             >
               {showPasswords ? (
-                <EyeOff className="h-3 w-3" />
+                <EyeOff className="h-3.5 w-3.5" />
               ) : (
-                <Eye className="h-3 w-3" />
+                <Eye className="h-3.5 w-3.5" />
               )}
               <span>{showPasswords ? "Hide" : "Show"}</span>
             </button>
           </div>
 
           {passwordMessage && (
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-900">
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-xs font-medium text-emerald-900">
               {passwordMessage}
             </div>
           )}
           {passwordError && (
-            <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-900">
+            <div className="rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-xs font-medium text-rose-900">
               {passwordError}
             </div>
           )}
@@ -537,12 +530,12 @@ export function ProfileClient({
             <div className="space-y-1">
               <label
                 htmlFor="current-password"
-                className="block text-[11px] font-semibold uppercase tracking-wider text-slate-600"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
               >
                 Current Password
               </label>
               <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                <Lock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <input
                   id="current-password"
                   type={showPasswords ? "text" : "password"}
@@ -550,22 +543,22 @@ export function ProfileClient({
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
                   placeholder="Enter current password"
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 py-1.5 text-sm text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-2 text-sm text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
                 />
               </div>
             </div>
           )}
 
-          <div className="grid gap-2.5 sm:grid-cols-2">
+          <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1">
               <label
                 htmlFor="new-password"
-                className="block text-[11px] font-semibold uppercase tracking-wider text-slate-600"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
               >
                 New Password (6+ chars)
               </label>
               <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                <Lock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <input
                   id="new-password"
                   type={showPasswords ? "text" : "password"}
@@ -574,7 +567,7 @@ export function ProfileClient({
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="New password"
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 py-1.5 text-sm text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-2 text-sm text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
                 />
               </div>
             </div>
@@ -582,12 +575,12 @@ export function ProfileClient({
             <div className="space-y-1">
               <label
                 htmlFor="confirm-new-password"
-                className="block text-[11px] font-semibold uppercase tracking-wider text-slate-600"
+                className="block text-xs font-semibold uppercase tracking-wider text-slate-600"
               >
                 Confirm Password
               </label>
               <div className="relative">
-                <Lock className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-slate-400" />
+                <Lock className="pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <input
                   id="confirm-new-password"
                   type={showPasswords ? "text" : "password"}
@@ -596,7 +589,7 @@ export function ProfileClient({
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Repeat password"
-                  className="w-full rounded-lg border border-slate-200 bg-slate-50 pl-8 pr-3 py-1.5 text-sm text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
+                  className="w-full rounded-xl border border-slate-200 bg-slate-50 pl-10 pr-3.5 py-2 text-sm text-slate-900 focus:border-emerald-600 focus:bg-white focus:outline-none"
                 />
               </div>
             </div>
@@ -605,12 +598,12 @@ export function ProfileClient({
           <button
             type="submit"
             disabled={savingPassword}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-slate-900 px-4 py-2 text-xs font-semibold text-white hover:bg-slate-800 disabled:opacity-60 transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2 text-xs sm:text-sm font-semibold text-white hover:bg-slate-800 disabled:opacity-60 transition-colors cursor-pointer"
           >
             {savingPassword ? (
-              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              <Loader2 className="h-4 w-4 animate-spin" />
             ) : (
-              <KeyRound className="h-3.5 w-3.5" />
+              <KeyRound className="h-4 w-4" />
             )}
             <span>
               {savingPassword
@@ -623,23 +616,23 @@ export function ProfileClient({
         </form>
       </div>
 
-      {/* Compact 3-Column Activity & Gemini AI Strip */}
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
-          <div className="border-b border-slate-200 px-4 py-2.5 flex items-center justify-between">
-            <h3 className="text-xs sm:text-sm font-semibold text-slate-900 flex items-center gap-1.5">
-              <Bookmark className="h-3.5 w-3.5 text-amber-600" />
+      {/* Activity & Gemini AI Strip */}
+      <div className="grid gap-5 lg:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+          <div className="border-b border-slate-200 px-5 py-3 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+              <Bookmark className="h-4 w-4 text-amber-600" />
               <span>Saved Circulars ({bookmarkedJobs.length})</span>
             </h3>
             <Link
               href="/jobs"
-              className="text-[11px] font-semibold text-emerald-700 hover:underline"
+              className="text-xs font-semibold text-emerald-700 hover:underline"
             >
               Browse →
             </Link>
           </div>
           {bookmarkedJobs.length === 0 ? (
-            <div className="p-4 text-xs text-slate-500">
+            <div className="p-5 text-xs sm:text-sm text-slate-500">
               No bookmarked circulars yet. Save notices in{" "}
               <Link href="/jobs" className="text-emerald-700 font-semibold underline">
                 Circulars
@@ -647,17 +640,17 @@ export function ProfileClient({
               .
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 max-h-52 overflow-y-auto">
+            <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto">
               {bookmarkedJobs.map((job) => (
                 <Link
                   key={job._id}
                   href={`/jobs/${job.slug}`}
-                  className="block px-4 py-2 hover:bg-slate-50 transition-colors"
+                  className="block px-5 py-2.5 hover:bg-slate-50 transition-colors"
                 >
-                  <p className="text-xs font-semibold text-slate-900 line-clamp-1">
+                  <p className="text-xs sm:text-sm font-semibold text-slate-900 line-clamp-1">
                     {job.title}
                   </p>
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-xs text-slate-500 mt-0.5">
                     {job.organization} •{" "}
                     {formatNoticeDate(job.deadlineDate, job.deadlineRaw)}
                   </p>
@@ -667,21 +660,21 @@ export function ProfileClient({
           )}
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white shadow-xs overflow-hidden">
-          <div className="border-b border-slate-200 px-4 py-2.5 flex items-center justify-between">
-            <h3 className="text-xs sm:text-sm font-semibold text-slate-900 flex items-center gap-1.5">
-              <Award className="h-3.5 w-3.5 text-emerald-700" />
+        <div className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
+          <div className="border-b border-slate-200 px-5 py-3 flex items-center justify-between">
+            <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+              <Award className="h-4 w-4 text-emerald-700" />
               <span>Mock Attempts ({recentAttempts.length})</span>
             </h3>
             <Link
               href="/practice"
-              className="text-[11px] font-semibold text-emerald-700 hover:underline"
+              className="text-xs font-semibold text-emerald-700 hover:underline"
             >
               MCQ Arena →
             </Link>
           </div>
           {recentAttempts.length === 0 ? (
-            <div className="p-4 text-xs text-slate-500">
+            <div className="p-5 text-xs sm:text-sm text-slate-500">
               No mock attempts yet. Take a quiz in{" "}
               <Link href="/practice" className="text-emerald-700 font-semibold underline">
                 MCQ Arena
@@ -689,26 +682,26 @@ export function ProfileClient({
               .
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 max-h-52 overflow-y-auto">
+            <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto">
               {recentAttempts.map((att) => (
                 <div
                   key={att._id}
-                  className="px-4 py-2 flex items-center justify-between gap-2"
+                  className="px-5 py-2.5 flex items-center justify-between gap-2.5"
                 >
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold text-slate-900 truncate">
+                    <p className="text-xs sm:text-sm font-semibold text-slate-900 truncate">
                       {att.examTrack} — {att.subject}
                     </p>
-                    <p className="text-[11px] text-slate-500">
+                    <p className="text-xs text-slate-500">
                       {att.correctCount}✓ {att.wrongCount}✕ •{" "}
                       {formatBdDateTime(att.createdAt, "")}
                     </p>
                   </div>
                   <div className="text-right shrink-0">
-                    <span className="font-mono text-xs font-bold text-emerald-700">
+                    <span className="font-mono text-xs sm:text-sm font-bold text-emerald-700">
                       {att.netScore}/{att.maxScore}
                     </span>
-                    <span className="block text-[10px] text-slate-500">
+                    <span className="block text-[11px] text-slate-500">
                       {att.accuracyPercent}%
                     </span>
                   </div>
@@ -718,48 +711,48 @@ export function ProfileClient({
           )}
         </div>
 
-        <div className="rounded-xl border border-indigo-200 bg-white shadow-xs overflow-hidden">
-          <div className="border-b border-indigo-100 bg-indigo-50/40 px-4 py-2.5 flex items-center justify-between gap-2">
-            <h3 className="text-xs sm:text-sm font-semibold text-slate-900 flex items-center gap-1.5">
-              <Cpu className="h-3.5 w-3.5 text-indigo-600" />
+        <div className="rounded-2xl border border-indigo-200 bg-white shadow-xs overflow-hidden">
+          <div className="border-b border-indigo-100 bg-indigo-50/40 px-5 py-3 flex items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold text-slate-900 flex items-center gap-2">
+              <Cpu className="h-4 w-4 text-indigo-600" />
               <span>My Gemini AI Logs</span>
             </h3>
-            <span className="rounded-full bg-indigo-100 px-2 py-0.5 text-[10px] font-semibold text-indigo-900">
+            <span className="rounded-full bg-indigo-100 px-2.5 py-0.5 text-[11px] font-semibold text-indigo-900">
               {formatCount(aiStats?.totalTokens)} tok
             </span>
           </div>
 
           {recentAiLogs.length === 0 ? (
-            <div className="p-4 text-xs text-slate-500 flex items-center gap-1.5">
-              <Activity className="h-3.5 w-3.5 text-slate-400 shrink-0" />
+            <div className="p-5 text-xs sm:text-sm text-slate-500 flex items-center gap-2">
+              <Activity className="h-4 w-4 text-slate-400 shrink-0" />
               <span>No Gemini AI requests recorded yet.</span>
             </div>
           ) : (
-            <div className="divide-y divide-slate-100 max-h-52 overflow-y-auto">
+            <div className="divide-y divide-slate-100 max-h-60 overflow-y-auto">
               {recentAiLogs.map((log) => (
                 <div
                   key={log.id}
-                  className="px-4 py-2 flex items-center justify-between gap-2 text-xs"
+                  className="px-5 py-2.5 flex items-center justify-between gap-2 text-xs"
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-1.5">
                       <span className="rounded-full bg-indigo-50 px-2 py-0.5 text-[10px] font-semibold text-indigo-800">
                         {FEATURE_LABELS[log.feature] || log.feature}
                       </span>
-                      <span className="text-[10px] text-slate-400 truncate">
+                      <span className="text-[11px] text-slate-400 truncate">
                         {formatBdDateTime(log.createdAt, "")}
                       </span>
                     </div>
                     {log.label && (
-                      <p className="text-[11px] text-slate-600 truncate mt-0.5">
+                      <p className="text-xs text-slate-600 truncate mt-0.5">
                         {log.label}
                       </p>
                     )}
                   </div>
 
-                  <div className="shrink-0 text-right font-mono text-[11px]">
+                  <div className="shrink-0 text-right font-mono text-xs">
                     {log.isCacheHit ? (
-                      <span className="rounded bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-800">
+                      <span className="rounded bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-800">
                         Cache 0
                       </span>
                     ) : (
@@ -775,8 +768,8 @@ export function ProfileClient({
         </div>
       </div>
 
-      {/* Compact Account Deletion (Danger Zone) */}
-      <div className="rounded-xl border border-rose-200 bg-rose-50/40 px-4 py-3">
+      {/* Account Deletion (Danger Zone) */}
+      <div className="rounded-2xl border border-rose-200 bg-rose-50/40 px-5 py-3.5">
         {isPrimaryAdmin ? (
           <div className="flex items-center justify-between gap-2 text-xs text-slate-600">
             <div className="flex items-center gap-2">
