@@ -10,6 +10,8 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { PwaServiceWorkerRegistrar } from "@/components/layout/PwaInstallControl";
 import { AiCircularAssistant } from "@/components/jobs/AiCircularAssistant";
+import { AuthProvider } from "@/components/auth/AuthContext";
+import { getServerSession } from "@/lib/serverAuth";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -46,11 +48,13 @@ export const viewport: Viewport = {
   themeColor: "#047857",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const initialUser = await getServerSession();
+
   return (
     <html
       lang="en"
@@ -64,11 +68,13 @@ export default function RootLayout({
         <Script id="pwa-early-install-capture" strategy="beforeInteractive">
           {`window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__spDeferredInstallPrompt=e;});window.addEventListener("appinstalled",function(){window.__spDeferredInstallPrompt=null;});`}
         </Script>
-        <Navbar />
-        <main className="flex-1">{children}</main>
-        <Footer />
-        <AiCircularAssistant />
-        <PwaServiceWorkerRegistrar />
+        <AuthProvider initialUser={initialUser}>
+          <Navbar />
+          <main className="flex-1">{children}</main>
+          <Footer />
+          <AiCircularAssistant />
+          <PwaServiceWorkerRegistrar />
+        </AuthProvider>
       </body>
     </html>
   );

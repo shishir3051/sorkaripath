@@ -1,18 +1,17 @@
 import { LearnerProgress } from "../models/LearnerProgress.js";
-import { isValidSessionId } from "../utils/security.js";
 
 const MAX_STUDY_HIGHLIGHTS = 400;
 
 function validateSessionParam(req, res) {
-  const sessionId = String(req.params.sessionId || "").trim();
-  if (!isValidSessionId(sessionId)) {
-    res.status(400).json({
+  if (!req.user?.id) {
+    res.status(401).json({
       success: false,
-      message: "Invalid learner session identifier.",
+      code: "AUTH_REQUIRED",
+      message: "Please sign in to access your study progress.",
     });
     return null;
   }
-  return sessionId;
+  return `user_${req.user.id}`;
 }
 
 async function getOrCreateProgress(sessionId) {

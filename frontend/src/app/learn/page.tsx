@@ -1,16 +1,14 @@
 import { Suspense } from "react";
-import { apiFetch } from "@/lib/api";
 import type { LearningModule } from "@/lib/types";
 import { AcademyExplorer } from "@/components/learn/AcademyExplorer";
 import { RouteLoadingShell } from "@/components/layout/RouteLoadingShell";
+import { requireServerUser, serverApiFetch } from "@/lib/serverAuth";
 
 export const dynamic = "force-dynamic";
 
 async function loadModules(): Promise<LearningModule[]> {
   try {
-    const res = await apiFetch<{ items: LearningModule[] }>("/learn", {
-      revalidate: 60,
-    });
+    const res = await serverApiFetch<{ items: LearningModule[] }>("/learn");
     return res.items;
   } catch {
     return [];
@@ -30,7 +28,8 @@ async function LearnContent() {
   return <AcademyExplorer modules={modules} />;
 }
 
-export default function LearnPage() {
+export default async function LearnPage() {
+  await requireServerUser("/learn");
   return (
     <div className="app-container py-8 space-y-6">
       <div>

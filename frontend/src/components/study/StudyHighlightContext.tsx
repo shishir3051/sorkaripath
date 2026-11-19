@@ -40,6 +40,7 @@ import type {
   LearnerProgress,
   StudyHighlight,
 } from "@/lib/types";
+import { useAuth } from "@/components/auth/AuthContext";
 
 export type HighlightToolMode = "off" | "pen" | "eraser";
 export type HighlightSyncState = "idle" | "saving" | "saved" | "offline";
@@ -112,6 +113,8 @@ export function StudyHighlightProvider({
   onProgressUpdated?: (progress: LearnerProgress) => void;
   children: React.ReactNode;
 }) {
+  const { user } = useAuth();
+  const userId = user?.id ?? null;
   const [highlights, setHighlights] = useState<StudyHighlight[]>([]);
   const [toolMode, setToolMode] = useState<HighlightToolMode>("off");
   const [activeColor, setActiveColor] = useState<HighlightColor>("yellow");
@@ -146,7 +149,7 @@ export function StudyHighlightProvider({
   useEffect(() => {
     if (localHydratedRef.current) return;
     localHydratedRef.current = true;
-    const localItems = loadLocalHighlights();
+    const localItems = loadLocalHighlights(userId);
     if (localItems.length > 0) {
       queueMicrotask(() => {
         setHighlights((prev) =>
@@ -154,18 +157,18 @@ export function StudyHighlightProvider({
         );
       });
     }
-  }, []);
+  }, [userId]);
 
   // Merge MongoDB progress highlights once fetched, and push any unsynced local ones
   useEffect(() => {
     if (!serverHighlights || serverMergedRef.current) return;
     serverMergedRef.current = true;
-    const localItems = loadLocalHighlights();
+    const localItems = loadLocalHighlights(userId);
     const { merged, unsyncedLocal } = mergeHighlights(
       localItems,
       serverHighlights
     );
-    saveLocalHighlights(merged);
+    saveLocalHighlights(merged, userId);
     queueMicrotask(() => {
       setHighlights(merged);
     });
@@ -186,7 +189,7 @@ export function StudyHighlightProvider({
         })
         .catch(() => {});
     }
-  }, [serverHighlights, onProgressUpdated]);
+  }, [serverHighlights, onProgressUpdated, userId]);
 
   const selectMarkerColor = useCallback(
     (color: HighlightColor, activatePen = true) => {
@@ -210,7 +213,7 @@ export function StudyHighlightProvider({
 
       setHighlights((prev) => {
         const next = [...prev, ...created].slice(-MAX_LOCAL_HIGHLIGHTS);
-        saveLocalHighlights(next);
+        saveLocalHighlights(next, userId);
         return next;
       });
 
@@ -234,14 +237,14 @@ export function StudyHighlightProvider({
 
       return created;
     },
-    [flashSyncState, onProgressUpdated]
+    [flashSyncState, onProgressUpdated, userId]
   );
 
   const updateHighlight = useCallback(
     (id: string, patch: { color?: HighlightColor; note?: string }) => {
       setHighlights((prev) => {
         const next = prev.map((h) => (h.id === id ? { ...h, ...patch } : h));
-        saveLocalHighlights(next);
+        saveLocalHighlights(next, userId);
         return next;
       });
 
@@ -263,14 +266,14 @@ export function StudyHighlightProvider({
           flashSyncState("offline");
         });
     },
-    [flashSyncState, onProgressUpdated]
+    [flashSyncState, onProgressUpdated, userId]
   );
 
   const deleteHighlight = useCallback(
     (id: string) => {
       setHighlights((prev) => {
         const next = prev.filter((h) => h.id !== id);
-        saveLocalHighlights(next);
+        saveLocalHighlights(next, userId);
         return next;
       });
 
@@ -289,14 +292,14 @@ export function StudyHighlightProvider({
           flashSyncState("offline");
         });
     },
-    [flashSyncState, onProgressUpdated]
+    [flashSyncState, onProgressUpdated, userId]
   );
 
   const clearScopeHighlights = useCallback(
     (scopeKey: string) => {
       setHighlights((prev) => {
         const next = prev.filter((h) => h.scopeKey !== scopeKey);
-        saveLocalHighlights(next);
+        saveLocalHighlights(next, userId);
         return next;
       });
 
@@ -315,7 +318,7 @@ export function StudyHighlightProvider({
           flashSyncState("offline");
         });
     },
-    [flashSyncState, onProgressUpdated]
+    [flashSyncState, onProgressUpdated, userId]
   );
 
   const indexes = useMemo(() => {

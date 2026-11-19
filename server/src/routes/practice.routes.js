@@ -10,11 +10,13 @@ import {
 } from "../controllers/practice.controller.js";
 import { validateBody } from "../middleware/validate.js";
 import { createRateLimiter } from "../middleware/rateLimiter.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const submitAttemptSchema = z.object({
   sessionId: z
     .string()
-    .regex(/^[a-zA-Z0-9_-]{4,120}$/, "Invalid learner session identifier"),
+    .regex(/^[a-zA-Z0-9_-]{4,120}$/, "Invalid learner session identifier")
+    .optional(),
   examTrack: z.string().max(80).optional(),
   subject: z.string().max(80).optional(),
   negativeMarkingEnabled: z.boolean().optional().default(true),
@@ -31,6 +33,7 @@ const submitAttemptSchema = z.object({
 });
 
 const router = Router();
+router.use(requireAuth);
 const submitLimiter = createRateLimiter({ windowMs: 60_000, max: 30 });
 const readLimiter = createRateLimiter({ windowMs: 60_000, max: 90 });
 

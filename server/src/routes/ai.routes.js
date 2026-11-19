@@ -9,6 +9,7 @@ import {
 } from "../controllers/ai.controller.js";
 import { createRateLimiter } from "../middleware/rateLimiter.js";
 import { validateBody } from "../middleware/validate.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const discoverSchema = z.object({
   query: z.string().trim().min(2).max(240),
@@ -60,12 +61,14 @@ router.post(
 );
 router.post(
   "/study-tutor",
+  requireAuth,
   aiRateLimiter,
   validateBody(studyTutorSchema),
   studyTutor
 );
 router.post(
   "/generate-mcqs",
+  requireAuth,
   aiRateLimiter,
   validateBody(generateMcqsSchema),
   generateAiMcqs

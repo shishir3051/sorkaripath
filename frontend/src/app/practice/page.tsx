@@ -1,7 +1,11 @@
 import { Suspense } from "react";
 import { PracticeArena } from "@/components/practice/PracticeArena";
+import { requireServerUser } from "@/lib/serverAuth";
 
-export default function PracticePage() {
+export const dynamic = "force-dynamic";
+
+export default async function PracticePage() {
+  await requireServerUser("/practice");
   return (
     <div className="app-container py-8 space-y-6">
       <div>

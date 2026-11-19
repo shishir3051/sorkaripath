@@ -14,6 +14,7 @@ import {
 } from "../controllers/progress.controller.js";
 import { validateBody } from "../middleware/validate.js";
 import { createRateLimiter } from "../middleware/rateLimiter.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const lessonBody = z.object({ lessonSlug: z.string().min(1).max(140) });
 const bookmarkBody = z.object({ jobSlug: z.string().min(1).max(140) });
@@ -59,6 +60,7 @@ const updateHighlightBody = z
   });
 
 const router = Router();
+router.use(requireAuth);
 const progressMutationLimiter = createRateLimiter({ windowMs: 60_000, max: 60 });
 
 router.get("/:sessionId", getProgress);

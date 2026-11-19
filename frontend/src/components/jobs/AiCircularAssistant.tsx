@@ -15,6 +15,7 @@ import {
   GraduationCap,
   HelpCircle,
   Loader2,
+  Lock,
   Maximize2,
   MessageSquare,
   Mic,
@@ -36,6 +37,7 @@ import {
 } from "@/lib/api";
 import { OriginBadge, RecordTypeBadge } from "@/components/ui/Badges";
 import type { JobOrigin, RecordType } from "@/lib/types";
+import { useAuth } from "@/components/auth/AuthContext";
 
 interface MatchedAiCircular {
   _id: string;
@@ -283,6 +285,7 @@ export function openAiAssistantChat(query?: string) {
 
 export function AiCircularAssistant() {
   const pathname = usePathname() || "/";
+  const { user } = useAuth();
   const isStudyRoute =
     pathname.startsWith("/study") ||
     pathname.startsWith("/learn") ||
@@ -388,6 +391,9 @@ export function AiCircularAssistant() {
       if (clean.length < 2) return;
 
       const modeToRun = forceMode ?? activeMode;
+      if (modeToRun === "tutor" && !user) {
+        return;
+      }
       const userMsg: ChatMessage = {
         id: nextId(),
         role: "user",
@@ -453,7 +459,7 @@ export function AiCircularAssistant() {
         setLoading(false);
       }
     },
-    [activeMode, autoSpeakReplies, liveRefresh, speakText]
+    [activeMode, autoSpeakReplies, liveRefresh, speakText, user]
   );
 
   const stopVoiceListening = useCallback(() => {
@@ -742,6 +748,7 @@ export function AiCircularAssistant() {
           >
             <GraduationCap className="h-3.5 w-3.5 shrink-0" />
             <span>Study &amp; Subject Tutor</span>
+            {!user && <Lock className="h-3 w-3 shrink-0 text-amber-500" />}
           </button>
           <button
             type="button"
@@ -779,6 +786,39 @@ export function AiCircularAssistant() {
         ref={scrollBodyRef}
         className="flex-1 overflow-y-auto bg-slate-50/70 p-3.5 sm:p-4 space-y-3"
       >
+        {activeMode === "tutor" && !user ? (
+          <div className="rounded-2xl border border-amber-200 bg-white p-5 text-center shadow-xs space-y-3 my-4">
+            <div className="mx-auto flex h-11 w-11 items-center justify-center rounded-2xl bg-amber-100 text-amber-800">
+              <Lock className="h-5 w-5" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-extrabold text-slate-900">
+                Sign In to Unlock Study Tutor
+              </h4>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Gemini Study Tutor, Lecture Sheets, A–Z Academy, and MCQ Practice are
+                protected for signed-in learners. Circular search remains open!
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+              <Link
+                href="/login?next=/study"
+                onClick={() => setOpen(false)}
+                className="rounded-xl bg-emerald-700 px-4 py-2 text-xs font-bold text-white hover:bg-emerald-800"
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/register?next=/study"
+                onClick={() => setOpen(false)}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50"
+              >
+                Register
+              </Link>
+            </div>
+          </div>
+        ) : (
+          <>
         {messages.length === 0 && (
           <div className="space-y-3">
             <div className="flex items-start gap-2.5">
@@ -1178,6 +1218,8 @@ export function AiCircularAssistant() {
             </div>
           </div>
         )}
+          </>
+        )}
       </div>
 
       {/* Voice Status & Error Banner */}
@@ -1212,6 +1254,7 @@ export function AiCircularAssistant() {
       )}
 
       {/* Chat Composer */}
+      {!(activeMode === "tutor" && !user) && (
       <form
         onSubmit={handleSubmit}
         className="flex items-end gap-1.5 border-t border-slate-200 bg-white p-3 shrink-0"
@@ -1290,6 +1333,7 @@ export function AiCircularAssistant() {
           )}
         </button>
       </form>
+      )}
       </section>
     </>
   );

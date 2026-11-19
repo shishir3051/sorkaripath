@@ -12,9 +12,11 @@ import { mcqQuestionsData } from "./data/mcqQuestions.js";
 import { studyResourcesData } from "./data/studyResources.js";
 import { studyTopicsData } from "./data/studyTopics.js";
 import { runLiveWebSync } from "../scrapers/index.js";
+import { ensureConfiguredAdmins } from "../services/authBootstrapService.js";
 
 async function seed() {
   await connectDatabase();
+  await ensureConfiguredAdmins();
 
   console.log("[Seed] Upserting WebSources...");
   for (const src of webSourcesData) {

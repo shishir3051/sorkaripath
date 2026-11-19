@@ -27,6 +27,19 @@ const envSchema = z
     GEMINI_API_KEY: z.string().optional().default(""),
     GEMINI_API_KEYS: z.string().optional().default(""),
     GEMINI_MODEL: z.string().trim().optional().default("gemini-4-hydrogen"),
+    JWT_SECRET: z
+      .string()
+      .optional()
+      .default("dev-only-sorkaripath-jwt-secret-change-me"),
+    JWT_EXPIRES_IN: z.string().trim().default("7d"),
+    AUTH_COOKIE_NAME: z.string().trim().min(2).default("sp_auth_token"),
+    ADMIN_EMAILS: z.string().optional().default("gaziur.rahman4311@gmail.com"),
+    SMTP_HOST: z.string().trim().optional().default(""),
+    SMTP_PORT: z.coerce.number().int().min(1).max(65535).default(587),
+    SMTP_SECURE: z.enum(["true", "false"]).optional().default("false"),
+    SMTP_USER: z.string().trim().optional().default(""),
+    SMTP_PASS: z.string().optional().default(""),
+    MAIL_FROM: z.string().trim().optional().default(""),
   })
   .superRefine((data, ctx) => {
     if (data.NODE_ENV === "production") {
@@ -46,6 +59,17 @@ const envSchema = z
           code: "custom",
           path: ["CRON_SECRET"],
           message: "CRON_SECRET must be at least 16 characters when configured.",
+        });
+      }
+      if (
+        data.JWT_SECRET === "dev-only-sorkaripath-jwt-secret-change-me" ||
+        data.JWT_SECRET.length < 16
+      ) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["JWT_SECRET"],
+          message:
+            "Production JWT_SECRET must be set to a unique random secret (>= 16 characters).",
         });
       }
     }

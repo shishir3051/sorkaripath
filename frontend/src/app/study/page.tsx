@@ -1,16 +1,16 @@
 import { Suspense } from "react";
-import { apiFetch } from "@/lib/api";
 import type { StudyOverviewData } from "@/lib/types";
 import { StudyHub } from "@/components/study/StudyHub";
+import { requireServerUser, serverApiFetch } from "@/lib/serverAuth";
 
 export const dynamic = "force-dynamic";
 
 export default async function StudyPage() {
+  await requireServerUser("/study");
+
   let initialData: StudyOverviewData | null = null;
   try {
-    initialData = await apiFetch<StudyOverviewData>("/study/overview", {
-      revalidate: 30,
-    });
+    initialData = await serverApiFetch<StudyOverviewData>("/study/overview");
   } catch {
     initialData = null;
   }

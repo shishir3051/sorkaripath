@@ -8,6 +8,8 @@ import progressRoutes from "./progress.routes.js";
 import syncRoutes from "./sync.routes.js";
 import studyRoutes from "./study.routes.js";
 import aiRoutes from "./ai.routes.js";
+import authRoutes from "./auth.routes.js";
+import adminRoutes from "./admin.routes.js";
 
 const router = Router();
 
@@ -21,6 +23,8 @@ router.get("/health", (_req, res) => {
   });
 });
 
+router.use("/auth", authRoutes);
+router.use("/admin", adminRoutes);
 router.use("/meta", metaRoutes);
 router.use("/jobs", jobsRoutes);
 router.use("/learn", learnRoutes);

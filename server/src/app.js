@@ -3,10 +3,12 @@ import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import compression from "compression";
+import cookieParser from "cookie-parser";
 import { env } from "./config/env.js";
 import { connectDatabase } from "./config/db.js";
 import apiRoutes from "./routes/index.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
+import { ensureConfiguredAdmins } from "./services/authBootstrapService.js";
 
 const app = express();
 
@@ -58,6 +60,7 @@ app.use(
   })
 );
 app.use(compression());
+app.use(cookieParser());
 app.use(express.json({ limit: "256kb" }));
 app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
 
@@ -72,6 +75,7 @@ app.get("/", (_req, res) => {
 app.use("/api/v1", async (_req, _res, next) => {
   try {
     await connectDatabase();
+    await ensureConfiguredAdmins();
     next();
   } catch (err) {
     next(err);

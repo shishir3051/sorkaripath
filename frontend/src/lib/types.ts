@@ -1,4 +1,17 @@
 export type JobOrigin = "curated" | "web_sync";
+export type UserRole = "user" | "admin";
+
+export interface AuthUser {
+  id: string;
+  name: string;
+  email: string;
+  role: UserRole;
+  isEmailVerified: boolean;
+  passwordSetupPending?: boolean;
+  lastLoginAt?: string | null;
+  createdAt?: string | null;
+  isPrimaryAdmin?: boolean;
+}
 export type RecordType =
   | "circular"
   | "notice"

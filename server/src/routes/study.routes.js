@@ -7,8 +7,11 @@ import {
   getStudyTopicBySlug,
   getStudyTopics,
 } from "../controllers/study.controller.js";
+import { requireAuth } from "../middleware/auth.js";
 
 const router = Router();
+
+router.use(requireAuth);
 
 router.get("/overview", getStudyOverview);
 router.get("/current-affairs", getCurrentAffairs);

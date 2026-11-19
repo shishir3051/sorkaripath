@@ -2,42 +2,52 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { PwaInstallButton } from "@/components/layout/PwaInstallControl";
+import { useAuth } from "@/components/auth/AuthContext";
 import {
   BookOpen,
   Briefcase,
   Calculator,
+  ChevronDown,
   Compass,
+  Crown,
   GraduationCap,
+  Lock,
+  LogIn,
+  LogOut,
   Menu,
   Radio,
   Sparkles,
   Target,
+  UserPlus,
   X,
 } from "lucide-react";
 
 const PRIMARY_NAV_LINKS = [
-  { href: "/", label: "Overview", icon: Compass },
-  { href: "/jobs", label: "Circulars", icon: Briefcase },
-  { href: "/learn", label: "A–Z Academy", icon: BookOpen },
-  { href: "/study", label: "Study Hub", icon: GraduationCap },
-  { href: "/practice", label: "MCQ Arena", icon: Target },
-  { href: "/tools", label: "2026 Tools", icon: Calculator },
+  { href: "/", label: "Overview", icon: Compass, requiresAuth: false },
+  { href: "/jobs", label: "Circulars", icon: Briefcase, requiresAuth: false },
+  { href: "/learn", label: "A–Z Academy", icon: BookOpen, requiresAuth: true },
+  { href: "/study", label: "Study Hub", icon: GraduationCap, requiresAuth: true },
+  { href: "/practice", label: "MCQ Arena", icon: Target, requiresAuth: true },
+  { href: "/tools", label: "2026 Tools", icon: Calculator, requiresAuth: false },
 ];
 
 const ALL_MOBILE_LINKS = [
   ...PRIMARY_NAV_LINKS,
-  { href: "/live-sync", label: "Live Web Sync", icon: Radio },
+  { href: "/live-sync", label: "Live Web Sync", icon: Radio, requiresAuth: false },
 ];
 
 export function Navbar() {
   const pathname = usePathname();
+  const { user, logout, loading: authLoading } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const [pendingNav, setPendingNav] = useState<{
     from: string;
     to: string;
   } | null>(null);
+  const accountMenuRef = useRef<HTMLDivElement>(null);
 
   const activeTarget =
     pendingNav && pendingNav.from === pathname ? pendingNav.to : null;
@@ -47,11 +57,33 @@ export function Navbar() {
     href === "/" ? currentPath === "/" : currentPath.startsWith(href);
 
   const liveSyncActive = currentPath.startsWith("/live-sync");
+  const adminActive = currentPath.startsWith("/admin");
+
+  useEffect(() => {
+    if (!accountMenuOpen) return;
+    function handlePointerDown(e: PointerEvent) {
+      if (!accountMenuRef.current?.contains(e.target as Node)) {
+        setAccountMenuOpen(false);
+      }
+    }
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setAccountMenuOpen(false);
+      }
+    }
+    document.addEventListener("pointerdown", handlePointerDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [accountMenuOpen]);
 
   const handleLinkSelect = (href: string, closeMobile = false) => {
     if (href !== pathname) {
       setPendingNav({ from: pathname, to: href });
     }
+    setAccountMenuOpen(false);
     if (closeMobile) {
       setMobileOpen(false);
     }
@@ -59,25 +91,26 @@ export function Navbar() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-slate-200/80 bg-white/95 backdrop-blur-md">
-      <div className="app-container flex h-16 items-center justify-between gap-4">
+      <div className="app-container flex h-16 items-center justify-between gap-2 xl:gap-3">
         {/* Brand Logo */}
         <Link
           href="/"
-          className="flex shrink-0 items-center gap-2.5 group whitespace-nowrap"
+          onClick={() => handleLinkSelect("/")}
+          className="flex shrink-0 items-center gap-2 group whitespace-nowrap"
         >
           <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-700 to-teal-900 text-white shadow-sm group-hover:scale-105 transition-transform">
             <Sparkles className="h-4.5 w-4.5" />
           </div>
           <div className="min-w-0">
             <div className="flex items-center gap-1.5">
-              <span className="text-base sm:text-lg font-extrabold tracking-tight text-slate-900">
+              <span className="text-base xl:text-lg font-extrabold tracking-tight text-slate-900">
                 SorkariPath
               </span>
-              <span className="shrink-0 whitespace-nowrap rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-800">
+              <span className="hidden 2xl:inline-block shrink-0 whitespace-nowrap rounded-md bg-emerald-100 px-1.5 py-0.5 text-[10px] font-extrabold uppercase tracking-wider text-emerald-800">
                 BD A–Z
               </span>
             </div>
-            <p className="hidden sm:block text-[11px] font-medium text-slate-500 leading-none mt-0.5 whitespace-nowrap">
+            <p className="hidden 2xl:block text-[11px] font-medium text-slate-500 leading-none mt-0.5 whitespace-nowrap">
               Govt Job Portal &amp; Academy
             </p>
           </div>
@@ -86,43 +119,49 @@ export function Navbar() {
         {/* Desktop Primary Pill Navigation */}
         <nav
           aria-label="Primary navigation"
-          className="hidden lg:flex items-center gap-1 rounded-xl border border-slate-200/80 bg-slate-100/80 p-1"
+          className="hidden lg:flex shrink-0 items-center gap-0.5 rounded-xl border border-slate-200/80 bg-slate-100/80 p-1"
         >
           {PRIMARY_NAV_LINKS.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.href);
+            const isLocked = item.requiresAuth && !user;
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 prefetch={
-                  item.href === "/practice" || item.href === "/tools"
+                  !isLocked && (item.href === "/practice" || item.href === "/tools")
                     ? true
-                    : undefined
+                    : false
                 }
+                title={isLocked ? "Sign in required to unlock study section" : undefined}
                 onClick={() => handleLinkSelect(item.href)}
-                className={`inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-[13px] font-semibold transition-all ${
+                className={`inline-flex items-center gap-1 whitespace-nowrap rounded-lg px-2 2xl:px-2.5 py-1.5 text-xs 2xl:text-[13px] font-semibold transition-all ${
                   active
                     ? "bg-emerald-700 text-white shadow-sm"
                     : "text-slate-600 hover:bg-white hover:text-slate-900"
                 }`}
               >
-                <Icon className="h-3.5 w-3.5 shrink-0" />
+                <Icon className="hidden xl:block h-3.5 w-3.5 shrink-0" />
                 <span>{item.label}</span>
+                {isLocked && (
+                  <Lock className="h-2.5 w-2.5 shrink-0 text-amber-600" aria-hidden="true" />
+                )}
               </Link>
             );
           })}
         </nav>
 
-        {/* Right Status / Install App + Live Sync CTA + Mobile Toggle */}
-        <div className="flex shrink-0 items-center gap-2">
+        {/* Right Controls: Install App + Live Sync + Account Menu / Auth + Mobile Toggle */}
+        <div className="flex shrink-0 items-center gap-1.5 xl:gap-2">
           <PwaInstallButton variant="navbar" />
+
           <Link
             href="/live-sync"
             prefetch={true}
             onClick={() => handleLinkSelect("/live-sync")}
-            className={`hidden sm:inline-flex items-center gap-2 whitespace-nowrap rounded-xl px-3.5 py-2 text-xs font-bold transition-all ${
+            className={`hidden xl:inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl px-2.5 py-2 text-xs font-bold transition-all ${
               liveSyncActive
                 ? "bg-slate-900 text-white shadow-sm"
                 : "border border-emerald-200 bg-emerald-50 text-emerald-800 hover:bg-emerald-100"
@@ -132,8 +171,132 @@ export function Navbar() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-500 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-600" />
             </span>
-            <span>Live Web Sync</span>
+            <span>Live Sync</span>
           </Link>
+
+          {user ? (
+            <div ref={accountMenuRef} className="relative hidden sm:block">
+              <button
+                type="button"
+                onClick={() => setAccountMenuOpen((prev) => !prev)}
+                aria-expanded={accountMenuOpen}
+                aria-haspopup="menu"
+                className={`inline-flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
+                  accountMenuOpen || adminActive
+                    ? "border-emerald-300 bg-emerald-50/70 text-slate-900"
+                    : "border-slate-200 bg-white text-slate-800 hover:bg-slate-50"
+                }`}
+              >
+                <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-emerald-700 text-[11px] font-extrabold text-white">
+                  {user.name.charAt(0).toUpperCase()}
+                </span>
+                <span className="max-w-[96px] truncate">
+                  {user.name.split(/\s+/)[0]}
+                </span>
+                {user.role === "admin" && (
+                  <Crown
+                    className="h-3.5 w-3.5 shrink-0 text-amber-600"
+                    aria-label="Admin"
+                  />
+                )}
+                <ChevronDown
+                  className={`h-3.5 w-3.5 shrink-0 text-slate-400 transition-transform ${
+                    accountMenuOpen ? "rotate-180" : ""
+                  }`}
+                />
+              </button>
+
+              {accountMenuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 mt-2 w-64 rounded-2xl border border-slate-200 bg-white p-2 shadow-xl shadow-slate-900/10 z-50 space-y-1"
+                >
+                  <div className="rounded-xl bg-slate-50 px-3 py-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs font-extrabold text-slate-900 truncate">
+                        {user.name}
+                      </p>
+                      <span
+                        className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase ${
+                          user.role === "admin"
+                            ? "bg-amber-100 text-amber-900"
+                            : "bg-emerald-100 text-emerald-800"
+                        }`}
+                      >
+                        {user.role}
+                      </span>
+                    </div>
+                    <p className="mt-0.5 text-[11px] text-slate-500 truncate">
+                      {user.email}
+                    </p>
+                  </div>
+
+                  {user.role === "admin" && (
+                    <Link
+                      href="/admin"
+                      role="menuitem"
+                      onClick={() => handleLinkSelect("/admin")}
+                      className={`flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-colors ${
+                        adminActive
+                          ? "bg-amber-100 text-amber-950"
+                          : "text-slate-700 hover:bg-amber-50 hover:text-amber-950"
+                      }`}
+                    >
+                      <Crown className="h-4 w-4 text-amber-600" />
+                      <span>Admin Dashboard</span>
+                    </Link>
+                  )}
+
+                  <Link
+                    href="/live-sync"
+                    role="menuitem"
+                    onClick={() => handleLinkSelect("/live-sync")}
+                    className={`xl:hidden flex items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold transition-colors ${
+                      liveSyncActive
+                        ? "bg-emerald-50 text-emerald-900"
+                        : "text-slate-700 hover:bg-slate-50"
+                    }`}
+                  >
+                    <Radio className="h-4 w-4 text-emerald-600" />
+                    <span>Live Web Sync</span>
+                  </Link>
+
+                  <button
+                    type="button"
+                    role="menuitem"
+                    disabled={authLoading}
+                    onClick={() => {
+                      setAccountMenuOpen(false);
+                      void logout("/");
+                    }}
+                    className="flex w-full items-center gap-2 rounded-xl px-3 py-2 text-xs font-bold text-rose-700 hover:bg-rose-50 transition-colors cursor-pointer"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="hidden sm:flex items-center gap-1.5">
+              <Link
+                href="/login"
+                onClick={() => handleLinkSelect("/login")}
+                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-2.5 xl:px-3 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50 transition-colors"
+              >
+                <LogIn className="h-3.5 w-3.5 text-emerald-700" />
+                <span>Sign In</span>
+              </Link>
+              <Link
+                href="/register"
+                onClick={() => handleLinkSelect("/register")}
+                className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl bg-emerald-700 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-800 transition-colors shadow-xs"
+              >
+                <UserPlus className="h-3.5 w-3.5" />
+                <span>Register</span>
+              </Link>
+            </div>
+          )}
 
           <button
             type="button"
@@ -152,37 +315,91 @@ export function Navbar() {
 
       {/* Mobile / Tablet Navigation Drawer */}
       {mobileOpen && (
-        <div className="lg:hidden border-t border-slate-200 bg-white px-4 py-3 shadow-lg">
+        <div className="lg:hidden border-t border-slate-200 bg-white px-4 py-3 shadow-lg space-y-3">
           <div className="grid gap-1 sm:grid-cols-2">
             {ALL_MOBILE_LINKS.map((item) => {
               const Icon = item.icon;
               const active = isActive(item.href);
+              const isLocked = item.requiresAuth && !user;
 
               return (
                 <Link
                   key={item.href}
                   href={item.href}
-                  prefetch={
-                    item.href === "/practice" ||
-                    item.href === "/tools" ||
-                    item.href === "/live-sync"
-                      ? true
-                      : undefined
-                  }
+                  prefetch={false}
                   onClick={() => handleLinkSelect(item.href, true)}
-                  className={`flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
+                  className={`flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition-colors ${
                     active
                       ? "bg-emerald-700 text-white"
                       : "text-slate-700 hover:bg-emerald-50 hover:text-emerald-900"
                   }`}
                 >
-                  <Icon className="h-4 w-4 shrink-0" />
-                  <span>{item.label}</span>
+                  <span className="flex items-center gap-2.5">
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <span>{item.label}</span>
+                  </span>
+                  {isLocked && <Lock className="h-3.5 w-3.5 text-amber-500" />}
                 </Link>
               );
             })}
           </div>
-          <div className="mt-2.5 pt-2.5 border-t border-slate-100">
+
+          <div className="pt-2.5 border-t border-slate-100 space-y-2">
+            {user ? (
+              <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2.5">
+                <div className="min-w-0">
+                  <p className="text-xs font-extrabold text-slate-900 truncate">
+                    {user.name}
+                  </p>
+                  <p className="text-[11px] text-slate-500 truncate">
+                    {user.email} • {user.role.toUpperCase()}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  {user.role === "admin" && (
+                    <Link
+                      href="/admin"
+                      onClick={() => handleLinkSelect("/admin", true)}
+                      className="inline-flex items-center gap-1 rounded-lg bg-amber-100 px-3 py-1.5 text-xs font-bold text-amber-900"
+                    >
+                      <Crown className="h-3.5 w-3.5" />
+                      <span>Admin</span>
+                    </Link>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileOpen(false);
+                      void logout("/");
+                    }}
+                    className="inline-flex items-center gap-1 rounded-lg bg-rose-50 border border-rose-200 px-3 py-1.5 text-xs font-bold text-rose-700 cursor-pointer"
+                  >
+                    <LogOut className="h-3.5 w-3.5" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  href="/login"
+                  onClick={() => handleLinkSelect("/login", true)}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-200 px-3 py-2.5 text-xs font-bold text-slate-800"
+                >
+                  <LogIn className="h-4 w-4 text-emerald-700" />
+                  <span>Sign In</span>
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => handleLinkSelect("/register", true)}
+                  className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-emerald-700 px-3 py-2.5 text-xs font-bold text-white"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  <span>Register</span>
+                </Link>
+              </div>
+            )}
+
             <PwaInstallButton
               variant="mobile"
               onActionComplete={() => setMobileOpen(false)}

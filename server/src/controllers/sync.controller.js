@@ -3,6 +3,7 @@ import { SyncLog } from "../models/SyncLog.js";
 import { isSyncRunning, runLiveWebSync } from "../scrapers/index.js";
 import { env } from "../config/env.js";
 import { safeSecretEqual } from "../utils/security.js";
+import { resolveUserFromRequest } from "../middleware/auth.js";
 
 export async function getSyncStatus(req, res, next) {
   try {
@@ -27,7 +28,10 @@ export async function getSyncStatus(req, res, next) {
 export async function triggerWebSync(req, res, next) {
   try {
     const adminHeader = req.header("x-admin-key") || "";
-    const hasValidAdmin = safeSecretEqual(adminHeader, env.ADMIN_API_KEY);
+    const authUser = await resolveUserFromRequest(req);
+    const hasValidAdmin =
+      safeSecretEqual(adminHeader, env.ADMIN_API_KEY) ||
+      authUser?.role === "admin";
 
     if (!hasValidAdmin && env.PUBLIC_SYNC_COOLDOWN_SEC > 0) {
       const lastSync = await SyncLog.findOne()

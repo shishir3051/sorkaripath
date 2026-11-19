@@ -1,35 +1,60 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bookmark } from "lucide-react";
-import { apiFetch, getOrCreateSessionId } from "@/lib/api";
+import { useRouter } from "next/navigation";
+import { Bookmark, Lock } from "lucide-react";
+import { apiFetch } from "@/lib/api";
+import { useAuth } from "@/components/auth/AuthContext";
 import type { LearnerProgress } from "@/lib/types";
 
 export function BookmarkButton({ jobSlug }: { jobSlug: string }) {
-  const [bookmarked, setBookmarked] = useState(false);
+  const router = useRouter();
+  const { user } = useAuth();
+  const [savedState, setSavedState] = useState<{
+    userId: string;
+    bookmarked: boolean;
+  } | null>(null);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    const sid = getOrCreateSessionId();
-    apiFetch<LearnerProgress>(`/progress/${encodeURIComponent(sid)}`)
+    if (!user) return;
+    let active = true;
+    apiFetch<LearnerProgress>("/progress/me")
       .then((p) => {
-        setBookmarked(p.bookmarkedJobSlugs.includes(jobSlug));
+        if (active) {
+          setSavedState({
+            userId: user.id,
+            bookmarked: p.bookmarkedJobSlugs.includes(jobSlug),
+          });
+        }
       })
       .catch(() => {});
-  }, [jobSlug]);
+    return () => {
+      active = false;
+    };
+  }, [jobSlug, user]);
+
+  const bookmarked =
+    Boolean(user && savedState?.userId === user.id && savedState.bookmarked);
 
   async function toggle() {
+    if (!user) {
+      router.push(`/login?next=${encodeURIComponent(`/jobs/${jobSlug}`)}`);
+      return;
+    }
     setBusy(true);
     try {
-      const sid = getOrCreateSessionId();
       const updated = await apiFetch<LearnerProgress>(
-        `/progress/${encodeURIComponent(sid)}/toggle-bookmark`,
+        "/progress/me/toggle-bookmark",
         {
           method: "POST",
           body: JSON.stringify({ jobSlug }),
         }
       );
-      setBookmarked(updated.bookmarkedJobSlugs.includes(jobSlug));
+      setSavedState({
+        userId: user.id,
+        bookmarked: updated.bookmarkedJobSlugs.includes(jobSlug),
+      });
     } finally {
       setBusy(false);
     }
@@ -46,8 +71,20 @@ export function BookmarkButton({ jobSlug }: { jobSlug: string }) {
           : "bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200"
       }`}
     >
-      <Bookmark className={`h-4 w-4 ${bookmarked ? "fill-amber-600 text-amber-600" : ""}`} />
-      <span>{bookmarked ? "Saved in Bookmarks" : "Bookmark Notice"}</span>
+      {user ? (
+        <Bookmark
+          className={`h-4 w-4 ${bookmarked ? "fill-amber-600 text-amber-600" : ""}`}
+        />
+      ) : (
+        <Lock className="h-3.5 w-3.5 text-slate-500" />
+      )}
+      <span>
+        {!user
+          ? "Sign In to Bookmark"
+          : bookmarked
+          ? "Saved in Bookmarks"
+          : "Bookmark Notice"}
+      </span>
     </button>
   );
 }

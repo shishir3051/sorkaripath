@@ -21,6 +21,7 @@ import {
   safeExternalHref,
 } from "@/lib/api";
 import type { SyncLog, WebSource } from "@/lib/types";
+import { useAuth } from "@/components/auth/AuthContext";
 
 interface SyncStatusResponse {
   syncRunning: boolean;
@@ -30,6 +31,8 @@ interface SyncStatusResponse {
 
 export function LiveSyncConsole() {
   const router = useRouter();
+  const { user } = useAuth();
+  const isAdminSession = user?.role === "admin";
   const [status, setStatus] = useState<SyncStatusResponse | null>(() =>
     getCachedApiData<SyncStatusResponse>("/sync/status")
   );
@@ -123,7 +126,7 @@ export function LiveSyncConsole() {
     try {
       await apiFetch("/jobs", {
         method: "POST",
-        headers: { "x-admin-key": adminKey },
+        headers: isAdminSession ? {} : { "x-admin-key": adminKey },
         body: JSON.stringify({
           title,
           organization,
@@ -215,19 +218,29 @@ export function LiveSyncConsole() {
               Admin: Publish Curated Circular
             </h3>
             <span className="text-xs text-slate-500">
-              Protected by <code className="font-mono">x-admin-key</code> header
+              {isAdminSession ? (
+                <span className="font-bold text-emerald-700">
+                  Authorized as Admin ({user?.email})
+                </span>
+              ) : (
+                <>
+                  Protected by <code className="font-mono">x-admin-key</code> header or Admin login
+                </>
+              )}
             </span>
           </div>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <input
-              type="password"
-              required
-              value={adminKey}
-              onChange={(e) => setAdminKey(e.target.value)}
-              placeholder="Admin API Key (configured in server/.env)"
-              className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm"
-            />
+            {!isAdminSession && (
+              <input
+                type="password"
+                required
+                value={adminKey}
+                onChange={(e) => setAdminKey(e.target.value)}
+                placeholder="Admin API Key (configured in server/.env)"
+                className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm"
+              />
+            )}
             <input
               type="text"
               required

@@ -34,6 +34,35 @@ export interface ApiFetchOptions extends RequestInit {
   revalidate?: number;
 }
 
+export class ApiError extends Error {
+  status: number;
+  code?: string;
+  data?: unknown;
+
+  constructor(message: string, status: number, code?: string, data?: unknown) {
+    super(message);
+    this.name = "ApiError";
+    this.status = status;
+    this.code = code;
+    this.data = data;
+  }
+}
+
+export function sanitizeNextPath(
+  rawNext?: string | null,
+  fallback = "/study"
+): string {
+  if (!rawNext || typeof rawNext !== "string") return fallback;
+  const trimmed = rawNext.trim();
+  if (!trimmed.startsWith("/") || trimmed.startsWith("//") || trimmed.startsWith("/\\")) {
+    return fallback;
+  }
+  if (trimmed.includes("://") || /[\r\n]/.test(trimmed)) {
+    return fallback;
+  }
+  return trimmed;
+}
+
 export function getCachedApiData<T>(path: string): T | null {
   if (isServer) return null;
   const hit = clientResponseCache.get(path);
@@ -91,6 +120,7 @@ export async function apiFetch<T>(
 
   const res = await fetch(url, {
     ...fetchOptions,
+    credentials: fetchOptions.credentials ?? "include",
     headers: {
       "Content-Type": "application/json",
       ...(fetchOptions.headers || {}),
@@ -100,7 +130,12 @@ export async function apiFetch<T>(
 
   const payload = await res.json().catch(() => ({}));
   if (!res.ok || payload?.success === false) {
-    throw new Error(payload?.message || `API Error (${res.status})`);
+    throw new ApiError(
+      payload?.message || `API Error (${res.status})`,
+      res.status,
+      payload?.code,
+      payload
+    );
   }
 
   return payload.data as T;

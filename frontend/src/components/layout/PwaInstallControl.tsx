@@ -324,7 +324,8 @@ export function PwaInstallButton({
         {variant === "navbar" ? (
           <>
             <span className="sm:hidden">Install</span>
-            <span className="hidden sm:inline">{fullLabel}</span>
+            <span className="hidden lg:inline 2xl:hidden">App</span>
+            <span className="hidden sm:inline lg:hidden 2xl:inline">{fullLabel}</span>
           </>
         ) : variant === "footer" ? (
           <span>{canPrompt ? "Download & Install App" : fullLabel}</span>

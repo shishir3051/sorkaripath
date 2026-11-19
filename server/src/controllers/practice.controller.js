@@ -6,7 +6,6 @@ import { StudyTopic } from "../models/StudyTopic.js";
 import {
   capSearchQuery,
   escapeRegex,
-  isValidSessionId,
 } from "../utils/security.js";
 
 export async function getQuestions(req, res, next) {
@@ -88,8 +87,8 @@ export async function getQuestions(req, res, next) {
 
 export async function submitQuizAttempt(req, res, next) {
   try {
+    const sessionId = `user_${req.user.id}`;
     const {
-      sessionId,
       examTrack = "All Tracks",
       subject = "All Subjects",
       negativeMarkingEnabled = true,
@@ -259,13 +258,7 @@ export async function submitQuizAttempt(req, res, next) {
 
 export async function getAttemptHistory(req, res, next) {
   try {
-    const sessionId = String(req.query.sessionId || "").trim();
-    if (!isValidSessionId(sessionId)) {
-      return res.json({
-        success: true,
-        data: [],
-      });
-    }
+    const sessionId = `user_${req.user.id}`;
 
     const attempts = await QuizAttempt.find({ sessionId })
       .sort({ createdAt: -1 })
@@ -392,13 +385,7 @@ export async function smartSearchPractice(req, res, next) {
 
 export async function getMistakeVault(req, res, next) {
   try {
-    const sessionId = String(req.query.sessionId || "").trim();
-    if (!isValidSessionId(sessionId)) {
-      return res.json({
-        success: true,
-        data: { wrongQuestions: [], bookmarkedQuestions: [] },
-      });
-    }
+    const sessionId = `user_${req.user.id}`;
 
     const progress = await LearnerProgress.findOne({ sessionId }).lean();
     if (!progress) {

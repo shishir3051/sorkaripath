@@ -303,10 +303,16 @@ export function createHighlightId(): string {
   return `hl-${Date.now().toString(36)}-${rand}`;
 }
 
-export function loadLocalHighlights(): StudyHighlight[] {
+export function getHighlightStorageKey(userId?: string | null): string {
+  return userId
+    ? `${HIGHLIGHT_STORAGE_KEY}:${userId}`
+    : HIGHLIGHT_STORAGE_KEY;
+}
+
+export function loadLocalHighlights(userId?: string | null): StudyHighlight[] {
   if (typeof window === "undefined") return [];
   try {
-    const raw = window.localStorage.getItem(HIGHLIGHT_STORAGE_KEY);
+    const raw = window.localStorage.getItem(getHighlightStorageKey(userId));
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
@@ -326,11 +332,14 @@ export function loadLocalHighlights(): StudyHighlight[] {
   }
 }
 
-export function saveLocalHighlights(items: StudyHighlight[]): void {
+export function saveLocalHighlights(
+  items: StudyHighlight[],
+  userId?: string | null
+): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.setItem(
-      HIGHLIGHT_STORAGE_KEY,
+      getHighlightStorageKey(userId),
       JSON.stringify(items.slice(-MAX_LOCAL_HIGHLIGHTS))
     );
   } catch {

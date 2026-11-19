@@ -9,9 +9,9 @@ import {
   Lightbulb,
   Target,
 } from "lucide-react";
-import { apiFetch } from "@/lib/api";
 import type { LearningModule } from "@/lib/types";
 import { LessonCompleteButton } from "@/components/learn/LessonCompleteButton";
+import { requireServerUser, serverApiFetch } from "@/lib/serverAuth";
 
 export const dynamic = "force-dynamic";
 
@@ -28,12 +28,12 @@ export default async function LessonDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  await requireServerUser(`/learn/${slug}`);
 
   let data: LessonDetailResponse | null = null;
   try {
-    data = await apiFetch<LessonDetailResponse>(
-      `/learn/${encodeURIComponent(slug)}`,
-      { revalidate: 60 }
+    data = await serverApiFetch<LessonDetailResponse>(
+      `/learn/${encodeURIComponent(slug)}`
     );
   } catch {
     data = null;
