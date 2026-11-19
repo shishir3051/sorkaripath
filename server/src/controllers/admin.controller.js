@@ -5,7 +5,10 @@ import { JobCircular } from "../models/JobCircular.js";
 import { LearningModule } from "../models/LearningModule.js";
 import { StudyTopic } from "../models/StudyTopic.js";
 import { McqQuestion } from "../models/McqQuestion.js";
-import { isConfiguredAdminEmail } from "../services/authBootstrapService.js";
+import {
+  deleteUserAccountData,
+  isConfiguredAdminEmail,
+} from "../services/authBootstrapService.js";
 
 export async function getAdminOverview(_req, res, next) {
   try {
@@ -221,6 +224,59 @@ export async function updateUserRole(req, res, next) {
           ...toSafeUser(target),
           isPrimaryAdmin: isConfiguredAdminEmail(target.email),
         },
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteUser(req, res, next) {
+  try {
+    const { id } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID.",
+      });
+    }
+
+    const target = await User.findById(id);
+    if (!target) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found.",
+      });
+    }
+
+    if (String(target._id) === req.user.id) {
+      return res.status(400).json({
+        success: false,
+        message: "You cannot delete your own active session from the admin table.",
+      });
+    }
+
+    if (isConfiguredAdminEmail(target.email)) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Configured primary admin account cannot be deleted while listed in ADMIN_EMAILS.",
+      });
+    }
+
+    const deletedSummary = {
+      id: String(target._id),
+      email: target.email,
+      name: target.name,
+    };
+
+    await deleteUserAccountData(target);
+
+    res.json({
+      success: true,
+      data: {
+        deletedUser: deletedSummary,
+        message: `Deleted user ${deletedSummary.email} and cleared their study & AI records.`,
       },
     });
   } catch (err) {

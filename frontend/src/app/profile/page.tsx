@@ -17,18 +17,21 @@ export default async function ProfilePage() {
   }
 
   return (
-    <div className="app-container py-8 space-y-6">
-      <div>
-        <span className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-emerald-800">
-          Learner Account &amp; Progress
-        </span>
-        <h1 className="mt-2 text-2xl sm:text-3xl font-bold tracking-tight text-slate-900">
-          My Profile &amp; Study Dashboard
-        </h1>
-        <p className="mt-1 text-sm text-slate-600 max-w-3xl">
-          Manage your account profile, target exam track, password security,
-          saved circulars, mock attempts, and personal Gemini AI token usage.
-        </p>
+    <div className="app-container py-4 sm:py-5 space-y-3.5">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="inline-block rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-emerald-800">
+              Learner Account
+            </span>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+              My Profile &amp; Study Dashboard
+            </h1>
+          </div>
+          <p className="mt-0.5 text-xs sm:text-sm text-slate-600">
+            Manage your profile, target exam track, password security, saved circulars, and Gemini AI usage.
+          </p>
+        </div>
       </div>
 
       <ProfileClient initialData={initialData} />

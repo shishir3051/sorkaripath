@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import {
+  deleteUser,
   getAdminOverview,
   updateUserRole,
 } from "../controllers/admin.controller.js";
@@ -16,5 +17,6 @@ const router = Router();
 router.use(requireAdminRole);
 router.get("/overview", getAdminOverview);
 router.patch("/users/:id/role", validateBody(updateRoleSchema), updateUserRole);
+router.delete("/users/:id", deleteUser);
 
 export default router;

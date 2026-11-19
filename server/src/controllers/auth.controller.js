@@ -15,6 +15,7 @@ import {
   signAuthToken,
 } from "../middleware/auth.js";
 import {
+  deleteUserAccountData,
   ensureConfiguredAdmins,
   isConfiguredAdminEmail,
   normalizeEmail,
@@ -723,6 +724,61 @@ export async function changePassword(req, res, next) {
           isPrimaryAdmin: isConfiguredAdminEmail(user.email),
         },
         message: "Password updated successfully.",
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteAccount(req, res, next) {
+  try {
+    const { password, confirmText } = req.validatedBody;
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User account not found.",
+      });
+    }
+
+    if (isConfiguredAdminEmail(user.email)) {
+      return res.status(403).json({
+        success: false,
+        message:
+          "Configured primary admin account cannot be deleted while listed in ADMIN_EMAILS.",
+      });
+    }
+
+    if (user.passwordHash && !user.passwordSetupPending) {
+      if (!password) {
+        return res.status(400).json({
+          success: false,
+          message: "Enter your password to confirm account deletion.",
+        });
+      }
+      const matches = await bcrypt.compare(password, user.passwordHash);
+      if (!matches) {
+        return res.status(400).json({
+          success: false,
+          message: "Password is incorrect.",
+        });
+      }
+    } else if (String(confirmText || "").trim().toUpperCase() !== "DELETE") {
+      return res.status(400).json({
+        success: false,
+        message: 'Type "DELETE" to confirm permanent account removal.',
+      });
+    }
+
+    await deleteUserAccountData(user);
+    clearAuthCookie(res, req);
+
+    res.json({
+      success: true,
+      data: {
+        deleted: true,
+        message: "Your account and personal study data have been deleted.",
       },
     });
   } catch (err) {

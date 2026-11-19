@@ -1,5 +1,8 @@
 import { env } from "../config/env.js";
 import { User } from "../models/User.js";
+import { LearnerProgress } from "../models/LearnerProgress.js";
+import { QuizAttempt } from "../models/QuizAttempt.js";
+import { AiUsageLog } from "../models/AiUsageLog.js";
 
 let bootstrapPromise = null;
 
@@ -65,4 +68,19 @@ export function ensureConfiguredAdmins() {
     });
   }
   return bootstrapPromise;
+}
+
+export async function deleteUserAccountData(targetUser) {
+  const userId = targetUser._id;
+  const sessionId = `user_${userId}`;
+  const normalizedEmail = normalizeEmail(targetUser.email);
+
+  await Promise.all([
+    LearnerProgress.deleteMany({ sessionId }),
+    QuizAttempt.deleteMany({ sessionId }),
+    AiUsageLog.deleteMany({
+      $or: [{ userId }, { userEmail: normalizedEmail }],
+    }),
+    User.deleteOne({ _id: userId }),
+  ]);
 }

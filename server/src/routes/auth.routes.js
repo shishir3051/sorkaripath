@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import {
   changePassword,
+  deleteAccount,
   forgotPassword,
   getMe,
   getProfile,
@@ -89,6 +90,11 @@ const changePasswordSchema = z.object({
   newPassword: passwordField,
 });
 
+const deleteAccountSchema = z.object({
+  password: z.string().max(128).optional().default(""),
+  confirmText: z.string().max(32).optional().default(""),
+});
+
 const authLimiter = createRateLimiter({ windowMs: 60_000, max: 15 });
 const otpLimiter = createRateLimiter({ windowMs: 60_000, max: 8 });
 
@@ -102,6 +108,13 @@ router.patch(
   authLimiter,
   validateBody(updateProfileSchema),
   updateProfile
+);
+router.delete(
+  "/profile",
+  requireAuth,
+  authLimiter,
+  validateBody(deleteAccountSchema),
+  deleteAccount
 );
 router.post(
   "/change-password",
