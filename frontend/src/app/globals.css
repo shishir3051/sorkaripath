@@ -83,6 +83,7 @@ body {
 
   header,
   nav,
+  aside,
   footer,
   .fixed:not([data-printable-drawer="true"]) {
     display: none !important;

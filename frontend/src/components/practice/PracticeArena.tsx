@@ -996,7 +996,7 @@ export function PracticeArena() {
 
           {quizActive && questions.length > 0 && (
             <div className="space-y-5">
-              <div className="sticky top-16 z-20 flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-950 px-5 py-3 text-white shadow-md">
+              <div className="sticky top-14 lg:top-3 z-20 flex items-center justify-between rounded-2xl border border-emerald-200 bg-emerald-950 px-5 py-3 text-white shadow-md">
                 <div className="text-sm font-bold">
                   Answered:{" "}
                   {

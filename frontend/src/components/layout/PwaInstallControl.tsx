@@ -234,9 +234,11 @@ export function PwaServiceWorkerRegistrar() {
  */
 export function PwaInstallButton({
   variant = "navbar",
+  collapsed = false,
   onActionComplete,
 }: {
-  variant?: "navbar" | "mobile" | "footer";
+  variant?: "navbar" | "sidebar" | "mobile" | "footer";
+  collapsed?: boolean;
   onActionComplete?: () => void;
 }) {
   const { canPrompt, isStandalone, platform, isInAppBrowser, isSecureOrigin } =
@@ -297,10 +299,14 @@ export function PwaInstallButton({
 
   const buttonClass =
     variant === "navbar"
-      ? "inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs font-bold text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/70 hover:text-emerald-900 transition-all cursor-pointer"
+      ? "inline-flex items-center gap-1.5 whitespace-nowrap rounded-xl border border-slate-200 bg-white px-2.5 py-1.5 sm:px-3 sm:py-2 text-[11px] sm:text-xs font-semibold text-slate-700 hover:border-emerald-300 hover:bg-emerald-50/70 hover:text-emerald-900 transition-all cursor-pointer"
+      : variant === "sidebar"
+      ? `flex w-full items-center ${
+          collapsed ? "justify-center px-2" : "gap-2.5 px-3"
+        } rounded-xl py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer`
       : variant === "mobile"
-      ? "flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm font-bold text-emerald-900 hover:bg-emerald-100 transition-colors cursor-pointer"
-      : "inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-bold text-slate-200 hover:border-emerald-500 hover:text-emerald-300 transition-colors cursor-pointer";
+      ? "flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm font-semibold text-emerald-900 hover:bg-emerald-100 transition-colors cursor-pointer"
+      : "inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:border-emerald-500 hover:text-emerald-300 transition-colors cursor-pointer";
 
   const fullLabel = canPrompt
     ? "Install App"
@@ -320,13 +326,15 @@ export function PwaInstallButton({
         title="Install SorkariPath as a standalone Mobile / Desktop App"
         className={buttonClass}
       >
-        <Download className="h-3.5 w-3.5 shrink-0" />
+        <Download className="h-4 w-4 shrink-0" />
         {variant === "navbar" ? (
           <>
             <span className="sm:hidden">Install</span>
             <span className="hidden lg:inline 2xl:hidden">App</span>
             <span className="hidden sm:inline lg:hidden 2xl:inline">{fullLabel}</span>
           </>
+        ) : variant === "sidebar" ? (
+          !collapsed && <span className="truncate">{fullLabel}</span>
         ) : variant === "footer" ? (
           <span>{canPrompt ? "Download & Install App" : fullLabel}</span>
         ) : (

@@ -72,9 +72,13 @@ export default async function RootLayout({
           {`window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__spDeferredInstallPrompt=e;});window.addEventListener("appinstalled",function(){window.__spDeferredInstallPrompt=null;});`}
         </Script>
         <AuthProvider initialUser={initialUser}>
-          <Navbar />
-          <main className="flex-1">{children}</main>
-          <Footer />
+          <div className="min-h-screen flex flex-col lg:flex-row">
+            <Navbar />
+            <div className="flex-1 min-w-0 flex flex-col">
+              <main className="flex-1">{children}</main>
+              <Footer />
+            </div>
+          </div>
           <AiCircularAssistant />
           <PwaServiceWorkerRegistrar />
         </AuthProvider>
