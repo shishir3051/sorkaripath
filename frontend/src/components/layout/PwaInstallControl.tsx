@@ -303,7 +303,7 @@ export function PwaInstallButton({
       : variant === "sidebar"
       ? `flex w-full items-center ${
           collapsed ? "justify-center px-2" : "gap-2.5 px-3"
-        } rounded-xl py-2 text-xs font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-colors cursor-pointer`
+        } rounded-xl py-2 text-xs font-medium text-slate-600 hover:bg-white hover:text-slate-900 hover:shadow-2xs transition-all cursor-pointer`
       : variant === "mobile"
       ? "flex w-full items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm font-semibold text-emerald-900 hover:bg-emerald-100 transition-colors cursor-pointer"
       : "inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:border-emerald-500 hover:text-emerald-300 transition-colors cursor-pointer";

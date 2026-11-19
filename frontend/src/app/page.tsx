@@ -42,19 +42,20 @@ export default async function HomePage() {
   const stats = overview?.stats ?? null;
 
   return (
-    <div className="space-y-12 pb-8">
+    <div className="space-y-10 pb-8">
       {/* Hero Banner */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-900 text-white">
-        <div
-          className="absolute inset-0 opacity-15"
-          style={{
-            backgroundImage:
-              "radial-gradient(circle at 20% 25%, #34d399 0, transparent 45%), radial-gradient(circle at 80% 75%, #f43f5e 0, transparent 40%)",
-          }}
-        />
-        <div className="relative app-container py-14 lg:py-20">
-          <div className="grid gap-10 lg:grid-cols-12 lg:items-center">
-            <div className="lg:col-span-7">
+      <div className="app-container pt-4 sm:pt-5 lg:pt-6">
+        <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-800/80 bg-gradient-to-br from-slate-950 via-[#0d2421] to-[#0b382d] text-white shadow-xl shadow-slate-900/10">
+          <div
+            className="absolute inset-0 opacity-25"
+            style={{
+              backgroundImage:
+                "radial-gradient(circle at 18% 22%, #10b981 0, transparent 48%), radial-gradient(circle at 84% 78%, #0f766e 0, transparent 42%)",
+            }}
+          />
+          <div className="relative px-4 py-7 sm:px-9 sm:py-12 lg:px-12 lg:py-14">
+          <div className="grid gap-8 lg:gap-10 lg:grid-cols-12 lg:items-center">
+            <div className="min-w-0 lg:col-span-7">
               <div className="flex flex-wrap items-center gap-2">
                 <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-emerald-200 ring-1 ring-white/20">
                   <Radio className="h-3.5 w-3.5 text-emerald-400 animate-pulse" />
@@ -104,8 +105,8 @@ export default async function HomePage() {
             </div>
 
             {/* Live Policy Snapshot Card */}
-            <div className="lg:col-span-5">
-              <div className="rounded-2xl bg-white/10 p-6 backdrop-blur-md ring-1 ring-white/20 space-y-4">
+            <div className="min-w-0 lg:col-span-5">
+              <div className="rounded-2xl bg-white/10 p-4 sm:p-6 backdrop-blur-md ring-1 ring-white/20 space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-xs font-bold uppercase tracking-wider text-emerald-300">
                     2026 Regulatory Snapshot
@@ -159,10 +160,11 @@ export default async function HomePage() {
             </div>
           </div>
         </div>
-      </section>
+        </section>
+      </div>
 
       {/* Main Content Container */}
-      <div className="app-container space-y-12">
+      <div className="app-container space-y-10">
         {!overview && (
           <div className="rounded-2xl border border-amber-300 bg-amber-50 p-5 text-sm text-amber-900">
             <strong>Backend API Offline Notice:</strong> Start the Express backend (
