@@ -30,25 +30,57 @@ export const englishTopics = [
       {
         heading: "Chapter 1: Clause ও Phrase শনাক্তকরণ — ১০০% নির্ভুল বাংলা পরীক্ষা পদ্ধতি",
         explanation:
-          "বিসিএস ও ব্যাংক পরীক্ষায় আন্ডারলাইন করা একটি অংশ দিয়ে জিজ্ঞেস করে—এটি Noun, Adjective নাকি Adverbial Clause/Phrase? প্রথমে বুঝুন: যে শব্দগুচ্ছে নিজস্ব Subject + Finite Verb থাকে তা **Clause**, আর যেটিতে Finite Verb থাকে না তা **Phrase**।\n\nএখন আসল জাদুটি শিখুন—ক্লজ চিনতে হলে সংযোগকারী শব্দ (`where, when, that, who`) দেখে নয়, বরং বাক্যে তার **কাজ** দেখে চিনতে হবে! (১) আন্ডারলাইন অংশটিকে মুছে মনে মনে `'IT'` বসান; যদি বাক্যটি ব্যাকরণগতভাবে সম্পূর্ণ ও অর্থপূর্ণ থাকে (`I know IT`), তবে নিঃসন্দেহে **Noun Clause**। (২) যদি আন্ডারলাইন অংশটি তার ঠিক আগের কোনো Noun-কে চিহ্নিত করে (`the boy WHO DID IT` বা `the place WHERE HE LIVES`), তবে **Adjective (Relative) Clause**। (৩) বাকি ক্ষেত্রে ক্রিয়া কখন, কোথায়, কেন বা কোন শর্তে ঘটল তা বোঝালে **Adverbial Clause**!",
+          "বিসিএস ও ব্যাংক পরীক্ষায় আন্ডারলাইন করা একটি অংশ দিয়ে জিজ্ঞেস করে—এটি Noun, Adjective নাকি Adverbial Clause/Phrase? প্রথমে বুঝুন: যে শব্দগুচ্ছে নিজস্ব Subject + Finite Verb থাকে তা Clause, আর যেটিতে Finite Verb থাকে না তা Phrase।\n\nএখন আসল জাদুটি শিখুন—ক্লজ চিনতে হলে সংযোগকারী শব্দ ('where, when, that, who') দেখে নয়, বরং বাক্যে তার কাজ দেখে চিনতে হবে! (১) আন্ডারলাইন অংশটিকে মুছে মনে মনে 'IT' বসান; যদি বাক্যটি ব্যাকরণগতভাবে সম্পূর্ণ ও অর্থপূর্ণ থাকে ('I know IT'), তবে নিঃসন্দেহে Noun Clause। (২) যদি আন্ডারলাইন অংশটি তার ঠিক আগের কোনো Noun-কে চিহ্নিত করে ('the boy WHO DID IT' বা 'the place WHERE HE LIVES'), তবে Adjective (Relative) Clause। (৩) বাকি ক্ষেত্রে ক্রিয়া কখন, কোথায়, কেন বা কোন শর্তে ঘটল তা বোঝালে Adverbial Clause!",
+        formulaBox: [
+          {
+            label: "Clause বনাম Phrase মূল সূত্র",
+            formula: "Clause = Subject + Finite Verb (সমাপিকা ক্রিয়া)  |  Phrase = Finite Verb-হীন শব্দগুচ্ছ",
+            note: "'who lives here' = Clause (Finite verb 'lives' আছে); কিন্তু 'in the corner / to pass' = Phrase",
+          },
+          {
+            label: "Noun Clause ('IT' প্রতিস্থাপন টেস্ট)",
+            formula: "Underline অংশ = 'IT' → বাক্য শুদ্ধ ও পূর্ণ থাকলে = Noun Clause",
+            note: "Verb-এর Subject, Object, Complement, Preposition-এর Object বা Apposition হিসেবে বসে",
+          },
+          {
+            label: "Adjective Clause (Antecedent Noun টেস্ট)",
+            formula: "Noun / Pronoun (Antecedent) + [who/which/that/where/why + S + V]",
+            note: "ঠিক আগের Noun-কে 'কোনটি / কেমন' বলে বিশেষায়িত করলে Adjective (Relative) Clause",
+          },
+          {
+            label: "Adverbial Clause (ক্রিয়া-প্রশ্ন টেস্ট)",
+            formula: "Verb / পুরো বাক্যকে প্রশ্ন: When? Where? Why? How? Condition? Contrast?",
+            note: "ঠিক আগে কোনো Antecedent Noun থাকে না; সময়, স্থান, কারণ, শর্ত বা ফলাফল বোঝায়",
+          },
+        ],
         comparisonTable: {
-          title: "একই শব্দ ('where / who / that') কখন কোন Clause হয়?",
-          headers: ["বাক্যের উদাহরণ", "যাচাইয়ের কৌশল", "সঠিক Clause / Phrase"],
+          title: "সংক্ষেপে মনে রাখার চার্ট: একই শব্দ ('where / who / that') ও Phrase চেনার পরীক্ষা",
+          headers: ["বাক্যের উদাহরণ", "ধাপে ধাপে যাচাই (IT / Antecedent / প্রশ্ন)", "সঠিক Clause / Phrase"],
           rows: [
-            ["Tell me WHO DID IT.", "WHO DID IT → 'IT' বসালে: Tell me IT (শুদ্ধ)", "Noun Clause (Object হিসেবে)"],
-            ["I know the boy WHO DID IT.", "ঠিক আগের Noun 'boy'-কে বিশেষায়িত করছে", "Adjective (Relative) Clause"],
-            ["I know WHERE HE LIVES.", "WHERE HE LIVES → 'IT': I know IT", "Noun Clause"],
-            ["Put the book WHERE YOU FOUND IT.", "'কোথায় রাখব?' প্রশ্নের উত্তর, আগে Noun নেই", "Adverbial Clause of Place"],
-            ["The boy IN THE CORNER is my brother.", "'কোন ছেলেটি?' (Noun 'boy'-কে চিহ্নিত করে)", "Adjective Phrase (Prepositional নয়!)"],
-            ["He sat IN THE CORNER.", "'কোথায় বসেছিল?' (Verb 'sat'-কে বোঝায়)", "Adverbial Phrase"],
+            ["Tell me WHO DID IT.", "'WHO DID IT' → 'IT' বসালে: 'Tell me IT' (শুদ্ধ ও অর্থপূর্ণ)", "Noun Clause (Object হিসেবে)"],
+            ["I know the boy WHO DID IT.", "ঠিক আগের Noun 'boy'-কে চিহ্নিত করছে ('কোন ছেলেটি?')", "Adjective (Relative) Clause"],
+            ["I know WHERE HE LIVES.", "'WHERE HE LIVES' → 'IT': 'I know IT' (শুদ্ধ)", "Noun Clause (Object হিসেবে)"],
+            ["I know the place WHERE HE LIVES.", "ঠিক আগের Noun 'the place'-কে বিশেষায়িত করছে", "Adjective (Relative) Clause"],
+            ["Put the book WHERE YOU FOUND IT.", "আগে Noun নেই; 'কোথায় রাখব?' (Where) প্রশ্নের উত্তর", "Adverbial Clause of Place"],
+            ["The news THAT HE PASSED is true.", "'news'-এর সমার্থক পরিচয় (Apposition); 'that'-এর পর পূর্ণ Clause", "Noun Clause in Apposition"],
+            ["The boy IN THE CORNER is my brother.", "Finite verb নেই (Phrase); Noun 'boy'-কে চিহ্নিত করে", "Adjective Phrase (Prepositional নয়!)"],
+            ["He sat IN THE CORNER.", "Finite verb নেই (Phrase); Verb 'sat'-কে 'কোথায়' বোঝায়", "Adverbial Phrase of Place"],
+            ["WALKING IN THE MORNING is good.", "Finite verb নেই; 'IT is good' (Subject/Noun-এর কাজ)", "Gerund / Noun Phrase"],
           ],
         },
         points: [
-          "১. Apposition ট্রিক: 'The news THAT HE PASSED is true' — এখানে 'that he passed' হলো 'news' বিশেষ্যের পরিচায়ক Appositive, এবং 'The news IT' অর্থে নয় বরং সমার্থক বলে এটি Noun Clause in Apposition।",
-          "২. Gerund বনাম Participle Phrase: 'Walking in the morning is good' (Subject/Noun = Gerund Phrase); 'Driven by hunger, he stole bread' (Subject-এর অবস্থা = Past Participle Phrase)।",
+          "১. Apposition ট্রিক: 'The news THAT HE PASSED is true' — এখানে 'that he passed' হলো 'news' বিশেষ্যের পরিচায়ক Appositive; যেহেতু এটি 'news'-এর বিষয়বস্তু (কী সংবাদ?) বলে দেয়, তাই এটি Noun Clause in Apposition।",
+          "২. Gerund বনাম Participle Phrase: 'Walking in the morning is good' (Subject = Gerund/Noun Phrase, 'IT is good' হয়); কিন্তু 'Driven by hunger, he stole bread' (Subject 'he'-এর অবস্থা বোঝাচ্ছে = Past Participle / Adjective Phrase)।",
+          "৩. Preposition-এর পর Noun Clause: 'Listen to WHAT I SAY' → 'Listen to IT' (Preposition 'to'-এর Object হওয়ায় Noun Clause)।",
         ],
         workedExamples: [
-          "উদাহরণ: 'He asked me why I was late' এবং 'Tell me the reason why you are late' — পার্থক্য কী?\nসমাধান: ১ম বাক্যে `why I was late` 'asked me it'-এর কাজ করছে তাই Noun Clause। ২য় বাক্যে `why you are late` ঠিক আগের Noun 'the reason'-কে ব্যাখ্যা করছে তাই Adjective Clause!",
+          "উদাহরণ ১ (Noun vs Adjective Clause): 'He asked me [why I was late].' এবং 'Tell me the reason [why you are late].' — পার্থক্য কী?\nধাপ ১ (Clause যাচাই): দুটি অংশেই নিজস্ব Subject ('I', 'you') এবং Finite Verb ('was', 'are') রয়েছে ⇒ দুটিই Clause।\nধাপ ২ ('IT' প্রতিস্থাপন টেস্ট): ১ম বাক্যে 'why I was late'-এর বদলে 'IT' বসালে হয় 'He asked me IT' (অর্থপূর্ণ ও ব্যাকরণসিদ্ধ)। কিন্তু ২য় বাক্যে 'Tell me the reason IT' বসালে বাক্য অশুদ্ধ হয়।\nধাপ ৩ (Antecedent পরীক্ষা): ২য় বাক্যে 'why you are late'-এর ঠিক আগে 'the reason' (Noun) আছে এবং অংশটি 'কোন reason' তা ব্যাখ্যা করছে।\nফলে / সঠিক পরিচয়: ১ম বাক্যে 'why I was late' = Noun Clause; ২য় বাক্যে 'why you are late' = Adjective (Relative) Clause।\nএকইভাবে: 'I know [when he will come]' ('I know IT' ⇒ Noun Clause) বনাম 'I know the time [when he will come]' ('the time'-কে মডিফাই করে ⇒ Adjective Clause) বনাম 'Wait [until I return]' ('কখন পর্যন্ত?' ⇒ Adverbial Clause of Time)।",
+          "উদাহরণ ২ (Subject ও Apposition Noun Clause বনাম Adverbial Clause): (ক) '[That he is honest] is known to all.' (খ) 'We eat [so that we may live].'\nধাপ ১ ('IT' টেস্ট ও অবস্থান): (ক) বাক্যে '[That he is honest]' পুরো অংশটি Verb 'is'-এর Subject হিসেবে বসেছে; এর বদলে 'IT' বসালে হয় 'IT is known to all' (সম্পূর্ণ শুদ্ধ)।\nধাপ ২ (ক্রিয়া-প্রশ্ন টেস্ট): (খ) বাক্যে 'so that we may live'-এর আগে কোনো Noun নেই এবং 'IT' বসালে ('We eat IT') মূল উদ্দেশ্য বদলে যায়—বরং এটি 'কেন খাই?' (Why/Purpose) প্রশ্নের উত্তর দিচ্ছে।\nফলে / সঠিক পরিচয়: (ক) Noun Clause (Subject হিসেবে); (খ) Adverbial Clause of Purpose।\nএকইভাবে: '[What he said] surprised me' ('IT surprised me' ⇒ Noun Clause) বনাম 'Although he is poor, he is honest' ('সত্ত্বেও/বৈপরীত্য' ⇒ Adverbial Clause of Concession)।",
+          "উদাহরণ ৩ (Phrase চেনার ৩-ধাপ কৌশল): (ক) 'The man [with a white beard] came here.' (খ) 'He worked [heart and soul].' (গ) '[To tell a lie] is a great sin.'\nধাপ ১ (Finite Verb খোঁজা): তিনটি অংশের কোনোটিতেই Tense-যুক্ত Finite Verb নেই ⇒ তিনটিই Phrase।\nধাপ ২ (বাক্যে কাজ নির্ণয়): (ক) 'with a white beard' তার আগের Noun 'The man'-কে চিনিয়ে দিচ্ছে; (খ) 'heart and soul' Verb 'worked'-কে 'কীভাবে' (How) তা বোঝাচ্ছে; (গ) 'To tell a lie' Verb 'is'-এর Subject ('IT is a great sin')।\nফলে / সঠিক পরিচয়: (ক) Adjective Phrase; (খ) Adverbial Phrase; (গ) Noun (Infinitive) Phrase।\nএকইভাবে: 'A man [of letters]' (Noun 'man'-কে মডিফাই করে ⇒ Adjective Phrase) বনাম 'He ran [at a great speed]' (Verb 'ran'-কে মডিফাই করে ⇒ Adverbial Phrase)।",
+        ],
+        commonMistakes: [
+          "'The boy in the corner is my brother' বাক্যে 'in the corner' Preposition দিয়ে শুরু হলেও পরীক্ষায় এর কাজ (Function) অনুযায়ী উত্তর হয় 'Adjective Phrase' ('Prepositional Phrase' নয়!), কারণ এটি Noun 'boy'-কে বিশেষায়িত করছে।",
+          "সংযোগকারী শব্দ ('where, when, why, that') দেখে মুখস্থ Clause বলবেন না—প্রতিবার আগে 'IT' বসিয়ে এবং ঠিক আগের Antecedent Noun পরীক্ষা করে সিদ্ধান্ত নিন।",
         ],
         practiceProblems: [
           {
@@ -62,41 +94,63 @@ export const englishTopics = [
       {
         heading: "Chapter 2: Conditionals, Subjunctive, Negative Inversion ও Parallelism",
         explanation:
-          "Conditional বাক্যে দুটি অংশ থাকে—শর্ত অংশ (`If-clause`) এবং ফলাফল অংশ (`Main clause`)। বাংলায় অনুবাদ করে নিলে ৪টি ধাপ একদম সহজ: Zero Conditional-এ চিরন্তন সত্য (`If water freezes, it expands`), 1st-এ বাস্তব ভবিষ্যৎ (`will`), 2nd-এ বর্তমান বা কাল্পনিক অবাস্তব ইচ্ছা (`If I were a bird, I would fly` — খেয়াল করুন অবাস্তব কল্পনায় `I/he/she`-এর পরও সবসময় `were` বসে!), এবং 3rd-এ অতীতের অপূর্ণ আফসোস (`If + had + V3`, ফলে অপর পাশে `would have + V3`)।\n\nব্যাংক ও বিসিএস-এর সবচেয়ে পছন্দের কঠিন প্রশ্ন আসে **3rd Conditional Inversion** থেকে: `If` তুলে দিয়ে `Had`-কে সামনে আনলে দেখতে `Had I seen you...` মনে হয়—অথচ এর মানে `If I had seen you...`, তাই পরের অংশে `would have + V3` বসবে! কিন্তু সাবধান: `Had I the wings of a dove` বাক্যে `had`-এর পর কোনো `V3` নেই, এখানে `Had` মানে 'থাকলে' (2nd conditional), তাই এর উত্তর হবে `would fly`, কখনো `would have flown` নয়!",
+          "Conditional বাক্যে দুটি অংশ থাকে—শর্ত অংশ ('If-clause') এবং ফলাফল অংশ ('Main clause')। বাংলায় অনুবাদ করে নিলে ৪টি ধাপ একদম সহজ: Zero Conditional-এ চিরন্তন সত্য ('If water freezes, it expands'), 1st-এ বাস্তব ভবিষ্যৎ ('will'), 2nd-এ বর্তমান বা কাল্পনিক অবাস্তব ইচ্ছা ('If I were a bird, I would fly' — খেয়াল করুন অবাস্তব কল্পনায় 'I/he/she'-এর পরও সবসময় 'were' বসে!), এবং 3rd-এ অতীতের অপূর্ণ আফসোস ('If + had + V3', ফলে অপর পাশে 'would have + V3')।\n\nব্যাংক ও বিসিএস-এর সবচেয়ে পছন্দের কঠিন প্রশ্ন আসে 3rd Conditional Inversion থেকে: 'If' তুলে দিয়ে 'Had'-কে সামনে আনলে দেখতে 'Had I seen you...' মনে হয়—অথচ এর মানে 'If I had seen you...', তাই পরের অংশে 'would have + V3' বসবে! কিন্তু সাবধান: 'Had I the wings of a dove' বাক্যে 'had'-এর পর কোনো 'V3' নেই, এখানে 'Had' মানে 'থাকলে' (2nd conditional), তাই এর উত্তর হবে 'would fly', কখনো 'would have flown' নয়!",
         formulaBox: [
           {
-            label: "৪টি Conditional সূত্র",
+            label: "৪টি Conditional সূত্র (If-Clause → Main Clause)",
             formula: "Zero: Present + Present | 1st: Present + will+V1 | 2nd: V2/were + would+V1 | 3rd: had+V3 + would have+V3",
-            note: "Mixed Conditional: অতীতের কারণ ('had studied') + বর্তমান ফল ('would be now')",
+            note: "Mixed Conditional: অতীতের কারণ ('If he had studied') + বর্তমান ফল ('he would be rich now')",
+          },
+          {
+            label: "Conditional Inversion ('Had + V3' vs 'Had + Noun')",
+            formula: "Had + S + V3 → would have + V3 (3rd)  |  Had + S + Noun / Were + S → would + V1 (2nd)",
+            note: "'Had'-এর পর V3 আছে কি না তা না দেখলে ২য় ও ৩য় Conditional উল্টে যায়!",
           },
           {
             label: "Mandative Subjunctive (ব্যাংক পরীক্ষায় কমন)",
             formula: "suggest / demand / insist / recommend / essential / vital + THAT + Subject + BASE V1 / (not + V1)",
-            note: "Subject 3rd person হলেও -s/-es বসবে না ('insisted that he GO', 'be revised')",
+            note: "Subject 3rd person হলেও -s/-es বসবে না ('insisted that he GO', 'be revised', 'not delay')",
+          },
+          {
+            label: "Negative Inversion ও সময়-ফাঁদ",
+            formula: "Seldom/Never/Hardly/Not only + Aux + S + V  |  It is high time + S + V2  |  Lest ... should/might + V1",
+            note: "'Lest'-এর পর কখনো 'not' বসে না; 'No sooner had ... than' বনাম 'Hardly/Scarcely had ... when/before'",
           },
         ],
         comparisonTable: {
-          title: "Inversion ও 'Had' ফাঁদের পার্থক্য",
-          headers: ["বাক্যের শুরু", "অর্থ ও ধরন", "সঠিক পরের অংশ"],
+          title: "সংক্ষেপে মনে রাখার চার্ট: Conditional, Inversion, Subjunctive ও Negative Structure",
+          headers: ["বাক্যের শুরু / সংকেত", "গঠন ভেঙে বিশ্লেষণ (ধরণ)", "সঠিক পরের অংশ / রূপ"],
           rows: [
-            ["Had he invited me, I ___.", "= If he had invited me (3rd Cond.)", "would have attended"],
-            ["Had I a million taka, I ___.", "= If I had a million taka (2nd Cond., V3 নেই)", "would help the poor"],
-            ["Were I a king, I ___.", "= If I were a king (2nd Cond.)", "would build a hospital"],
-            ["Seldom / Never / Hardly + ...", "শুরুতে Negative Adverb ⇒ Inversion", "Auxiliary + Subject (`Seldom have I seen`)"],
+            ["If + S + had + V3, ...", "পূর্ণ 3rd Conditional (অতীত অপূর্ণ)", "S + would / could / might + have + V3"],
+            ["Had + S + V3, ...", "= If + S + had + V3 (3rd Cond. Inversion)", "S + would have + V3 ('would have attended')"],
+            ["Had + S + Noun (V3 নেই), ...", "= If + S + had (V2) + Noun (2nd Cond.)", "S + would + V1 ('would help' — 'have' হবে না!)"],
+            ["Were + S + ..., ...", "= If + S + were ... (2nd Cond. অবাস্তব)", "S + would + V1 ('Were I a king, I would help')"],
+            ["suggest / insist / vital + that + S...", "Mandative Subjunctive (person-নিরপেক্ষ)", "Base V1 / be / not + V1 ('that he take / be')"],
+            ["Seldom / Never / Hardly + ...", "শুরুতে Negative Adverb ⇒ Inversion", "Auxiliary + Subject + Verb ('Seldom have I seen')"],
+            ["No sooner had ... / Hardly had ...", "Past Perfect Inversion + জোড়া কানেক্টর", "No sooner... than  |  Hardly/Scarcely... when"],
+            ["It is high time + S ... / Lest ...", "অবাস্তব দেরি (V2) ও সতর্কতা (should)", "High time + S + V2  |  Lest + S + should + V1"],
           ],
         },
         points: [
-          "১. Parallelism (সমান্তরাল গঠন): `and, but, or, both...and, either...or, neither...nor, not only...but also, rather...than` দিয়ে যুক্ত অংশগুলোর ব্যাকরণিক রূপ একই হতে হবে—যেমন `She likes reading, swimming, and hiking` ('to hike' লিখলে সমান্তরাল নষ্ট হয়!)।",
-          "২. Lest ও Wish: `Lest` মানে 'পাছে এই ভয়ে যে'—এর পর সর্বদা `should/might + V1` বসে এবং 'not' বসে না ('Walk fast lest you should miss the train')। `Wish/Fancy`-এর পর অবাস্তব বর্তমানে `V2/were` বসে ('I wish I were a child')।",
+          "১. Parallelism (সমান্তরাল গঠন): 'and, but, or, both...and, either...or, neither...nor, not only...but also, rather...than' দিয়ে যুক্ত অংশগুলোর ব্যাকরণিক রূপ একই হতে হবে—যেমন 'She likes reading, swimming, and hiking' ('to hike' লিখলে সমান্তরাল নষ্ট হয়!)।",
+          "২. Lest ও Wish: 'Lest' মানে 'পাছে এই ভয়ে যে'—এর পর সর্বদা 'should/might + V1' বসে এবং 'not' বসে না ('Walk fast lest you should miss the train')। 'Wish/Fancy'-এর পর অবাস্তব বর্তমানে 'V2/were' বসে ('I wish I were a child') এবং অতীত আফসোসে 'had + V3' বসে ('I wish I had studied harder')।",
         ],
         workedExamples: [
-          "উদাহরণ: 'The committee insisted that the new manager ___ (be/is) present and ___ (not delay/does not delay) the audit.'\nবিশ্লেষণ: 'insist + that' হলো Mandative Subjunctive, তাই Subject 'the new manager' singular হলেও সিম্পল Base form বসে।\nউত্তর: be, not delay।",
+          "উদাহরণ ১ (Conditionals & 'Had' Inversion ফাঁদ): (ক) 'Had I seen you earlier, I ___ (help) you.' বনাম (খ) 'Had I a million taka now, I ___ (help) the poor.'\nধাপ ১ ((ক) বাক্য ভেঙে দেখা): 'Had I seen' অংশটিতে 'Had + Subject (I) + V3 (seen)' আছে, যা আসলে 'If I had seen'-এর সংক্ষিপ্ত (Inverted) রূপ ⇒ এটি 3rd Conditional।\nধাপ ২ ((খ) বাক্য ভেঙে দেখা): 'Had I a million taka' অংশটিতে 'Had'-এর পর কোনো V3 নেই, আছে Noun ('a million taka')—অর্থাৎ এখানে 'Had' নিজেই মূল Verb ('have'-এর Past Simple V2), যা 'If I had a million taka'-এর রূপ ⇒ এটি 2nd Conditional।\nধাপ ৩ (Main Clause সূত্র মেলানো): 3rd Conditional → 'would have + V3'; 2nd Conditional → 'would + V1'। \nফলে / সঠিক বাক্য: (ক) Had I seen you earlier, I would have helped you. (খ) Had I a million taka now, I would help the poor.\nএকইভাবে: 'If he had worked hard, he would have passed' = 'Had he worked hard, he would have passed.' | 'Were I a bird, I would fly.' (= If I were a bird...) | Mixed: 'If I had listened to you then, I would be happy now.'",
+          "উদাহরণ ২ (Mandative Subjunctive): 'The committee insisted that the new manager ___ (be/is) present and ___ (not delay/does not delay) the audit.'\nধাপ ১ (Trigger চিহ্নিতকরণ): বাক্যে 'insisted + that' থাকায় এটি Mandative Subjunctive নিয়মে পড়বে।\nধাপ ২ (Subject ও Tense-নিরপেক্ষ নিয়ম): Subject 'the new manager' (3rd person singular) হলেও এবং মূল verb 'insisted' (Past) হলেও 'that'-এর পর সবসময় মূল Verb-এর Base Form (s/es বা Tense-হীন রূপ) ও নেতিবাচক হলে কেবল 'not + V1' বসে।\nফলে / সঠিক বাক্য: The committee insisted that the new manager be present and not delay the audit.\nএকইভাবে: 'The doctor suggested that she take (takes নয়) rest.' | 'It is vital that every candidate submit (submits নয়) the form.' | 'He demanded that the rule be changed (is/was changed নয়)।'",
+          "উদাহরণ ৩ (Negative Inversion ও Correlative জোড়া): (ক) 'Seldom ___ (I have seen / have I seen) such courage.' (খ) 'No sooner ___ (had we reached / we had reached) home ___ (when/than) it rained.'\nধাপ ১ (শুরুর Negative Adverb পরীক্ষা): দুটি বাক্যই Negative Adverb ('Seldom', 'No sooner') দিয়ে শুরু হয়েছে ⇒ নিয়ম অনুযায়ী প্রশ্নবোধকের মতো Auxiliary verb Subject-এর আগে আসবে।\nধাপ ২ (জোড়া কানেক্টর মেলানো): 'No sooner had + S + V3'-এর পর সর্বদা 'than' বসে (কিন্তু 'Hardly/Scarcely had'-এর পর 'when/before' বসে)।\nফলে / সঠিক বাক্য: (ক) Seldom have I seen such courage. (খ) No sooner had we reached home than it rained.\nএকইভাবে: 'Never have I told a lie.' | 'Not only did he come on time, but he also helped everyone.' | 'Hardly had the train left when it started snowing.'",
+          "উদাহরণ ৪ (High Time, Lest ও Parallelism): 'It is high time we ___ (change) our bad habits, lest we ___ (suffer) in future.'\nধাপ ১: 'It is high time'-এর পর সরাসরি Subject ('we') থাকায় Verb-এর Past Simple ('V2') বসবে ⇒ 'changed' (তবে Subject না থেকে শুধু 'It is high time ___' থাকলে 'to change' হতো)।\nধাপ ২: 'lest' নিজেই না-বোধক সতর্কতা বোঝায় ⇒ এর পর 'should/might + V1' বসবে (কখনো 'not' বসবে না) ⇒ 'should suffer'।\nফলে / সঠিক বাক্য: It is high time we changed our bad habits, lest we should suffer in future.\nএকইভাবে (Parallelism): 'He likes reading, writing, and swimming' (সবগুলোই Gerund; 'to swim' দিলে ভুল)।",
+        ],
+        commonMistakes: [
+          "'Had I the wings of a dove' বাক্যে 'Had' দেখেই অনেকে 3rd Conditional ভেবে 'would have flown' দেন—মনে রাখবেন 'Had'-এর পর V3 না থাকলে তা 2nd Conditional ('would fly')!",
+          "'Lest'-এর পর কখনোই 'not', 'will' বা 'would' বসবে না ('Walk fast lest you should miss' সঠিক; 'lest you should not miss' সম্পূর্ণ ভুল)।",
+          "'No sooner had' এর সাথে 'when' এবং 'Hardly had' এর সাথে 'than' উল্টে বসিয়ে দেওয়া পরীক্ষার সবচেয়ে বড় ফাঁদ—মনে রাখুন: sooner → than, hardly/scarcely → when/before।",
         ],
         practiceProblems: [
           {
             question: "শূন্যস্থান পূরণ করুন: (a) No sooner had we reached the station ___ the train left. (b) It is high time we ___ (change) our habits. (c) Had I known his number, I ___ (call) him.",
             hint: "No sooner...than; It is high time + Subject + V2; Had I known (3rd Cond.) → would have + V3।",
-            solution: "(a) `than` ('when' নয়!); (b) `changed` (V2); (c) `would have called`।",
+            solution: "(a) 'than' ('when' নয়!); (b) 'changed' (V2); (c) 'would have called'।",
             answer: "(a) than, (b) changed, (c) would have called",
           },
         ],
@@ -104,31 +158,65 @@ export const englishTopics = [
       {
         heading: "Chapter 3: Subject-Verb Agreement ও Right Form of Verbs-এর সূক্ষ্ম ফাঁদ",
         explanation:
-          "বাক্যে Subject ও Verb-এর মিল খোঁজার সময় আসল চ্যালেঞ্জ হলো মাঝখানে ঢুকে পড়া অপ্রয়োজনীয় Prepositional Phrase বাদ দেওয়া। যখন দুটি অংশ `with, together with, along with, as well as, in addition to, accompanied by, including`-দিয়ে যুক্ত হয়, তখন দ্বিতীয় অংশটি আসলে মূল Subject-এর অংশ নয়—তাই Verb বসবে **প্রথম Subject** দেখে (`The teacher, along with his students, WAS present`)।\n\nঅন্যদিকে `Either...or`, `Neither...nor` এবং `Not only...but also`-র ক্ষেত্রে Verb বসে সবচেয়ে **কাছের (দ্বিতীয়) Subject** দেখে (`Neither the captain nor the players WERE ready` বনাম `Neither the players nor the captain WAS ready`)!",
+          "বাক্যে Subject ও Verb-এর মিল খোঁজার সময় আসল চ্যালেঞ্জ হলো মাঝখানে ঢুকে পড়া অপ্রয়োজনীয় Prepositional বা Appositive Phrase বাদ দেওয়া। যখন দুটি অংশ 'with, together with, along with, as well as, in addition to, accompanied by, including'-দিয়ে যুক্ত হয়, তখন দ্বিতীয় অংশটি আসলে মূল Subject-এর অংশ নয়—তাই Verb বসবে প্রথম Subject দেখে ('The teacher, along with his students, WAS present')।\n\nঅন্যদিকে 'Either...or', 'Neither...nor' এবং 'Not only...but also'-র ক্ষেত্রে Verb বসে সবচেয়ে কাছের (দ্বিতীয়) Subject দেখে ('Neither the captain nor the players WERE ready' বনাম 'Neither the players nor the captain WAS ready')!",
+        formulaBox: [
+          {
+            label: "Head Subject বনাম Prepositional ফাঁদ",
+            formula: "[Head Subject] + (of / with / along with / as well as + Noun2) + Verb (Head Subject অনুযায়ী)",
+            note: "মাঝের 'of/with...'-অংশ কেটে বাদ দিয়ে দেখুন—তাহলেই আসল Subject পরিষ্কার হবে!",
+          },
+          {
+            label: "Correlative Conjunction (নিকটতম নিয়ম)",
+            formula: "Either S1 or S2  |  Neither S1 nor S2  |  Not only S1 but also S2  +  Verb (S2 দেখে)",
+            note: "Verb-এর ঠিক আগের Subject-টি Singular হলে Singular, Plural হলে Plural Verb দিন",
+          },
+          {
+            label: "Causative Verbs (ব্যক্তি vs বস্তু)",
+            formula: "Make/Let/Have + ব্যক্তি + V1  |  Get + ব্যক্তি + TO + V1  |  Have/Get + বস্তু + V3",
+            note: "Passive-এ 'make'-এর হারানো 'to' ফিরে আসে: 'I was made TO laugh'",
+          },
+          {
+            label: "As if / As though ও 'Used to' সূত্র",
+            formula: "Present + as if/though + V2/were | Past + as if/though + had+V3  ||  used to + V1 vs be used to + V-ing",
+            note: "'with a view to, look forward to, addicted to'-এর পরেও সর্বদা V-ing বসে",
+          },
+        ],
         comparisonTable: {
-          title: "Subject-Verb Agreement-এর ৬টি পরীক্ষামুখী নিয়ম",
-          headers: ["গঠন / সংকেত", "কোন Subject দেখব?", "সঠিক উদাহরণ"],
+          title: "সংক্ষেপে মনে রাখার চার্ট: Subject-Verb Agreement ও Verb Form-এর ১০ পরীক্ষামুখী নিয়ম",
+          headers: ["গঠন / সংকেত", "কোন Subject / নিয়ম দেখব?", "সঠিক উদাহরণ"],
           rows: [
-            ["S1 + with / as well as / along with + S2", "প্রথম Subject (S1)", "Rahim as well as his friends IS guilty."],
-            ["Either...or / Neither...nor / Not only...but also", "নিকটতম (দ্বিতীয়) Subject", "Neither his friends nor he WAS present."],
+            ["S1 + with / as well as / along with + S2", "প্রথম Subject (S1) — S2 কেবল modifier", "Rahim as well as his friends IS guilty."],
+            ["Either...or / Neither...nor / Not only...but also", "নিকটতম (দ্বিতীয়) Subject (S2)", "Neither his friends nor he WAS present."],
+            ["One of the + Plural Noun + Verb", "Head Noun 'One' (Singular)", "One of the boys IS absent."],
+            ["One of the + Plural Noun + who/that + Verb", "Antecedent Plural Noun ('the only one' হলে Singular)", "He is one of the boys who ARE absent. / ...the only one who IS absent."],
             ["A number of vs The number of", "A number = Plural; The number = Singular", "A number of students ARE absent. / The number of students IS fifty."],
             ["Many a + Singular Noun vs A great many", "Many a = Singular; A great many = Plural", "Many a boy HAS failed. / A great many boys HAVE failed."],
-            ["ভগ্নাংশ (Two-thirds of / Half of)", "of-এর পরের Noun দেখে", "Two-thirds of the work IS done. / Two-thirds of the apples ARE rotten."],
+            ["ভগ্নাংশ (Two-thirds of / Half of)", "of-এর পরের Noun দেখে (Uncount/Plural)", "Two-thirds of the work IS done. / Two-thirds of the apples ARE rotten."],
             ["নির্দিষ্ট দূরত্ব/টাকা/ওজন/বিষয়/রোগ (-s)", "একক পরিমাপ বা নাম হলে Singular", "Fifty miles IS far. / Mathematics IS hard. / Measles IS contagious."],
+            ["The + Adjective (The poor / The rich)", "সমগ্র শ্রেণিকে বোঝায় ⇒ সর্বদা Plural", "The poor ARE not always unhappy. / The virtuous ARE blessed."],
+            ["Causative: Person vs Thing", "Make/Have+ব্যক্তি+V1; Get+ব্যক্তি+to+V1; Have/Get+বস্তু+V3", "I got him TO clean it. / I had my car REPAIRED."],
           ],
         },
         points: [
-          "১. As if / As though: এর আগে Present tense হলে পরে Past Indefinite (`V2` বা Be-verb-এ `were`: 'He talks as if he knew everything'); আর আগে Past হলে পরে Past Perfect (`had + V3`: 'He talked as if he had known')।",
-          "২. Causative Verb: 'Make/Let/Help/Have + Person + V1'; কিন্তু 'Get + Person + TO + V1' ('I got Rahim to clean the room')। আর বস্তুর কাজ করানো হলে 'Have/Get + Thing + V3' ('I had my car repaired')।",
+          "১. As if / As though: এর আগে Present tense হলে পরে Past Indefinite ('V2' বা Be-verb-এ 'were': 'He talks as if he knew everything'); আর আগে Past হলে পরে Past Perfect ('had + V3': 'He talked as if he had known')।",
+          "২. Causative Verb: 'Make/Let/Help/Have + Person + V1' (Help-এ 'to+V1'-ও সঠিক); কিন্তু 'Get + Person + TO + V1' ('I got Rahim to clean the room')। আর বস্তুর কাজ করানো হলে 'Have/Get + Thing + V3' ('I had my car repaired')।",
+          "৩. Prepositional 'to' ও অপরিহার্য Gerund: 'with a view to, look forward to, addicted to, get/be used to, object to, confess to, prefer...to'-এর পর সর্বদা V-ing বসে; এবং 'mind, worth, avoid, enjoy, finish, cannot help'-এর পরও V-ing বসে (কিন্তু 'cannot but + V1')।",
         ],
         workedExamples: [
-          "উদাহরণ: 'I am used to ___ early, though I used to ___ late.'\nউত্তর: প্রথম অংশে 'am used to' (অভ্যস্ত) থাকায় `waking up` (Gerund); দ্বিতীয় অংশে 'used to' (অতীত অভ্যাস) থাকায় `sleep` (V1)।",
+          "উদাহরণ ১ (Head Noun বনাম Prepositional Distractor): (ক) 'One of the boys ___ (is/are) absent.' (খ) 'The quality of the mangoes ___ (was/were) poor.' (গ) 'He is one of the players who ___ (has/have) won.'\nধাপ ১ (Head Subject বনাম Distractor আলাদা করা): (ক) বাক্যে 'of the boys' হলো Prepositional Phrase; আসল Subject = 'One' (Singular)। (খ) বাক্যে 'of the mangoes' বাদ দিলে আসল Subject = 'The quality' (Singular)।\nধাপ ২ (Verb মেলানো): 'One' → 'is'; 'The quality' → 'was'।\nধাপ ৩ (Relative Pronoun 'who' ব্যতিক্রম যাচাই): (গ) বাক্যে 'who'-এর ঠিক আগের Antecedent হলো 'the players' (Plural), 'One' নয়! তাই 'who'-এর পর Plural Verb 'have' বসবে (তবে 'the only one of the players who...' থাকলে হতো 'has')।\nফলে / সঠিক বাক্য: (ক) One of the boys is absent. (খ) The quality of the mangoes was poor. (গ) He is one of the players who have won.\nএকইভাবে: 'The teacher, accompanied by his students, IS arriving.' (Subject 'The teacher') | 'Neither the captain nor the players WERE ready.' (নিকটতম 'players') | 'The number of applicants IS rising' বনাম 'A number of applicants ARE waiting'।",
+          "উদাহরণ ২ (Causative Verbs — ব্যক্তি বনাম বস্তু): 'The manager made the clerk ___ (type) the letter, got the peon ___ (deliver) it, and had the lock ___ (repair).'\nধাপ ১ ('make + ব্যক্তি' সূত্র): 'made'-এর পর ব্যক্তি ('the clerk') থাকায় Bare Infinitive (to ছাড়া V1) বসবে ⇒ 'type'।\nধাপ ২ ('get + ব্যক্তি' সূত্র): 'got'-এর পর ব্যক্তি ('the peon') থাকায় 'to + V1' বসবে ⇒ 'to deliver'।\nধাপ ৩ ('have/get + বস্তু' সূত্র): 'had'-এর পর বস্তু ('the lock', যা নিজে কাজ করে না বরং মেরামত করা হয়েছে) থাকায় V3 বসবে ⇒ 'repaired'।\nফলে / সঠিক বাক্য: The manager made the clerk type the letter, got the peon to deliver it, and had the lock repaired.\nএকইভাবে: 'I had my hair cut.' ('cut'-এর V3 = 'cut') | 'She got her dress washed.' | Passive ব্যতিক্রম: 'He made me laugh' → 'I was made to laugh by him.'",
+          "উদাহরণ ৩ (Used to vs Be used to & Prepositional 'to'): 'I am used to ___ (wake) up early with a view to ___ (meet) the deadline, though I used to ___ (sleep) late.'\nধাপ ১ ('be used to' যাচাই): 'am used to' মানে 'অভ্যস্ত'—এখানে 'to' একটি Preposition ⇒ 'V-ing' ('waking')।\nধাপ ২ ('with a view to' যাচাই): 'with a view to' ফ্রেজের 'to'-ও Preposition ⇒ 'V-ing' ('meeting')।\nধাপ ৩ (সাধারণ 'used to' যাচাই): 'I used to' (আগে Be-verb নেই) অতীত অভ্যাস বোঝায় ⇒ 'V1' ('sleep')।\nফলে / সঠিক বাক্য: I am used to waking up early with a view to meeting the deadline, though I used to sleep late.\nএকইভাবে: 'I look forward to hearing from you.' | 'I prefer walking to riding.' | 'I cannot help laughing' বনাম 'I cannot but laugh'।",
+          "উদাহরণ ৪ (As if / As though ও ভগ্নাংশ): 'Two-thirds of the work ___ (is/are) finished, and he talks as if he ___ (know) everything and ___ (was/were) the boss.'\nধাপ ১ (ভগ্নাংশ যাচাই): 'Two-thirds of'-এর পর 'the work' (Uncountable/Singular) থাকায় Verb হবে Singular ⇒ 'is' (কিন্তু 'Two-thirds of the mangoes' থাকলে হতো 'are')।\nধাপ ২ ('As if' Tense ধাপ): 'talks' Present Indefinite হওয়ায় 'as if'-এর পর Past Indefinite 'knew' এবং অবাস্তব Be-verb হিসেবে সর্বদা 'were' বসবে (আগে Past 'talked' থাকলে হতো 'had known' ও 'had been')।\nফলে / সঠিক বাক্য: Two-thirds of the work is finished, and he talks as if he knew everything and were the boss.\nএকইভাবে: 'Three-fourths of the students ARE present.' | 'Fifty miles IS a long distance.' | 'He spoke as though he had seen a ghost.'",
+        ],
+        commonMistakes: [
+          "'One of the boys' দেখে 'boys'-এর সাথে Plural verb বসিয়ে দেওয়া, আবার 'One of the boys who...' দেখে 'One'-এর সাথে Singular verb দিয়ে ফেলা—এই দুই নিয়মের পার্থক্য পরিষ্কার রাখুন।",
+          "'With a view to', 'Look forward to', 'Be used to'—এগুলোর শেষে 'to' দেখেই অনেকে V1 বসিয়ে দেন; কিন্তু এগুলোতে 'to' Preposition হওয়ায় সর্বদা 'V-ing' (Gerund) বসে।",
         ],
         practiceProblems: [
           {
             question: "শুদ্ধ Verb বাছাই করুন: (a) One of my closest friends ___ (live/lives) in Dhaka. (b) Three-fourths of the mango ___ (is/are) rotten. (c) He speaks as though he ___ (was/were) the boss.",
             hint: "One = singular; 'the mango' একটি আম = singular; 'as though'-তে বে-ভার্ব সবসময় were।",
-            solution: "(a) `lives` ('One'-কে অনুসরণ করে); (b) `is` (একটি আমের ৩/৪ অংশ); (c) `were` (অবাস্তব ভাবনায় was হয় না)।",
+            solution: "(a) 'lives' ('One'-কে অনুসরণ করে); (b) 'is' (একটি আমের ৩/৪ অংশ); (c) 'were' (অবাস্তব ভাবনায় was হয় না)।",
             answer: "(a) lives, (b) is, (c) were",
           },
         ],
@@ -136,15 +224,57 @@ export const englishTopics = [
       {
         heading: "Chapter 4: Voice Change, Narration ও Pronoun Reference-এর বিশেষ নিয়ম",
         explanation:
-          "Active থেকে Passive করার সাধারণ নিয়মের বাইরে বিসিএস, প্রাইমারি ও মন্ত্রণালয়ে আসে **ব্যতিক্রমী Passive**! যেমন `by`-এর বদলে অন্য Preposition বসা ভার্বগুলো: `known` এর পর `TO` (`He is known to me` — কখনোই `by me` নয়!), `surprised / marveled / annoyed (আচরণে)`-এর পর `AT`, `pleased / satisfied / seized`-এর পর `WITH` (`Panic seized the writer` → `The writer was seized WITH panic`), এবং `contained`-এর পর `IN` (`The box contains ten books` → `Ten books are contained IN the box`)!\n\nআবার `Who`-দিয়ে শুরু হওয়া প্রশ্নে Passive-এ হয় `By whom`, আর `Whom` থাকলে হয় `Who`। অন্যদিকে `I saw him go` (Bare infinitive)-কে Passive করলে হারানো `to` ফিরে আসে: `He was seen TO go by me`!",
+          "Active থেকে Passive করার সাধারণ নিয়মের বাইরে বিসিএস, প্রাইমারি ও মন্ত্রণালয়ে আসে ব্যতিক্রমী Passive! যেমন 'by'-এর বদলে অন্য Preposition বসা ভার্বগুলো: 'known' এর পর 'TO' ('He is known to me' — কখনোই 'by me' নয়!), 'surprised / marveled / annoyed (আচরণে)'-এর পর 'AT', 'pleased / satisfied / seized'-এর পর 'WITH' ('Panic seized the writer' → 'The writer was seized WITH panic'), এবং 'contained'-এর পর 'IN' ('The box contains ten books' → 'Ten books are contained IN the box')!\n\nআবার 'Who'-দিয়ে শুরু হওয়া প্রশ্নে Passive-এ হয় 'By whom', আর 'Whom' থাকলে হয় 'Who'। অন্যদিকে 'I saw him go' (Bare infinitive)-কে Passive করলে হারানো 'to' ফিরে আসে: 'He was seen TO go by me'!",
+        formulaBox: [
+          {
+            label: "Active → Passive ৪-ধাপ রূপান্তর সূত্র",
+            formula: "Object → Subject  +  Tense অনুযায়ী Be/Aux  +  V3  +  (by/to/at/with/in) + Agent",
+            note: "Tense কখনো বদলায় না: V1→am/is/are+V3; V2→was/were+V3; Cont.→+being+V3; Perf.→+been+V3; Modal→+be+V3",
+          },
+          {
+            label: "Voice-এ Bare Infinitive ও Imperative সূত্র",
+            formula: "see/make/hear + O + V1 → S + be + V3 + TO + V1  |  Do not + V1 + O → Let not + O + be + V3",
+            note: "যেমন: 'I saw him go' → 'He was seen TO go by me'; 'Never tell a lie' → 'Let never a lie be told'",
+          },
+          {
+            label: "Narration পরিবর্তনের ৪ ধাপ",
+            formula: "১. Reporting Verb ও Linker (that/if/wh/to) → ২. Tense এক ধাপ পেছানো → ৩. Pronoun (SON) → ৪. Time/Place",
+            note: "চিরন্তন সত্য/অভ্যাস বা Reporting Verb Present/Future হলে ভেতরের Tense বদলাবে না",
+          },
+          {
+            label: "Indirect Question ও SON সূত্র",
+            formula: "Wh-word / if + Subject + Verb (Assertive ক্রম, শেষে '.')  ||  1st→Subject, 2nd→Object, 3rd→No change",
+            note: "'He asked me what my name WAS.' (কখনোই 'what was my name?' নয়!)",
+          },
+        ],
+        comparisonTable: {
+          title: "সংক্ষেপে মনে রাখার চার্ট: Passive Preposition ব্যতিক্রম ও Narration পরিবর্তন",
+          headers: ["বিভাগ / Verb / শব্দ", "ভুল বা প্রচলিত প্রবণতা", "সঠিক Passive / Indirect রূপ"],
+          rows: [
+            ["Know / Marry (Passive)", "known by / married with (ভুল)", "known TO / married TO ('He is known to me')"],
+            ["Surprise / Shock / Annoy (আচরণ)", "surprised by / annoyed by (ভুল)", "surprised AT / shocked AT / annoyed AT (person হলে WITH)"],
+            ["Please / Satisfy / Seize / Fill", "seized by panic (ভুল)", "pleased WITH / satisfied WITH / seized WITH / filled WITH"],
+            ["Contain / Interest", "contained by (ভুল)", "contained IN ('Ten books are contained in the box') / interested IN"],
+            ["Who / Whom (Interrogative Passive)", "Who did you invite? / Who broke?", "Whom → Who was invited by you? | Who → By whom was it broken?"],
+            ["Direct → Indirect Tense (Past Reporting)", "V1 / am-is-are+V-ing / V2 / will", "V2 / was-were+V-ing / had+V3 / would+V1"],
+            ["Direct → Indirect সময় ও দূরত্ব", "now / today / tomorrow / yesterday / here", "then / that day / the next day / the previous day / there"],
+          ],
+        },
         points: [
-          "১. Quasi-Passive: 'Honey tastes sweet' → 'Honey is sweet when it is tasted'; 'The house is building' → 'The house is being built'।",
-          "২. Reflexive ও Imperative Passive: 'He killed himself' → 'He was killed by himself' (কখনো 'Himself was killed' নয়!); 'Never tell a lie' → 'Let never a lie be told'।",
+          "১. Quasi-Passive: 'Honey tastes sweet' → 'Honey is sweet when it is tasted'; 'The house is building' → 'The house is being built' (অর্থে কাজটি অন্যের দ্বারা হচ্ছে বোঝালে)।",
+          "২. Reflexive ও Imperative Passive: 'He killed himself' → 'He was killed by himself' (কখনো 'Himself was killed' নয়!); 'Post the letter' → 'Let the letter be posted' (বা অনুরোধে 'You are requested to...')।",
           "৩. Narration মূল সূত্র: Reporting verb Past হলে ভেতরের Tense এক ধাপ পেছনে যায় (কেবল চিরন্তন সত্য ও অভ্যাসে বদলায় না)। Indirect প্রশ্নে Wh-word-এর পর Auxiliary আগে নয়, Subject আগে আসবে ('He asked me what my name WAS', কখনোই 'what was my name' নয়!)।",
-          "৪. Pronoun Reference: দুটি একই লিঙ্গের Noun পাশাপাশি থাকলে `he/she` অস্পষ্ট হয়—সেখানে Noun-টি পুনরাবৃত্তি করতে হবে ('When Karim met Rahim, he was delighted' ভুল → 'Karim was delighted when he met Rahim')। 'Each/Every/Neither'-এর সাথে আনুষ্ঠানিক পরীক্ষায় singular pronoun (`his or her`) বসে।",
+          "৪. Pronoun Reference: দুটি একই লিঙ্গের Noun পাশাপাশি থাকলে 'he/she' অস্পষ্ট হয়—সেখানে Noun-টি পুনরাবৃত্তি করতে হবে ('When Karim met Rahim, he was delighted' ভুল → 'Karim was delighted when he met Rahim')। 'Each/Every/Neither'-এর সাথে আনুষ্ঠানিক পরীক্ষায় singular pronoun ('his or her') বসে।",
         ],
         workedExamples: [
-          "উদাহরণ: 'Whom did you invite?' ও 'The novel reads well'-এর Passive রূপ কী?\nউত্তর: 'Who was invited by you?'; এবং 'The novel is well when it is read'।",
+          "উদাহরণ ১ (ব্যতিক্রমী Passive ও Bare Infinitive ধাপে ধাপে): (ক) 'Panic seized the writer.' (খ) 'I saw him go.'\nধাপ ১ (Object-কে Subject বানানো): (ক) 'the writer' → নতুন Subject; (খ) 'him' → নতুন Subject 'He'।\nধাপ ২ (Tense অনুযায়ী Auxiliary + V3): দুটিই Past Indefinite ('seized', 'saw') ⇒ 'was seized' ও 'was seen'।\nধাপ ৩ (বিশেষ Preposition ও হারানো 'to' ফেরানো): (ক) 'seized' verb-টি Passive-এ 'by'-এর বদলে 'with' নেয় ⇒ 'with panic' (এবং Agent 'the writer' শুরুতে চলে যাওয়ায় 'panic' শেষে আসবে)। (খ) Active-এ 'see/make/hear'-এর পর 'to' উহ্য থাকলেও Passive-এ 'to' ফিরে আসে ⇒ 'to go'।\nফলে / সঠিক বাক্য: (ক) The writer was seized with panic. (খ) He was seen to go by me.\nএকইভাবে: 'I know him' → 'He is known to me.' | 'Her behaviour annoyed me' → 'I was annoyed at her behaviour.' | 'The box contains ten books' → 'Ten books are contained in the box.'",
+          "উদাহরণ ২ (Interrogative, Imperative ও Quasi-Passive Voice): (ক) 'Whom did you invite?' (খ) 'Do not hate the poor.' (গ) 'Honey tastes sweet.'\nধাপ ১ ((ক) Interrogative 'Whom' রূপান্তর): 'Whom' নিজে Object হওয়ায় Passive-এ Subject 'Who' হবে; 'did invite' (Past Indefinite) → 'was invited' → 'by you?'।\nধাপ ২ ((খ) Negative Imperative সূত্র): 'Let not + Object + be + V3' ⇒ 'Let not' + 'the poor' + 'be' + 'hated'।\nধাপ ৩ ((গ) Quasi-Passive সূত্র): '[Subject + be + Adj + when it is + V3]' ⇒ 'Honey is sweet when it is tasted.'\nফলে / সঠিক বাক্য: (ক) Who was invited by you? (খ) Let not the poor be hated. (গ) Honey is sweet when it is tasted.\nএকইভাবে: 'Who broke the window?' → 'By whom was the window broken?' | 'The novel reads well' → 'The novel is well when it is read.' | 'He killed himself' → 'He was killed by himself.'",
+          "উদাহরণ ৩ (Direct → Indirect Narration ধাপে ধাপে): He said to me, \"Why did you leave early yesterday?\"\nধাপ ১ (Reporting Verb ও Linker): প্রশ্নবোধক হওয়ায় 'said to' → 'asked'; Wh-word 'Why' নিজেই Linker ('that/if' বসবে না)।\nধাপ ২ (Pronoun SON ও Tense এক ধাপ পেছানো): 'you' Object 'me'-কে ধরে হবে 'I'; 'did leave' (Past Indefinite) এক ধাপ পিছিয়ে Past Perfect ⇒ 'had left' (Assertive ক্রমে Subject 'I'-এর পরে বসবে!)।\nধাপ ৩ (Adverb ও বিরামচিহ্ন): 'yesterday' → 'the previous day'; শেষে '?' বদলে '.' বসবে।\nফলে / সঠিক বাক্য: He asked me why I had left early the previous day.\nএকইভাবে: 'She said to me, \"Are you happy?\"' → 'She asked me if I was happy.' | 'The teacher said, \"Honesty is the best policy.\"' → 'The teacher said that honesty is the best policy.' (চিরন্তন সত্যে Tense বদলায় না)।",
+          "উদাহরণ ৪ (Pronoun Reference ও Formal Agreement): 'When Karim met Rahim, he was delighted, and every student must submit their assignment.'\nধাপ ১ (অস্পষ্ট Pronoun 'he' চিহ্নিতকরণ): বাক্যে দুটি পুরুষ নাম ('Karim', 'Rahim') থাকায় 'he' দ্বারা কাকে বোঝাচ্ছে তা অস্পষ্ট (Ambiguous) ⇒ ক্রম বদলে বা নাম পুনরাবৃত্তি করে স্পষ্ট করতে হবে।\nধাপ ২ (Distributive Singular Agreement): 'every student' ব্যাকরণগতভাবে Singular হওয়ায় প্রমিত নিয়োগ পরীক্ষায় 'their'-এর বদলে 'his or her' বসে।\nফলে / সঠিক বাক্য: Karim was delighted when he met Rahim, and every student must submit his or her assignment.\nএকইভাবে: 'Each of the players gave HIS OR HER best effort.' | 'Neither of the girls brought HER book.'",
+        ],
+        commonMistakes: [
+          "'Who' দিয়ে Passive করার সময় 'By whom was the glass broken?' লিখতে গিয়ে অনেকেই Auxiliary-কে Subject-এর আগে না এনে 'By whom the glass was broken?' লিখে ফেলেন—প্রশ্নবোধক বাক্যে অবশ্যই Auxiliary ('was') আগে থাকবে।",
+          "Narration-এ Indirect প্রশ্ন করার সময় 'He asked me where did I live?' লেখা সবচেয়ে প্রচলিত ভুল—Wh-word-এর পর Auxiliary আগে না বসে 'where I lived.' (Assertive গঠন ও শেষে ফুলস্টপ) হবে।",
         ],
         practiceProblems: [
           {
@@ -190,14 +320,33 @@ export const englishTopics = [
       {
         heading: "Chapter 1: Appropriate Preposition জোড়া ও Zero-Preposition ফাঁদ",
         explanation:
-          "চাকরির পরীক্ষায় সাধারণ `on the table` ধরনের Preposition আসে না—পরীক্ষকরা যাচাই করেন একই শব্দের পর Preposition বদলে দিলে অর্থ কীভাবে বদলায় তা আপনি জানেন কি না! যেমন: কারো সাথে একমত হলে `Agree WITH Karim`, কারো প্রস্তাবে একমত হলে `Agree TO the proposal`, আর কোনো নির্দিষ্ট পয়েন্টে একমত হলে `Agree ON this issue`!\n\nআরেকটি বড় ফাঁদ হলো বাংলা অনুবাদের কারণে ভুল Preposition বসিয়ে দেওয়া। আমরা বাংলায় বলি 'বিষয়টি নিয়ে আলোচনা করব' বা 'কক্ষে প্রবেশ করল'—তাই অনেকেই ভুলে `discuss about` বা `enter into the room` লিখে ফেলেন! ইংরেজিতে `Discuss, Describe, Emphasize, Resemble, Order, Sign, Investigate, Marry (Active)`-এর পর কোনো Preposition বসে না।",
+          "চাকরির পরীক্ষায় সাধারণ 'on the table' ধরনের Preposition আসে না—পরীক্ষকরা যাচাই করেন একই শব্দের পর Preposition বদলে দিলে অর্থ কীভাবে বদলায় তা আপনি জানেন কি না! যেমন: কারো সাথে একমত হলে 'Agree WITH Karim', কারো প্রস্তাবে একমত হলে 'Agree TO the proposal', আর কোনো নির্দিষ্ট পয়েন্টে একমত হলে 'Agree ON this issue'!\n\nআরেকটি বড় ফাঁদ হলো বাংলা অনুবাদের কারণে ভুল Preposition বসিয়ে দেওয়া। আমরা বাংলায় বলি 'বিষয়টি নিয়ে আলোচনা করব' বা 'কক্ষে প্রবেশ করল'—তাই অনেকেই ভুলে 'discuss about' বা 'enter into the room' লিখে ফেলেন! ইংরেজিতে 'Discuss, Describe, Emphasize, Resemble, Order, Sign, Investigate, Marry (Active)'-এর পর কোনো Preposition বসে না।",
+        formulaBox: [
+          {
+            label: "Zero-Preposition Active Verbs",
+            formula: "Discuss / Describe / Enter / Emphasize / Resemble / Order / Sign / Comprise / Investigate + Direct Object",
+            note: "বাংলা অর্থ দেখে 'about/into/of' বসাবেন না; ব্যতিক্রম: 'enter INTO an agreement/debate' (চুক্তি বা আলোচনায় প্রবেশ)",
+          },
+          {
+            label: "Preposition + Gerund (V-ing) সূত্র",
+            formula: "Abstain from / Refrain from / Prevent from / Insist on / Persist in / Succeed in / Capable of + V-ing",
+            note: "ব্যতিক্রমী 'to' ফ্রেজ: Look forward to, With a view to, Addicted to, Object to + V-ing",
+          },
+          {
+            label: "Active বনাম Passive Preposition বদল",
+            formula: "Active: Karim married Salma (কোনো prep নেই)  |  Passive: Salma was married TO Karim",
+            note: "একইভাবে Active 'know him' → Passive 'known TO me'; 'consist OF' vs Active 'comprise' (no of)",
+          },
+        ],
         comparisonTable: {
-          title: "একই শব্দের পর Preposition পরিবর্তনে অর্থভেদ",
+          title: "সংক্ষেপে মনে রাখার চার্ট: একই শব্দের পর Preposition পরিবর্তনে অর্থভেদ",
           headers: ["মূল Verb / Adjective", "Preposition ১ + অর্থ", "Preposition ২ + অর্থ"],
           rows: [
             ["Die (মারা যাওয়া)", "Die OF (রোগ/ক্ষুধা/তৃষ্ণা); Die FOR (দেশ/আদর্শ)", "Die FROM (অতিরিক্ত খাওয়া/ক্ষত); Die BY (দুর্ঘটনা/আত্মহত্যা)"],
             ["Blind (অন্ধ)", "Blind OF (শারীরিকভাবে এক চোখে অন্ধ)", "Blind TO (দোষত্রুটি দেখেও না দেখার ভান)"],
             ["Consist / Comprise", "Consist OF (উপাদানে গঠিত হওয়া)", "Consist IN (কোনো গুণে নিহিত থাকা); Active 'Comprise'-এ OF বসে না"],
+            ["Agree (একমত হওয়া)", "Agree WITH (ব্যক্তি); Agree TO (প্রস্তাব)", "Agree ON (কোনো নির্দিষ্ট বিষয়/পয়েন্টে)"],
+            ["Angry / Annoyed", "Angry WITH (ব্যক্তি)", "Angry AT (আচরণ বা কোনো বিষয়/বস্তু)"],
             ["Part (বিচ্ছিন্ন হওয়া)", "Part FROM (কোনো ব্যক্তি থেকে বিদায় নেওয়া)", "Part WITH (কোনো বস্তু বা সম্পদ হাতছাড়া করা)"],
             ["Live (জীবনযাপন)", "Live BY honest means (উপায়ে জীবিকা নির্বাহ)", "Live ON rice (প্রধান খাদ্য); Live FROM hand to mouth (দিন আনে দিন খায়)"],
           ],
@@ -205,15 +354,21 @@ export const englishTopics = [
         points: [
           "১. Gerund (+V-ing) নেওয়া আবশ্যিক Preposition: Abstain FROM, Refrain FROM, Prevent FROM, Prohibit FROM, Deter FROM, Persist IN, Insist ON, Succeed IN, Bent ON, Confident OF, Capable OF, Fond OF।",
           "২. Active বনাম Passive Preposition: Active-এ 'Karim married Salma' (কোনো preposition নেই), কিন্তু Passive-এ 'Salma was married TO Karim' ('with' নয়!)।",
+          "৩. পরীক্ষার আবশ্যিক জোড়া: Appetite FOR (ক্ষুধা/আকাঙ্ক্ষা), Succumb TO (নতি স্বীকার/মৃত্যু), Acquiesce IN (নীরব সম্মতি), Comply WITH (মেনে নেওয়া), Averse TO (অনিচ্ছুক), Deprived OF (বঞ্চিত)।",
         ],
         workedExamples: [
-          "উদাহরণ: 'He has no appetite ___ food' ও 'He succumbed ___ his injuries' — শূন্যস্থানে কী হবে?\nউত্তর: 'appetite FOR food' এবং 'succumb TO his injuries' ('from' কখনোই নয়, সবসময় 'succumb to'!)।",
+          "উদাহরণ ১ (Fixed Preposition ধাপে ধাপে): 'He has no appetite ___ food, yet he succumbed ___ the illness.'\nধাপ ১ ('appetite' অর্থ ও সংযোগ): 'appetite' মানে কোনো কিছুর জন্য তীব্র ক্ষুধা বা চাহিদা → চাহিদা বা উদ্দেশ্যের জন্য Fixed Preposition বসে 'for'।\nধাপ ২ ('succumb' নিয়ম): 'succumb' (নতি স্বীকার করা বা রোগে মারা যাওয়া) সর্বদা 'to' নেয় (কখনোই 'from' বা 'of' নয়)।\nফলে / সঠিক বাক্য: He has no appetite for food, yet he succumbed to the illness.\nএকইভাবে: 'He died OF cholera' (রোগে মৃত্যু) বনাম 'He died FROM overeating' (কারণে মৃত্যু) বনাম 'He died FOR his country' (আদর্শে) বনাম 'He died BY poison' (উপায়)।",
+          "উদাহরণ ২ (Zero-Preposition বনাম Passive Preposition): (ক) 'We discussed ___ the problem and entered ___ the room.' (খ) 'She was married ___ a doctor.'\nধাপ ১ (Transitive Zero-Preposition যাচাই): 'discuss' ও 'enter' (শারীরিকভাবে কোনো কক্ষে প্রবেশ) উভয়ই Active-এ সরাসরি Object নেয় ⇒ কোনো Preposition বসবে না ('Ø')।\nধাপ ২ (Passive 'married' পরীক্ষা): Active-এ 'He married her' হলেও Passive কাঠামো 'was married'-এর পর সর্বদা 'to' বসে ('with' নয়)।\nফলে / সঠিক বাক্য: (ক) We discussed the problem and entered the room. (খ) She was married to a doctor.\nএকইভাবে: 'The committee comprises five members' (Active, 'of' নেই) বনাম 'The committee consists OF five members' | 'We entered INTO an agreement' (চুক্তি হলে 'into' বসে!)।",
+        ],
+        commonMistakes: [
+          "বাংলায় 'বিষয়টি নিয়ে আলোচনা' ভেবে 'discuss about the matter' বা 'কক্ষে প্রবেশ' ভেবে 'enter into the room' লেখা সবচেয়ে কমন ভুল—এগুলোতে Preposition বসবে না!",
+          "'Succumb from his injuries' বা 'Married with him' (Passive-এ) লেখা ভুল—উভয় ক্ষেত্রেই সঠিক Preposition হলো 'to' ('succumb to', 'married to')।",
         ],
         practiceProblems: [
           {
             question: "শূন্যস্থান পূরণ করুন: (a) Water consists ___ hydrogen and oxygen. (b) True happiness consists ___ contentment. (c) A father is blind ___ his son's faults.",
             hint: "গঠিত অর্থে OF, নিহিত অর্থে IN, দোষ উপেক্ষা অর্থে TO।",
-            solution: "(a) `of` (উপাদানে গঠিত); (b) `in` (অন্তর্নিহিত থাকা); (c) `to` (দোষ না দেখা)।",
+            solution: "(a) 'of' (উপাদানে গঠিত); (b) 'in' (অন্তর্নিহিত থাকা); (c) 'to' (দোষ না দেখা)।",
             answer: "(a) of, (b) in, (c) to",
           },
         ],
@@ -221,9 +376,21 @@ export const englishTopics = [
       {
         heading: "Chapter 2: পরীক্ষায় বারবার আসা Group Verbs (Phrasal Verbs)",
         explanation:
-          "সাধারণ একটি Verb (`Break, Call, Look, Put, Turn, Take, Give`) তার পরের Adverb/Preposition বদলে যাওয়ার সাথে সাথে সম্পূর্ণ নতুন অর্থ ধারণ করে—একে Group Verb বলে। প্রাইমারি, নিবন্ধন ও বিসিএস-এ এদের অর্থ ধরে শূন্যস্থান পূরণ খুব কমন। নিচের দলভিত্তিক তালিকাটি ভালোভাবে আয়ত্ত করুন:",
+          "সাধারণ একটি Verb ('Break, Call, Look, Put, Turn, Take, Give') তার পরের Adverb/Preposition বদলে যাওয়ার সাথে সাথে সম্পূর্ণ নতুন অর্থ ধারণ করে—একে Group Verb বলে। প্রাইমারি, নিবন্ধন ও বিসিএস-এ এদের অর্থ ধরে শূন্যস্থান পূরণ খুব কমন। নিচের দলভিত্তিক তালিকাটি ভালোভাবে আয়ত্ত করুন:",
+        formulaBox: [
+          {
+            label: "Phrasal Verb-এ Pronoun বসানোর নিয়ম",
+            formula: "Verb + Noun + Particle  অথবা  Verb + Particle + Noun  ||  কিন্তু Pronoun হলে: Verb + PRONOUN + Particle",
+            note: "'Put off the meeting' এবং 'Put the meeting off' দুটোই শুদ্ধ; কিন্তু 'Put IT off' শুদ্ধ, 'Put off IT' ভুল!",
+          },
+          {
+            label: "একই Verb-এর ব্যক্তি বনাম স্থান পার্থক্য",
+            formula: "Call ON (ব্যক্তির সাথে দেখা) vs Call AT (কোনো স্থানে দেখা)  |  Deal IN (ব্যবসা) vs Deal WITH (আচরণ/সমাধান)",
+            note: "Look forward TO + V-ing ('to' দেখে কখনো V1 বসাবেন না!)",
+          },
+        ],
         comparisonTable: {
-          title: "সর্বাধিক পরীক্ষায় আসা Group Verbs দ্রুত ছক",
+          title: "সংক্ষেপে মনে রাখার চার্ট: সর্বাধিক পরীক্ষায় আসা Group Verbs দ্রুত ছক",
           headers: ["মূল Verb", "গুরুত্বপূর্ণ Phrasal Verb ও বাংলা অর্থ"],
           rows: [
             ["BREAK", "Break out (প্রাদুর্ভাব ঘটা — Dengue broke out); Break down (ভেঙে পড়া — স্বাস্থ্য/যন্ত্র); Break into (জোরপূর্বক/সিঁধ কেটে ঢোকা); Break up (ছুটি/সম্পর্ক শেষ)"],
@@ -235,7 +402,12 @@ export const englishTopics = [
           ],
         },
         workedExamples: [
-          "উদাহরণ: 'Tell the boys not to ___ the meeting' বনাম 'Please ___ the lamp before sleeping.'\nউত্তর: সভা মুলতুবি/স্থগিত করা = `put off`; আগুন/বাতি নেভানো = `put out`।",
+          "উদাহরণ ১ (অর্থ-ভিত্তিক Group Verb ধাপে ধাপে): (ক) 'The committee decided to ___ the meeting.' (খ) 'Please ___ the lamp before sleeping.' (গ) 'I cannot ___ his rude behaviour.'\nধাপ ১ (প্রেক্ষাপট অর্থ যাচাই): (ক) 'meeting' বাতিল নয় বরং মুলতুবি/স্থগিত করা ⇒ 'postpone'; (খ) 'lamp' বা আগুন নেভানো ⇒ 'extinguish'; (গ) অসদাচরণ সহ্য করা ⇒ 'tolerate'।\nধাপ ২ (সমার্থক Group Verb মেলানো): Postpone = 'put off'; Extinguish = 'put out'; Tolerate = 'put up with'।\nফলে / সঠিক উত্তর: (ক) put off; (খ) put out; (গ) put up with।\nএকইভাবে: 'The strike was CALLED OFF' (= cancelled) | 'Cholera BROKE OUT in the village' (= প্রাদুর্ভাব ঘটল) | 'Thieves BROKE INTO the house' (= সিঁধ কেটে ঢুকল)।",
+          "উদাহরণ ২ (একই Verb-এর সূক্ষ্ম জোড়া): (ক) 'He called ___ my house yesterday, and today he will call ___ the manager.' (খ) 'The boy takes ___ his father.'\nধাপ ১: 'my house' একটি স্থান ⇒ 'call at'; 'the manager' একজন ব্যক্তি ⇒ 'call on'।\nধাপ ২: কারো চেহারা বা স্বভাবের মতো দেখতে হওয়া ('resemble') বোঝালে বসে 'take after' (এর পর আর 'to/with' লাগে না)।\nফলে / সঠিক উত্তর: (ক) at, on; (খ) after।\nএকইভাবে: 'He DEALS IN rice' (ব্যবসা) বনাম 'He DEALS WITH customers politely' (আচরণ/মোকাবিলা) | 'LOOK UP the word in the dictionary' (অভিধানে খোঁজা) বনাম 'LOOK INTO the matter' (তদন্ত করা)।",
+        ],
+        commonMistakes: [
+          "'Call off' (বাতিল করা) এবং 'Put off' (স্থগিত করা)—এই দুটি প্রায়ই গুলিয়ে ফেলা হয়; এবং 'Put it off' লিখতে গিয়ে অনেকে ভুলে 'Put off it' লিখে দেন।",
+          "'Take after'-এর পর অনেকেই বাংলা অর্থ 'মতো' ভেবে 'similar to'-এর আদলে 'take after to/with' বসিয়ে দেন—এটি ভুল; সরাসরি 'She takes after her mother' হবে।",
         ],
         practiceProblems: [
           {
@@ -249,20 +421,47 @@ export const englishTopics = [
       {
         heading: "Chapter 3: BCS/Bank শীর্ষ Vocabulary, শব্দমূল (Roots), Foreign Phrases ও বানান ফাঁদ",
         explanation:
-          "অজানা শব্দের অর্থ অনুমান করার সেরা উপায় হলো গ্রিক/লাতিন Root বা শব্দমূল চেনা। যেমন কোনো শব্দে `BENE` দেখলেই বুঝবেন 'ভালো' (benevolent, benefactor), `MAL` দেখলে 'খারাপ/মন্দ' (malice, malevolent), `OMNI` দেখলে 'সর্ব/সব' (omnipotent, omniscient), `MIS` দেখলে 'ঘৃণা' (misanthrope = মানববিদ্বেষী)! পাশাপাশি বিসিএস প্রিলির জন্য ফরাসি-লাতিন Phrase এবং দ্বিত্ব-বর্ণ বানান (`Accommodation, Embarrassment`) মুখস্থ রাখা জরুরি।",
+          "অজানা শব্দের অর্থ অনুমান করার সেরা উপায় হলো গ্রিক/লাতিন Root বা শব্দমূল চেনা। যেমন কোনো শব্দে 'BENE' দেখলেই বুঝবেন 'ভালো' (benevolent, benefactor), 'MAL' দেখলে 'খারাপ/মন্দ' (malice, malevolent), 'OMNI' দেখলে 'সর্ব/সব' (omnipotent, omniscient), 'MIS' দেখলে 'ঘৃণা' (misanthrope = মানববিদ্বেষী)! পাশাপাশি বিসিএস প্রিলির জন্য ফরাসি-লাতিন Phrase এবং দ্বিত্ব-বর্ণ বানান ('Accommodation, Embarrassment') মুখস্থ রাখা জরুরি।",
+        formulaBox: [
+          {
+            label: "Root ভাঙার সূত্র (Prefix + Root + Suffix)",
+            formula: "Bene (ভালো) / Mal (মন্দ) / Omni (সর্ব) / Phil (প্রেম) / Mis (ঘৃণা) / Chron (সময়) / Path (অনুভূতি)",
+            note: "শব্দটিকে ২-৩ অংশে ভেঙে মূল অর্থ যোগ করলেই অপরিচিত শব্দের অর্থ বের হয়ে আসে",
+          },
+          {
+            label: "Double-Letter বানান সূত্র",
+            formula: "Accommodation (cc, mm) | Embarrassment (rr, ss) | Millennium (ll, nn) | Committee (mm, tt, ee)",
+            note: "'Supersede'-এ 's' (supercede নয়), 'Separate'-এ 'par', 'Mischievous'-এ সরাসরি 'vous' (vious নয়!)",
+          },
+        ],
+        comparisonTable: {
+          title: "সংক্ষেপে মনে রাখার চার্ট: শব্দমূল (Roots), শীর্ষ Synonym-Antonym ও Foreign Phrases",
+          headers: ["বিভাগ", "মূল শব্দ / Root / Phrase", "বাংলা অর্থ ও বিপরীত/উদাহরণ"],
+          rows: [
+            ["গুরুত্বপূর্ণ Roots", "PHIL (love), MIS (hate), CHRON (time), OMNI (all)", "Philanthropist (মানবপ্রেমিক), Misanthrope (মানববিদ্বেষী), Anachronism (কালভ্রান্তি), Omniscient (সর্বজ্ঞ)"],
+            ["BCS/Bank শীর্ষ শব্দ (১)", "Ephemeral, Pragmatic, Ambiguous, Ubiquitous", "ক্ষণস্থায়ী (Ant: Eternal), বাস্তবধর্মী (Idealistic), দ্ব্যর্থবোধক (Explicit), সর্বব্যাপী (Rare)"],
+            ["BCS/Bank শীর্ষ শব্দ (২)", "Benign, Candid, Mitigate, Clandestine, Prolific", "সদয় (Malignant), অকপট (Deceitful), প্রশমিত করা (Aggravate), গোপন (Overt), উর্বর (Barren)"],
+            ["Latin/French Phrases (১)", "Ad hoc, Bona fide vs Mala fide, De facto vs De jure", "সাময়িক/বিশেষ উদ্দেশ্যে; সৎ উদ্দেশ্যে বনাম অসদুদ্দেশ্যে; বাস্তবে বনাম আইনগতভাবে"],
+            ["Latin/French Phrases (২)", "Ex officio, In lieu of, Sine die, Status quo, Prima facie", "পদাধিকারবলে; পরিবর্তে; অনির্দিষ্টকালের জন্য; বিদ্যমান অবস্থা; প্রথম দর্শনে"],
+          ],
+        },
         points: [
           "১. শীর্ষ ১৫ BCS/Bank শব্দ ও Antonym: (1) Ephemeral = ক্ষণস্থায়ী (Ant: Eternal); (2) Pragmatic = বাস্তবধর্মী (Ant: Idealistic); (3) Ambiguous = দ্ব্যর্থবোধক (Ant: Explicit/Lucid); (4) Ubiquitous = সর্বব্যাপী (Ant: Rare); (5) Benign = সদয়/অক্ষতিকর (Ant: Malignant); (6) Candid = অকপট (Ant: Deceitful); (7) Mitigate = প্রশমিত করা (Ant: Aggravate); (8) Obsolete = অপ্রচলিত (Ant: Modern); (9) Prolific = উর্বর (Ant: Barren); (10) Lethargic = অলস (Ant: Energetic); (11) Clandestine = গোপন (Ant: Overt); (12) Fastidious = খুঁতখুঁতে; (13) Panacea = সর্বরোগের মহৌষধ; (14) Placate = শান্ত করা; (15) Ostentatious = আড়ম্বরপূর্ণ।",
           "২. কমন Latin/French Phrases: Ad hoc (সাময়িক/বিশেষ উদ্দেশ্যে), Bona fide (খাঁটি/সদুদ্দেশ্যে) বনাম Mala fide (অসদুদ্দেশ্যে), De facto (বাস্তবে কার্যকর) বনাম De jure (আইনগতভাবে), Ex officio (পদাধিকারবলে), In lieu of (পরিবর্তে), Sine die (অনির্দিষ্টকালের জন্য), Status quo (বিদ্যমান অবস্থা), Prima facie (প্রথম দর্শনে), Ultra vires (ক্ষমতার বাইরে), Nota Bene / N.B. (বিশেষ দ্রষ্টব্য)।",
           "৩. বানান চ্যাম্পিয়ন (Double Letters ও ফাঁদ): Accommodation (cc ও mm), Embarrassment (rr ও ss), Millennium (ll ও nn), Mischievous (-ous, কখনো -ious নয়!), Lieutenant, Bureaucracy, Cigarette, Diarrhoea, Privilege (কোনো 'd' নেই), Separate ('par', কখনো 'per' নয়), Supersede ('s', কখনো 'Supercede' নয়!)।",
         ],
         workedExamples: [
-          "উদাহরণ: 'PHIL' (Love), 'CHRON' (Time) ও 'PATH' (Feeling) দিয়ে গঠিত শব্দের অর্থ অনুমান করুন।\nসমাধান: Philanthropist = মানবপ্রেমিক, Bibliophile = বইপ্রেমিক; Anachronism = কালানুক্রমিক ত্রুটি, Chronic = দীর্ঘস্থায়ী; Apathy = উদাসীনতা, Empathy = সহানুভূতি।",
+          "উদাহরণ ১ (Root ভেঙে অর্থ নির্ণয়): 'Philanthropist', 'Anachronism' ও 'Apathy'-এর অর্থ না জেনেও ভেঙে বের করুন।\nধাপ ১ ('Philanthropist'): 'Phil' (love/ভালোবাসা) + 'Anthrop' (mankind/মানুষ) + '-ist' (ব্যক্তি) ⇒ যিনি মানুষকে ভালোবাসেন = মানবপ্রেমিক।\nধাপ ২ ('Anachronism'): 'Ana' (against/ভুল) + 'Chron' (time/সময়) + '-ism' ⇒ সময়ের গরমিল বা কালানুক্রমিক ত্রুটি।\nধাপ ৩ ('Apathy'): 'A-' (without/নেই) + 'Path' (feeling/অনুভূতি) ⇒ অনুভূতিহীনতা বা উদাসীনতা (কিন্তু 'Empathy' = সহানুভূতি)।\nএকইভাবে: 'Bibliophile' = Biblio (book) + phile (lover) = বইপ্রেমিক | 'Omnipotent' = Omni (all) + potent (powerful) = সর্বশক্তিমান | 'Malevolent' = Mal (bad) + volent (wishing) = অনিষ্টকামী।",
+          "উদাহরণ ২ (Spelling ও Foreign Phrase পরীক্ষা): নিচের কোন বানানটি শুদ্ধ—'Accomodation / Accommodation', 'Supercede / Supersede' এবং 'Sine die' অর্থ কী?\nধাপ ১ (Double Letter চেক): 'Accommodation'-এ দুটি 'c' এবং দুটি 'm' থাকে ('cc + mm')—একটি 'm' দিলে ভুল।\nধাপ ২ (Root বানান চেক): 'Supersede' এসেছে লাতিন 'sedere' থেকে, তাই '-sede' হবে ('-cede' নয়)।\nধাপ ৩ (Phrase অর্থ): 'Sine die' মানে 'without a day' অর্থাৎ অনির্দিষ্টকালের জন্য মুলতুবি (যেমন 'The parliament was adjourned sine die')।\nএকইভাবে: 'Mischievous' (v-এর পর সরাসরি '-ous', '-ious' নয়) | 'Privilege' (কোনো 'd' নেই) | 'Separate' (মাঝে 'par', 'per' নয়)।",
+        ],
+        commonMistakes: [
+          "'Mischievious', 'Priviledge', 'Seperate' ও 'Supercede'—এই চারটি বানান পরীক্ষায় অপশনে দিয়ে সবচেয়ে বেশি বিভ্রান্ত করা হয়। সঠিক রূপ: 'Mischievous', 'Privilege', 'Separate', 'Supersede'।",
         ],
         practiceProblems: [
           {
             question: "নিচের বানানগুলোর কোনটি শুদ্ধ: (a) Accomodation / Accommodation (b) Supercede / Supersede (c) Mischievious / Mischievous?",
             hint: "Double c + double m; 's' দিয়ে supersede; 'v'-এর পর সরাসরি '-ous'।",
-            solution: "শুদ্ধ বানানগুলো হলো: (a) `Accommodation`, (b) `Supersede`, (c) `Mischievous`।",
+            solution: "শুদ্ধ বানানগুলো হলো: (a) 'Accommodation', (b) 'Supersede', (c) 'Mischievous' ।",
             answer: "Accommodation, Supersede, Mischievous",
           },
         ],
@@ -270,14 +469,38 @@ export const englishTopics = [
       {
         heading: "Chapter 4: Top Idioms, One-Word Substitution ও Analogy নির্ণয়ের পদ্ধতি",
         explanation:
-          "One-Word Substitution-এ মানুষের মৃত্যু-সংক্রান্ত `-cide` শব্দগুলো প্রচুর আসে (`Fratricide` = ভাই হত্যা, `Patricide` = পিতা, `Matricide` = माता, `Regicide` = রাজা)। অন্যদিকে ব্যাংকের পরীক্ষায় **Analogy** প্রশ্ন সমাধানের সেরা কৌশল হলো প্রথমে দেওয়া জোড়া শব্দ দিয়ে মনে মনে একটি স্পষ্ট ব্যাকরণগত বাক্য (Bridge Sentence) বানানো—যেমন `CARPENTER : SAW` → 'A carpenter cuts wood using a saw' (কর্মী : যন্ত্র)। এবার ঠিক একই ক্রমে থাকা অপশন বেছে নিন (`TAILOR : SCISSORS`), বিপরীত ক্রমের (`WOOD : CARPENTER`) নয়!",
+          "One-Word Substitution-এ মানুষের মৃত্যু-সংক্রান্ত '-cide' শব্দগুলো প্রচুর আসে ('Fratricide' = ভাই হত্যা, 'Patricide' = পিতা, 'Matricide' = মাতা, 'Regicide' = রাজা)। অন্যদিকে ব্যাংকের পরীক্ষায় Analogy প্রশ্ন সমাধানের সেরা কৌশল হলো প্রথমে দেওয়া জোড়া শব্দ দিয়ে মনে মনে একটি স্পষ্ট ব্যাকরণগত বাক্য (Bridge Sentence) বানানো—যেমন 'CARPENTER : SAW' → 'A carpenter cuts wood using a saw' (কর্মী : যন্ত্র)। এবার ঠিক একই ক্রমে থাকা অপশন বেছে নিন ('TAILOR : SCISSORS'), বিপরীত ক্রমের ('WOOD : CARPENTER') নয়!",
+        formulaBox: [
+          {
+            label: "Analogy সমাধানের ৩-ধাপ Bridge সূত্র",
+            formula: "ধাপ ১: 'A : B' দিয়ে স্পষ্ট বাক্য → ধাপ ২: ক্রম যাচাই (A→B নাকি B→A) → ধাপ ৩: Part of Speech মেলানো",
+            note: "যদি একাধিক অপশন মেলে, তবে Bridge Sentence-টি আরও সুনির্দিষ্ট করুন (যেমন শুধু 'uses' নয়, 'cuts with')",
+          },
+          {
+            label: "One-Word Suffix চাবিকাঠি (-cide / -mania / -phobia)",
+            formula: "-cide (হত্যা: Regi=রাজা, Patri=পিতা, Matri=মাতা, Fratri=ভাই) | -mania (বাতিক) | -phobia (ভীতি)",
+            note: "'Kleptomania' = চুরির বাতিক; 'Claustrophobia' = বদ্ধ স্থানের ভয়; 'Panacea' = সর্বরোগের মহৌষধ",
+          },
+        ],
+        comparisonTable: {
+          title: "সংক্ষেপে মনে রাখার চার্ট: পরীক্ষার সেরা Idioms, One-Word ও Analogy সম্পর্ক",
+          headers: ["বিভাগ", "ইংরেজি উদাহরণ / জোড়া", "সঠিক অর্থ / Bridge সম্পর্ক"],
+          rows: [
+            ["Color Idioms", "Blue blood, Black sheep, Red-letter day, White elephant", "অভিজাত বংশ; কুলাঙ্গার; স্মরণীয় দিন; ব্যয়বহুল কিন্তু অকাজের বস্তু"],
+            ["Animal & Nature Idioms", "Once in a blue moon, Dark horse, Crocodile tears, Swan song", "কদাচিৎ; অজ্ঞাত শক্তিশালী প্রতিদ্বন্দ্বী; মায়াকান্না; শেষ কর্ম বা রচনা"],
+            ["Action Idioms", "Achilles' heel, Apple of discord, At sixes and sevens, Gift of the gab", "সবচেয়ে দুর্বল স্থান; বিবাদের বিষয়; বিশৃঙ্খল অবস্থা; বাগ্মিতা"],
+            ["One-Word Substitution", "Ambidextrous, Epitaph, Extempore, Incorrigible, Pseudonym", "সব্যসাচী (দুই হাতে দক্ষ); সমাধিলিপি; পূর্বপ্রস্তুতিহীন বক্তৃতা; সংশোধনাতীত; ছদ্মনাম"],
+            ["Analogy সম্পর্কের ধরন", "Worker:Tool | Cause:Effect | Degree | Antonym", "Surgeon:Scalpel :: Tailor:Scissors; Spark:Fire; Warm:Hot :: Cool:Frigid"],
+          ],
+        },
         points: [
           "১. Color & Animal Idioms: Blue blood (অভিজাত বংশ), Black sheep (কুলাঙ্গার), Red-letter day (স্মরণীয় দিন), Caught red-handed (হাতে-নাতে ধরা), White elephant (ব্যয়বহুল কিন্তু অকাজের বস্তু), Once in a blue moon (কদাচিৎ), Dark horse (অজ্ঞাত শক্তিশালী প্রতিদ্বন্দ্বী), Crocodile tears (মায়াকান্না), Swan song (শেষ কর্ম/রচনা), Wild goose chase (বৃথা চেষ্টা), Lion's share (সিংহভাগ)।",
           "২. State & Action Idioms: Achilles' heel (দুর্বল স্থান), Apple of discord (বিবাদের বিষয়), At sixes and sevens (বিশৃঙ্খল), Beat about the bush (আসল কথা এড়িয়ে যাওয়া), Burning question (গুরুত্বপূর্ণ আলোচ্য বিষয়), By fits and starts (অনিয়মিতভাবে), Cry in the wilderness (অরণ্যে রোদন), Gift of the gab (বাগ্মিতা), Leave no stone unturned (চেষ্টার ত্রুটি না করা), Pros and cons (ভালো-মন্দ উভয় দিক), Through thick and thin (সর্বাবস্থায়)।",
           "৩. One-Word Substitutions: Omnipotent (সর্বশক্তিমান), Omniscient (সর্বজ্ঞ), Autobiography (আত্মজীবনী), Anthology (কবিতা সংকলন), Ambidextrous (সব্যসাচী — দুই হাতে সমান দক্ষ), Calligraphy (হস্তলিপি বিদ্যা), Epitaph (সমাধিলিপি), Extempore (পূর্বপ্রস্তুতিহীন বক্তৃতা), Hypochondriac (অলীক রোগভয়গ্রস্ত), Incorrigible (সংশোধনাতীত), Kleptomania (চুরির রোগ), Philanthropist (বিশ্বপ্রেমিক), Pseudonym (ছদ্মনাম)।",
         ],
         workedExamples: [
-          "উদাহরণ: 'Swan song', 'Gift of the gab' এবং 'Ambidextrous'-এর বাংলা অর্থ কী?\nউত্তর: Swan song = কারো শেষ কর্ম বা শেষ রচনা; Gift of the gab = চমৎকার বাগ্মিতা; Ambidextrous = সব্যসাচী (উভয় হাতে সমান দক্ষ)।",
+          "উদাহরণ ১ (Analogy Bridge Sentence ৩-ধাপ সমাধান): 'ARCHITECT : BLUEPRINT :: ___ : ___' (অপশন: A. Author : Manuscript, B. Paint : Brush, C. Hammer : Carpenter)\nধাপ ১ (Bridge Sentence গঠন): 'An ARCHITECT designs/creates a BLUEPRINT before building.' (কর্মী → তার প্রাথমিক নকশা/রচনা)।\nধাপ ২ (ক্রম ও Part of Speech যাচাই): এখানে বামে 'Person (Noun)' এবং ডানে 'Creation/Plan (Noun)'। অপশন B-তে ব্যক্তি নেই; অপশন C-তে Tool আগে ও Person পরে (উল্টো ক্রম!)।\nধাপ ৩ (সঠিক মিল): অপশন A-তে 'An AUTHOR creates a MANUSCRIPT (পাণ্ডুলিপি) before publishing'—সম্পূর্ণ সমান্তরাল!\nফলে / সঠিক উত্তর: Author : Manuscript।\nএকইভাবে: 'CARPENTER : SAW :: TAILOR : SCISSORS' (কর্মী : কাটার যন্ত্র) | 'DROUGHT : FAMINE :: SPARK : WILDFIRE' (কারণ : ফলাফল)।",
+          "উদাহরণ ২ (Idiom & One-Word বিশ্লেষণ): 'Swan song', 'A bolt from the blue' এবং 'Ambidextrous'-এর অর্থ কী?\nধাপ ১: রূপক উৎস বুঝুন—পৌরাণিক বিশ্বাস অনুযায়ী রাজহাঁস (Swan) মৃত্যুর ঠিক আগে শেষবারের মতো গান গায় ⇒ 'Swan song' = কারো শেষ কর্ম বা শেষ রচনা।\nধাপ ২: নীল (পরিষ্কার) আকাশ থেকে বজ্রপাত ('bolt from the blue') যেমন অভাবনীয় ⇒ সম্পূর্ণ অপ্রত্যাশিত বিপদ বা সংবাদ।\nধাপ ৩: 'Ambi' (both/উভয়) + 'Dexter' (right hand/দক্ষ) + '-ous' ⇒ উভয় হাতে সমান দক্ষ (সব্যসাচী)।\nএকইভাবে: 'Achilles' heel' = দুর্বলতম স্থান | 'Gift of the gab' = চমৎকার বাগ্মিতা | 'Regicide' = রাজা হত্যা ('Regi' = king + 'cide' = killing)।",
         ],
         practiceProblems: [
           {
@@ -322,9 +545,21 @@ export const englishTopics = [
       {
         heading: "Chapter 1: Old English, Middle English ও Renaissance যুগ (450–1660)",
         explanation:
-          "ইংরেজি সাহিত্যের ইতিহাস মনে রাখার সবচেয়ে সহজ উপায় হলো যুগের ক্রম ও সেই যুগের প্রধান 'জনক' (Father) ও 'প্রথম' (First) গ্রন্থগুলো একসাথে রাখা। ৪৫০ খ্রিষ্টাব্দে Anglo-Saxon যুগে রচিত হয় প্রাচীনতম মহাকাব্য `Beowulf`। এরপর Middle English যুগে (1066–1500) `Geoffrey Chaucer` লেখেন `The Canterbury Tales`—তাই তাঁকেই Father of English Poetry বলা হয়।\n\nইংরেজি সাহিত্যের 'স্বর্ণযুগ' হলো Renaissance বা Elizabethan Period (1500–1660)। এ যুগেই জন্ম নেন `William Shakespeare` (১৫৬৪–১৬১৬, স্ট্র্যাটফোর্ড-আপন-অ্যাভন—তাই উপাধি Bard of Avon), যিনি ৩৭টি নাটক ও ১৫৪টি সনেট (অন্ত্যমিল ABAB CDCD EFEF GG) রচনা করেন। মনে রাখুন: শেক্সপিয়ারের শেষ নাটক বা 'Swan Song' হলো `The Tempest`, দীর্ঘতম নাটক `Hamlet` এবং ট্র্যাজি-কমেডি হলো `The Merchant of Venice`!",
+          "ইংরেজি সাহিত্যের ইতিহাস মনে রাখার সবচেয়ে সহজ উপায় হলো যুগের ক্রম ও সেই যুগের প্রধান 'জনক' (Father) ও 'প্রথম' (First) গ্রন্থগুলো একসাথে রাখা। ৪৫০ খ্রিষ্টাব্দে Anglo-Saxon যুগে রচিত হয় প্রাচীনতম মহাকাব্য 'Beowulf'। এরপর Middle English যুগে (1066–1500) 'Geoffrey Chaucer' লেখেন 'The Canterbury Tales'—তাই তাঁকেই Father of English Poetry বলা হয়।\n\nইংরেজি সাহিত্যের 'স্বর্ণযুগ' হলো Renaissance বা Elizabethan Period (1500–1660)। এ যুগেই জন্ম নেন 'William Shakespeare' (১৫৬৪–১৬১৬, স্ট্র্যাটফোর্ড-আপন-অ্যাভন—তাই উপাধি Bard of Avon), যিনি ৩৭টি নাটক ও ১৫৪টি সনেট (অন্ত্যমিল ABAB CDCD EFEF GG) রচনা করেন। মনে রাখুন: শেক্সপিয়ারের শেষ নাটক বা 'Swan Song' হলো 'The Tempest', দীর্ঘতম নাটক 'Hamlet' এবং ট্র্যাজি-কমেডি হলো 'The Merchant of Venice'!",
+        formulaBox: [
+          {
+            label: "যুগবিভাগ ও জন্ম-তারিখ সূত্র (450–1660)",
+            formula: "Old English (450–1066: Beowulf) → Middle English (1066–1500: Chaucer) → Renaissance (1500–1660)",
+            note: "Elizabethan Age (1558–1603) হলো ইংরেজি সাহিত্যের স্বর্ণযুগ (Shakespeare & University Wits)",
+          },
+          {
+            label: "William Shakespeare (1564–1616) কোর ডেটা",
+            formula: "মোট ৩৭টি নাটক + ১৫৪টি সনেট (ABAB CDCD EFEF GG)  |  দীর্ঘতম: Hamlet  |  শেষ নাটক: The Tempest",
+            note: "উপাধি: Bard of Avon; ট্র্যাজি-কমেডি: The Merchant of Venice",
+          },
+        ],
         comparisonTable: {
-          title: "আদি ও রেনেসাঁ যুগের প্রধান 'জনক / প্রথম' এবং Shakespeare-এর নাটক",
+          title: "সংক্ষেপে মনে রাখার চার্ট: আদি ও রেনেসাঁ যুগের প্রধান 'জনক / প্রথম' এবং Shakespeare-এর নাটক",
           headers: ["বিভাগ / লেখক", "মূল অবদান / নাটক", "গুরুত্বপূর্ণ পরীক্ষার তথ্য"],
           rows: [
             ["Old English (450–1066)", "মহাকাব্য 'Beowulf' (~৩,১৮২ লাইন)", "King Alfred (Anglo-Saxon Chronicle) ও John Wycliffe গদ্যের পথিকৃৎ"],
@@ -340,7 +575,7 @@ export const englishTopics = [
           "২. Ben Jonson: 'Comedy of Humours'-এর প্রবক্তা ('Volpone', 'The Alchemist')।",
         ],
         workedExamples: [
-          "উদাহরণ: 'Reading maketh a full man, conference a ready man, and writing an exact man' ও 'All the perfumes of Arabia will not sweeten this little hand' — উক্তি দুটির উৎস কী?\nউত্তর: ১মটি Francis Bacon-এর 'Of Studies' প্রবন্ধের; ২য়টি Shakespeare-এর 'Macbeth' নাটকে Lady Macbeth-এর উক্তি (এখানে Hyperbole বা অতিশয়োক্তি ব্যবহৃত হয়েছে)।",
+          "উদাহরণ (উক্তি ও নাটক শনাক্তকরণ ধাপে ধাপে): 'Reading maketh a full man, conference a ready man, and writing an exact man' এবং 'All the perfumes of Arabia will not sweeten this little hand' — উক্তি দুটির উৎস ও বৈশিষ্ট্য কী?\nধাপ ১ (বিষয়বস্তু ও গদ্যশৈলী): ১ম উক্তিটিতে অধ্যয়ন, আলাপচারিতা ও লেখার সংক্ষিপ্ত সূত্রধর্মী (Aphoristic) উপদেশ দেওয়া হয়েছে—যা 'Father of English Essay' Francis Bacon-এর বিখ্যাত প্রবন্ধ 'Of Studies'-এর লাইন।\nধাপ ২ (নাটকীয় প্রেক্ষাপট ও অলংকার): ২য় উক্তিটিতে রক্তের দাগ না মোছার অনুশোচনায় আরবের সমস্ত সুগন্ধিকেও অকার্যকর বলা হয়েছে—এটি Shakespeare-এর 'Macbeth' নাটকে Lady Macbeth-এর উক্তি (এখানে অতিশয়োক্তি বা Hyperbole ব্যবহৃত হয়েছে)।\nফলে / সঠিক উত্তর: ১মটি Francis Bacon ('Of Studies'); ২য়টি Shakespeare ('Macbeth' — Lady Macbeth, Hyperbole)।\nএকইভাবে: 'To be or not to be' → 'Hamlet' (Soliloquy) | 'All the world's a stage' → 'As You Like It' | 'Cowards die many times before their deaths' → 'Julius Caesar'।",
         ],
         practiceProblems: [
           {
@@ -354,13 +589,25 @@ export const englishTopics = [
       {
         heading: "Chapter 2: Neoclassical Period (1660–1798) — Milton থেকে Dr. Johnson",
         explanation:
-          "ইংল্যান্ডে রাজতন্ত্র পুনরুদ্ধারের পর ১৬৬০ থেকে ১৭৯৮ পর্যন্ত সময়কে বলা হয় Neoclassical Period। এ যুগে আবেগের বদলে যুক্তি, শৃঙ্খলা এবং সমাজের ত্রুটি ধরে ব্যঙ্গ বা Satire প্রাধান্য পায়। এর ভেতরেই জন্মে পিউরিটান মহাকবি `John Milton`-এর অমর মহাকাব্য `Paradise Lost` (১২ খণ্ডের মহাকাব্য—যেখানে শয়তানের বিখ্যাত উক্তি `Better to reign in Hell than serve in Heaven`) এবং গদ্যে সংবাদপত্রের স্বাধীনতার সপক্ষে লেখা `Areopagitica`।\n\nঅন্যদিকে গদ্যের ব্যঙ্গ ও উপন্যাসের জন্মও ঘটে এ যুগে: `Jonathan Swift` লেখেন বিশ্বখ্যাত ব্যঙ্গ-উপন্যাস `Gulliver's Travels`, `Daniel Defoe` লেখেন `Robinson Crusoe` এবং `Henry Fielding` (Father of English Novel) লেখেন `Tom Jones`!",
+          "ইংল্যান্ডে রাজতন্ত্র পুনরুদ্ধারের পর ১৬৬০ থেকে ১৭৯৮ পর্যন্ত সময়কে বলা হয় Neoclassical Period। এ যুগে আবেগের বদলে যুক্তি, শৃঙ্খলা এবং সমাজের ত্রুটি ধরে ব্যঙ্গ বা Satire প্রাধান্য পায়। এর ভেতরেই জন্মে পিউরিটান মহাকবি 'John Milton'-এর অমর মহাকাব্য 'Paradise Lost' (১২ খণ্ডের মহাকাব্য—যেখানে শয়তানের বিখ্যাত উক্তি 'Better to reign in Hell than serve in Heaven') এবং গদ্যে সংবাদপত্রের স্বাধীনতার সপক্ষে লেখা 'Areopagitica'।\n\nঅন্যদিকে গদ্যের ব্যঙ্গ ও উপন্যাসের জন্মও ঘটে এ যুগে: 'Jonathan Swift' লেখেন বিশ্বখ্যাত ব্যঙ্গ-উপন্যাস 'Gulliver's Travels', 'Daniel Defoe' লেখেন 'Robinson Crusoe' এবং 'Henry Fielding' (Father of English Novel) লেখেন 'Tom Jones'!",
+        comparisonTable: {
+          title: "সংক্ষেপে মনে রাখার চার্ট: Neoclassical যুগের প্রধান সাহিত্যিক, ধারা ও অমর রচনা",
+          headers: ["সাহিত্যিক / ধারা", "প্রধান রচনা ও ধরন", "পরীক্ষার বাঁধা তথ্য ও উক্তি"],
+          rows: [
+            ["John Milton (পিউরিটান মহাকবি)", "'Paradise Lost' (১২ খণ্ড), 'Areopagitica'", "'Better to reign in Hell than serve in Heaven'"],
+            ["John Dryden", "'Absalom and Achitophel' (Satire)", "Father of English Criticism (Restoration Age)"],
+            ["Alexander Pope (Augustan)", "'The Rape of the Lock' (Mock-Epic), 'Essay on Man'", "'To err is human, to forgive divine'; 'A little learning is a dangerous thing'"],
+            ["Jonathan Swift & Daniel Defoe", "'Gulliver's Travels' (Satire); 'Robinson Crusoe'", "Swift = প্রখর ব্যঙ্গ-উপন্যাসিক; Defoe = ইংরেজি উপন্যাসের পথিকৃৎ"],
+            ["Fielding, Richardson & Dr. Johnson", "'Tom Jones'; 'Pamela'; প্রথম ইংরেজি অভিধান (১৭৫৫)", "Fielding = Father of English Novel; 'Pamela' = প্রথম Epistolary (পত্র) উপন্যাস"],
+            ["Thomas Gray & William Blake", "'Elegy Written in a Country Churchyard'; 'Songs of Innocence...'", "'Where ignorance is bliss, tis folly to be wise' (Gray)"],
+          ],
+        },
         points: [
           "১. Dryden ও Pope: John Dryden ('Absalom and Achitophel', Father of English Criticism); Alexander Pope ('The Rape of the Lock' — বেলিন্ডার চুলের গোছা কাটা নিয়ে বিখ্যাত Mock-Epic; 'Essay on Man': 'To err is human, to forgive divine', 'A little learning is a dangerous thing')।",
           "২. উপন্যাসের উত্থান ও অভিধান: Samuel Richardson ('Pamela' — প্রথম Epistolary বা পত্র-উপন্যাস); Dr. Samuel Johnson (১৭৫৫ সালে প্রথম বড় ইংরেজি অভিধান); Thomas Gray ('Elegy Written in a Country Churchyard': 'Where ignorance is bliss, tis folly to be wise'); William Blake ('Songs of Innocence and of Experience')।",
         ],
         workedExamples: [
-          "উদাহরণ: 'Fools rush in where angels fear to tread' ও 'Child is the father of the man' — কার কার উক্তি?\nউত্তর: প্রথমটি Alexander Pope ('An Essay on Criticism'); দ্বিতীয়টি Romantic কবি William Wordsworth ('My Heart Leaps Up')।",
+          "উদাহরণ (উক্তি ও রচনার ধরন শনাক্তকরণ): 'Fools rush in where angels fear to tread' এবং 'Child is the father of the man' — কার কার উক্তি?\nধাপ ১ (বুদ্ধিবৃত্তিক/ব্যঙ্গাত্মক উক্তি যাচাই): 'Fools rush in...' মানুষের মূর্খতা নিয়ে একটি Epigrammatic (সূত্রধর্মী) শ্লেষ—যা Neoclassical কবি Alexander Pope-এর 'An Essay on Criticism' থেকে নেওয়া।\nধাপ ২ (Paradox ও শৈশব-ভাবনা যাচাই): 'Child is the father of the man' আপাতদৃষ্টিতে স্ববিরোধী (Paradox) হলেও শৈশবের মধ্যেই পরিণত মানুষের বীজ নিহিত থাকে বলে বোঝায়—এটি Romantic কবি William Wordsworth-এর 'My Heart Leaps Up' কবিতার লাইন।\nফলে / সঠিক উত্তর: ১মটি Alexander Pope ('An Essay on Criticism'); ২য়টি William Wordsworth ('My Heart Leaps Up')।\nএকইভাবে: 'The Rape of the Lock' = Mock-Epic (Alexander Pope) | 'Pamela' = Epistolary Novel (Samuel Richardson) | 'Areopagitica' = সংবাদপত্রের স্বাধীনতা নিয়ে গদ্য (John Milton)।",
         ],
         practiceProblems: [
           {
@@ -374,9 +621,21 @@ export const englishTopics = [
       {
         heading: "Chapter 3: Romantic (1798–1832) ও Victorian যুগ (1832–1901)",
         explanation:
-          "১৭৯৮ সালে `William Wordsworth` এবং `S.T. Coleridge` যৌথভাবে প্রকাশ করেন `Lyrical Ballads`—আর এর মাধ্যমেই আনুষ্ঠানিকভাবে শুরু হয় Romantic যুগের! এ যুগে শহর ও কৃত্রিমতা ছেড়ে প্রকৃতি, কল্পনা, ব্যক্তিস্বাধীনতা ও সাধারণ মানুষের আবেগ প্রধান হয়ে ওঠে। Wordsworth ছিলেন 'Poet of Nature' (`Poetry is the spontaneous overflow of powerful feelings`), Coleridge 'Poet of Supernaturalism' (`The Rime of the Ancient Mariner`), P.B. Shelley 'Revolutionary Optimist' এবং অকালপ্রয়াত John Keats ছিলেন 'Poet of Beauty & Sensuousness' (`Beauty is truth, truth beauty`)।\n\nএরপর রানী ভিক্টোরিয়ার শাসনামল Victorian Period (1832–1901)-এ শিল্প বিপ্লব, সমাজের দারিদ্র্য ও ধর্ম-বিজ্ঞানের দ্বন্দ্ব উঠে আসে Charles Dickens (`David Copperfield, Great Expectations, A Tale of Two Cities`), Tennyson (`Ulysses`), Robert Browning (Dramatic Monologue) এবং Thomas Hardy-র লেখায়।",
+          "১৭৯৮ সালে 'William Wordsworth' এবং 'S.T. Coleridge' যৌথভাবে প্রকাশ করেন 'Lyrical Ballads'—আর এর মাধ্যমেই আনুষ্ঠানিকভাবে শুরু হয় Romantic যুগের! এ যুগে শহর ও কৃত্রিমতা ছেড়ে প্রকৃতি, কল্পনা, ব্যক্তিস্বাধীনতা ও সাধারণ মানুষের আবেগ প্রধান হয়ে ওঠে। Wordsworth ছিলেন 'Poet of Nature' ('Poetry is the spontaneous overflow of powerful feelings'), Coleridge 'Poet of Supernaturalism' ('The Rime of the Ancient Mariner'), P.B. Shelley 'Revolutionary Optimist' এবং অকালপ্রয়াত John Keats ছিলেন 'Poet of Beauty & Sensuousness' ('Beauty is truth, truth beauty')।\n\nএরপর রানী ভিক্টোরিয়ার শাসনামল Victorian Period (1832–1901)-এ শিল্প বিপ্লব, সমাজের দারিদ্র্য ও ধর্ম-বিজ্ঞানের দ্বন্দ্ব উঠে আসে Charles Dickens ('David Copperfield, Great Expectations, A Tale of Two Cities'), Tennyson ('Ulysses'), Robert Browning (Dramatic Monologue) এবং Thomas Hardy-র লেখায়।",
+        formulaBox: [
+          {
+            label: "Romantic যুগের সূচনা ও ৫ স্তম্ভ",
+            formula: "১৭৯৮: Wordsworth + Coleridge → 'Lyrical Ballads'  |  Wordsworth (Nature) | Coleridge (Supernatural) | Shelley (Revolution) | Keats (Beauty)",
+            note: "Lake Poets = William Wordsworth, S.T. Coleridge ও Robert Southey",
+          },
+          {
+            label: "Victorian যুগ (1832–1901) মূল বৈশিষ্ট্য",
+            formula: "শিল্প বিপ্লব ও সমাজবাস্তবতা (Dickens, Hardy, Brontë)  |  Dramatic Monologue (Robert Browning)  |  Tennyson ('Ulysses')",
+            note: "Thomas Hardy-র বিখ্যাত উপন্যাস: 'Tess of the d'Urbervilles'",
+          },
+        ],
         comparisonTable: {
-          title: "Romantic ও Victorian যুগের কবি-সাহিত্যিক ও বিখ্যাত উপাধি",
+          title: "সংক্ষেপে মনে রাখার চার্ট: Romantic ও Victorian যুগের কবি-সাহিত্যিক ও বিখ্যাত উপাধি",
           headers: ["লেখক / কবি", "উপাধি / বৈশিষ্ট্য", "প্রধান রচনা ও পরীক্ষার উক্তি"],
           rows: [
             ["William Wordsworth", "Poet of Nature, Lake Poet", "'Daffodils', 'Tintern Abbey', 'Solitary Reaper'"],
@@ -389,7 +648,7 @@ export const englishTopics = [
           ],
         },
         workedExamples: [
-          "উদাহরণ: 'It was the best of times, it was the worst of times' এবং 'God is in his heaven, all's right with the world' — কোন দুটি গ্রন্থের লাইন?\nউত্তর: ১মটি Charles Dickens-এর ফরাসি বিপ্লব ভিত্তিক উপন্যাস 'A Tale of Two Cities'-এর শুরু; ২য়টি Robert Browning-এর 'Pippa Passes'-এর উক্তি।",
+          "উদাহরণ (উক্তি ও উপন্যাস শনাক্তকরণ): 'It was the best of times, it was the worst of times' এবং 'God is in his heaven, all's right with the world' — কোন দুটি গ্রন্থের লাইন?\nধাপ ১ (ঐতিহাসিক প্রেক্ষাপট ও প্রারম্ভিক বাক্য): 'It was the best of times...' লন্ডন ও প্যারিস—এই দুই শহরের পটভূমিতে ফরাসি বিপ্লব নিয়ে লেখা Charles Dickens-এর 'A Tale of Two Cities' উপন্যাসের সূচনা-বাক্য।\nধাপ ২ (আশাবাদী কাব্যিক উক্তি): 'God is in his heaven...' ভিক্টোরীয় যুগের আশাবাদী কবি Robert Browning-এর নাট্যকাব্য 'Pippa Passes'-এর বিখ্যাত লাইন।\nফলে / সঠিক উত্তর: ১মটি Charles Dickens ('A Tale of Two Cities'); ২য়টি Robert Browning ('Pippa Passes')।\nএকইভাবে: 'Water, water everywhere, nor any drop to drink' → S.T. Coleridge ('The Rime of the Ancient Mariner') | 'Beauty is truth, truth beauty' → John Keats ('Ode on a Grecian Urn')।",
         ],
         practiceProblems: [
           {
@@ -403,9 +662,21 @@ export const englishTopics = [
       {
         heading: "Chapter 4: Modern লেখক, নোবেল বিজয়ী ও Literary Terms (বাংলা ব্যাখ্যা)",
         explanation:
-          "আধুনিক যুগে প্রচলিত গল্প বলার ধরন ভেঙে `Stream of Consciousness` (চেতনাপ্রবাহ—James Joyce, Virginia Woolf) এবং যুদ্ধ-পরবর্তী হতাশার চিত্র আঁকেন `T.S. Eliot` (`The Waste Land`: 'April is the cruellest month')। আর আধুনিক ইংরেজি নাটকের জনক `G.B. Shaw` লেখেন `Arms and the Man`, `Man and Superman`। খেয়াল রাখুন `W.B. Yeats` (১৯২৩ নোবেল) রবীন্দ্রনাথের `Gitanjali`-র ইংরেজি অনুবাদের ভূমিকা লিখেছিলেন!\n\nসাহিত্যের ২–৩টি নিশ্চিত নম্বর আসে **Literary Terms** থেকে। বাংলায় সহজে পার্থক্য বুঝুন: `Simile`-তে `like/as` শব্দ সরাসরি থাকে ('Her face is LIKE the moon'), কিন্তু `Metaphor`-এ সরাসরি `like/as` না রেখেই তুলনা করা হয় ('Life is a dream')। আবার দুটি ঠিক বিপরীত শব্দ একদম পাশাপাশি বসলে তা `Oxymoron` ('open secret', 'living death')!",
+          "আধুনিক যুগে প্রচলিত গল্প বলার ধরন ভেঙে 'Stream of Consciousness' (চেতনাপ্রবাহ—James Joyce, Virginia Woolf) এবং যুদ্ধ-পরবর্তী হতাশার চিত্র আঁকেন 'T.S. Eliot' ('The Waste Land': 'April is the cruellest month')। আর আধুনিক ইংরেজি নাটকের জনক 'G.B. Shaw' লেখেন 'Arms and the Man', 'Man and Superman'। খেয়াল রাখুন 'W.B. Yeats' (১৯২৩ নোবেল) রবীন্দ্রনাথের 'Gitanjali'-র ইংরেজি অনুবাদের ভূমিকা লিখেছিলেন!\n\nসাহিত্যের ২–৩টি নিশ্চিত নম্বর আসে Literary Terms থেকে। বাংলায় সহজে পার্থক্য বুঝুন: 'Simile'-তে 'like/as' শব্দ সরাসরি থাকে ('Her face is LIKE the moon'), কিন্তু 'Metaphor'-এ সরাসরি 'like/as' না রেখেই তুলনা করা হয় ('Life is a dream')। আবার দুটি ঠিক বিপরীত শব্দ একদম পাশাপাশি বসলে তা 'Oxymoron' ('open secret', 'living death')!",
+        formulaBox: [
+          {
+            label: "অলংকার শনাক্তকরণ (Simile vs Metaphor vs Oxymoron)",
+            formula: "Simile (like/as আছে)  |  Metaphor (like/as নেই)  |  Oxymoron (২ বিপরীত শব্দ পাশাপাশি)  |  Paradox (স্ববিরোধী কিন্তু সত্য)",
+            note: "যেমন: 'As brave as a lion' (Simile) বনাম 'He is a lion' (Metaphor) বনাম 'open secret' (Oxymoron)",
+          },
+          {
+            label: "বিসিএস অপরিহার্য নোবেল বিজয়ী সাল",
+            formula: "W.B. Yeats (1923) → G.B. Shaw (1925) → T.S. Eliot (1948) → Ernest Hemingway (1954)",
+            note: "Yeats রবীন্দ্রনাথের 'Gitanjali' (Song Offerings)-র ইংরেজি অনুবাদের ভূমিকা লিখেছিলেন",
+          },
+        ],
         comparisonTable: {
-          title: "পরীক্ষায় আসা প্রধান Literary Terms (বাংলা উদাহরণসহ)",
+          title: "সংক্ষেপে মনে রাখার চার্ট: পরীক্ষায় আসা প্রধান Literary Terms (বাংলা উদাহরণসহ)",
           headers: ["Literary Term", "সহজ সংজ্ঞা (বাংলায়)", "ইংরেজি উদাহরণ"],
           rows: [
             ["Simile বনাম Metaphor", "Simile-তে like/as থাকে; Metaphor-এ থাকে না", "Simile: 'As brave as a lion'; Metaphor: 'He is a lion in battle'"],
@@ -420,7 +691,8 @@ export const englishTopics = [
           "১. অবশ্যই পড়তে হবে এমন বিশ্ব ও মার্কিন লেখক: Ernest Hemingway ('The Old Man and the Sea' — বৃদ্ধ জেলে Santiago, ১৯৫৪ নোবেল); Robert Frost ('Miles to go before I sleep'); Walt Whitman ('O Captain! My Captain!' আব্রাহাম লিংকনের মৃত্যুতে); George Orwell ('1984' ও 'Animal Farm': All animals are equal, but some animals are more equal than others); E.M. Forster ('A Passage to India'); Gabriel Garcia Marquez ('One Hundred Years of Solitude' — Magic Realism)।",
         ],
         workedExamples: [
-          "উদাহরণ: 'Cowards die many times before their deaths; the valiant never taste of death but once' এবং 'All animals are equal, but some animals are more equal than others' — কোন কোন গ্রন্থ থেকে নেওয়া?\nউত্তর: ১মটি Shakespeare-এর 'Julius Caesar'; ২য়টি George Orwell-এর বিখ্যাত রাজনৈতিক রূপক উপন্যাস 'Animal Farm'।",
+          "উদাহরণ ১ (Literary Terms নির্ণয়ের ২-ধাপ পরীক্ষা): (ক) 'Life is a broken-winged bird' এবং (খ) 'Parting is such sweet sorrow' কোন কোন অলংকার?\nধাপ ১ (তুলনামূলক শব্দ 'like/as' খোঁজা): (ক) বাক্যে 'Life'-কে সরাসরি 'broken-winged bird'-এর সাথে তুলনা করা হয়েছে, কিন্তু কোনো 'like' বা 'as' শব্দ নেই ⇒ Metaphor।\nধাপ ২ (পাশাপাশি বিপরীত শব্দ দেখা): (খ) অংশে 'sweet' (মধুর) ও 'sorrow' (দুঃখ)—দুটি ঠিক বিপরীত শব্দ একদম পাশাপাশি বসেছে ⇒ Oxymoron।\nফলে / সঠিক উত্তর: (ক) Metaphor; (খ) Oxymoron।\nএকইভাবে: 'He is AS busy AS a bee' ('as' থাকায় Simile) | 'Opportunity knocks at the door' (অবস্তুগত সুযোগকে মানুষের কাজ দেওয়া হয়েছে ⇒ Personification)।",
+          "উদাহরণ ২ (উক্তি ও উৎস যাচাই): 'Cowards die many times before their deaths; the valiant never taste of death but once' এবং 'All animals are equal, but some animals are more equal than others' — কোন কোন গ্রন্থ থেকে নেওয়া?\nউত্তর: ১মটি William Shakespeare-এর ঐতিহাসিক ট্র্যাজেডি 'Julius Caesar' (সিজারের উক্তি); ২য়টি George Orwell-এর বিখ্যাত রাজনৈতিক রূপক উপন্যাস 'Animal Farm' (এখানে ব্যঙ্গার্থক Paradox ব্যবহৃত হয়েছে)।",
         ],
         practiceProblems: [
           {
