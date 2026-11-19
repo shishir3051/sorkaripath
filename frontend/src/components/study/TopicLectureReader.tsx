@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
   BookOpen,
@@ -21,8 +21,17 @@ import {
   Table2,
   X,
 } from "lucide-react";
+import {
+  HighlightableText,
+  jumpToHighlightMark,
+  StudyHighlightScope,
+} from "@/components/study/StudyHighlightContext";
+import {
+  StudyHighlightsPanel,
+  StudyHighlightToolbar,
+} from "@/components/study/StudyHighlightUi";
 import { TopicAiLab, type TopicAiLabHandle } from "@/components/study/TopicAiLab";
-import type { StudyChapter, StudyTopic } from "@/lib/types";
+import type { StudyChapter, StudyHighlight, StudyTopic } from "@/lib/types";
 
 interface TopicLectureReaderProps {
   topic: StudyTopic;
@@ -30,6 +39,8 @@ interface TopicLectureReaderProps {
   onToggleComplete: (slug: string) => void;
   onClose: () => void;
   inDrawer?: boolean;
+  jumpHighlight?: StudyHighlight | null;
+  onJumpHandled?: () => void;
 }
 
 function splitParagraphs(text: string): string[] {
@@ -40,9 +51,13 @@ function splitParagraphs(text: string): string[] {
 }
 
 function ChapterPracticeCard({
+  chapterIdx,
+  sectionLabel,
   index,
   problem,
 }: {
+  chapterIdx: number;
+  sectionLabel: string;
   index: number;
   problem: NonNullable<StudyChapter["practiceProblems"]>[number];
 }) {
@@ -56,7 +71,11 @@ function ChapterPracticeCard({
           <span className="mr-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-indigo-100 text-[11px] font-extrabold text-indigo-800">
             {index + 1}
           </span>
-          {problem.question}
+          <HighlightableText
+            blockId={`ch-${chapterIdx}-prob-${index}-q`}
+            sectionLabel={`${sectionLabel} • অনুশীলনী`}
+            text={problem.question}
+          />
         </p>
       </div>
 
@@ -101,7 +120,12 @@ function ChapterPracticeCard({
         >
           <div className="overflow-hidden">
             <div className="rounded-lg border border-amber-200 bg-amber-50/70 px-3 py-2 text-xs text-amber-950 font-bangla">
-              <strong>ইঙ্গিত:</strong> {problem.hint}
+              <strong>ইঙ্গিত:</strong>{" "}
+              <HighlightableText
+                blockId={`ch-${chapterIdx}-prob-${index}-hint`}
+                sectionLabel={`${sectionLabel} • ইঙ্গিত`}
+                text={problem.hint}
+              />
             </div>
           </div>
         </div>
@@ -119,11 +143,22 @@ function ChapterPracticeCard({
           <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3.5 space-y-1.5 text-xs sm:text-sm text-emerald-950 font-bangla">
             <div className="space-y-1 leading-relaxed">
               {problem.solution.split("\n").map((line, lineIdx) => (
-                <p key={lineIdx}>{line}</p>
+                <HighlightableText
+                  key={lineIdx}
+                  as="p"
+                  blockId={`ch-${chapterIdx}-prob-${index}-sol-${lineIdx}`}
+                  sectionLabel={`${sectionLabel} • সমাধান`}
+                  text={line}
+                />
               ))}
             </div>
             <p className="pt-1 border-t border-emerald-200 font-extrabold text-emerald-900">
-              সঠিক উত্তর: {problem.answer}
+              সঠিক উত্তর:{" "}
+              <HighlightableText
+                blockId={`ch-${chapterIdx}-prob-${index}-ans`}
+                sectionLabel={`${sectionLabel} • উত্তর`}
+                text={problem.answer}
+              />
             </p>
           </div>
         </div>
@@ -138,17 +173,57 @@ export function TopicLectureReader({
   onToggleComplete,
   onClose,
   inDrawer = false,
+  jumpHighlight = null,
+  onJumpHandled,
 }: TopicLectureReaderProps) {
   const chapters = topic.chapters ?? [];
   const [focusMode, setFocusMode] = useState(true);
   const [activeChapterIdx, setActiveChapterIdx] = useState(0);
+  const [highlightsPanelOpen, setHighlightsPanelOpen] = useState(false);
   const chapterTopRef = useRef<HTMLDivElement | null>(null);
   const aiLabRef = useRef<TopicAiLabHandle | null>(null);
+
+  const scopeKey = `topic:${topic.slug}`;
 
   function selectFocusChapter(nextIdx: number) {
     setActiveChapterIdx(nextIdx);
     chapterTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
+
+  const handleJumpToHighlight = useCallback(
+    (hl: StudyHighlight) => {
+      const chMatch = hl.blockId.match(/^ch-(\d+)-/);
+      if (chMatch) {
+        const targetIdx = Number(chMatch[1]);
+        if (Number.isFinite(targetIdx) && targetIdx >= 0) {
+          setActiveChapterIdx(targetIdx);
+        }
+      }
+      jumpToHighlightMark(hl.id);
+    },
+    []
+  );
+
+  useEffect(() => {
+    if (!jumpHighlight || jumpHighlight.scopeKey !== scopeKey) return;
+    const needsChapters = jumpHighlight.blockId.startsWith("ch-");
+    if (needsChapters && chapters.length === 0) return;
+
+    queueMicrotask(() => {
+      handleJumpToHighlight(jumpHighlight);
+      onJumpHandled?.();
+    });
+  }, [
+    jumpHighlight,
+    scopeKey,
+    chapters.length,
+    handleJumpToHighlight,
+    onJumpHandled,
+  ]);
+
+  const handleAskAi = useCallback((prompt: string) => {
+    aiLabRef.current?.focusWithPrompt(prompt);
+  }, []);
 
   const safeIdx = Math.min(activeChapterIdx, Math.max(0, chapters.length - 1));
   const visibleChapters =
@@ -165,7 +240,10 @@ export function TopicLectureReader({
       : topic.subject;
 
   return (
-    <div
+    <StudyHighlightScope
+      scopeKey={scopeKey}
+      scopeTitle={topic.title}
+      onAskAi={handleAskAi}
       className={
         inDrawer
           ? "bg-white p-5 sm:p-7 space-y-6 print:p-0"
@@ -195,9 +273,13 @@ export function TopicLectureReader({
           <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 font-bangla">
             {topic.title}
           </h2>
-          <p className="text-sm text-slate-600 leading-relaxed font-bangla">
-            {topic.highYieldSummary}
-          </p>
+          <HighlightableText
+            as="p"
+            blockId="summary"
+            sectionLabel="Overview Summary"
+            text={topic.highYieldSummary}
+            className="text-sm text-slate-600 leading-relaxed font-bangla"
+          />
         </div>
 
         <div className="flex flex-wrap items-center gap-2 print:hidden">
@@ -232,6 +314,21 @@ export function TopicLectureReader({
             </button>
           )}
         </div>
+      </div>
+
+      {/* Interactive Highlighter Marker Toolbar & My Highlights Panel */}
+      <div className="space-y-3 print:hidden">
+        <StudyHighlightToolbar
+          scopeKey={scopeKey}
+          panelOpen={highlightsPanelOpen}
+          onTogglePanel={() => setHighlightsPanelOpen((v) => !v)}
+        />
+        <StudyHighlightsPanel
+          scopeKey={scopeKey}
+          open={highlightsPanelOpen}
+          onJumpToHighlight={handleJumpToHighlight}
+          onAskAi={handleAskAi}
+        />
       </div>
 
       {/* Loading skeleton while full chapters fetch */}
@@ -355,12 +452,14 @@ export function TopicLectureReader({
                     </h3>
                     <div className="rounded-xl border border-slate-200/80 bg-white p-4 sm:p-5 space-y-3">
                       {paragraphs.map((para, pIdx) => (
-                        <p
+                        <HighlightableText
                           key={pIdx}
+                          as="p"
+                          blockId={`ch-${idx}-exp-${pIdx}`}
+                          sectionLabel={ch.heading}
+                          text={para}
                           className="text-sm sm:text-[15px] text-slate-800 leading-[1.8] font-bangla"
-                        >
-                          {para}
-                        </p>
+                        />
                       ))}
                     </div>
                   </div>
@@ -373,21 +472,33 @@ export function TopicLectureReader({
                         মূল সূত্র ও সংক্ষিপ্ত নিয়মাবলি (Key Formulas &amp; Rules)
                       </p>
                       <div className="grid gap-3 sm:grid-cols-2">
-                        {ch.formulaBox.map((item) => (
+                        {ch.formulaBox.map((item, fIdx) => (
                           <div
                             key={`${item.label}-${item.formula}`}
                             className="rounded-xl border border-emerald-200/80 bg-white p-3.5 space-y-1"
                           >
-                            <p className="text-xs font-extrabold text-emerald-800 font-bangla">
-                              {item.label}
-                            </p>
-                            <p className="text-sm font-bold text-slate-900 font-mono bg-slate-50 rounded-lg px-2.5 py-1.5 border border-slate-100">
-                              {item.formula}
-                            </p>
+                            <HighlightableText
+                              as="p"
+                              blockId={`ch-${idx}-formula-${fIdx}-label`}
+                              sectionLabel={`${ch.heading} • সূত্র`}
+                              text={item.label}
+                              className="text-xs font-extrabold text-emerald-800 font-bangla"
+                            />
+                            <HighlightableText
+                              as="p"
+                              blockId={`ch-${idx}-formula-${fIdx}-expr`}
+                              sectionLabel={`${ch.heading} • সূত্র`}
+                              text={item.formula}
+                              className="text-sm font-bold text-slate-900 font-mono bg-slate-50 rounded-lg px-2.5 py-1.5 border border-slate-100"
+                            />
                             {item.note && (
-                              <p className="text-[11px] text-slate-600 leading-relaxed font-bangla">
-                                {item.note}
-                              </p>
+                              <HighlightableText
+                                as="p"
+                                blockId={`ch-${idx}-formula-${fIdx}-note`}
+                                sectionLabel={`${ch.heading} • সূত্র`}
+                                text={item.note}
+                                className="text-[11px] text-slate-600 leading-relaxed font-bangla"
+                              />
                             )}
                           </div>
                         ))}
@@ -433,7 +544,11 @@ export function TopicLectureReader({
                                         : "text-slate-700"
                                     }`}
                                   >
-                                    {cell}
+                                    <HighlightableText
+                                      blockId={`ch-${idx}-tbl-${rIdx}-${cIdx}`}
+                                      sectionLabel={`${ch.heading} • ছক`}
+                                      text={cell}
+                                    />
                                   </td>
                                 ))}
                               </tr>
@@ -451,13 +566,15 @@ export function TopicLectureReader({
                         বিস্তারিত নিয়ম ও ধাপে ধাপে আলোচনা (Concept Breakdown)
                       </p>
                       <ul className="space-y-2.5">
-                        {ch.points.map((pt) => (
-                          <li
+                        {ch.points.map((pt, ptIdx) => (
+                          <HighlightableText
                             key={pt}
+                            as="li"
+                            blockId={`ch-${idx}-pt-${ptIdx}`}
+                            sectionLabel={ch.heading}
+                            text={pt}
                             className="rounded-xl border border-slate-200/80 bg-white p-3.5 sm:p-4 text-xs sm:text-sm text-slate-800 leading-[1.75] font-bangla"
-                          >
-                            {pt}
-                          </li>
+                          />
                         ))}
                       </ul>
                     </div>
@@ -476,12 +593,14 @@ export function TopicLectureReader({
                             className="rounded-xl border border-teal-200/80 bg-white p-3.5 text-xs sm:text-sm text-teal-950 leading-[1.75] space-y-1 font-bangla"
                           >
                             {ex.split("\n").map((line, lIdx) => (
-                              <p
+                              <HighlightableText
                                 key={lIdx}
+                                as="p"
+                                blockId={`ch-${idx}-ex-${exIdx}-${lIdx}`}
+                                sectionLabel={`${ch.heading} • উদাহরণ`}
+                                text={line}
                                 className={lIdx === 0 ? "font-bold text-slate-900" : ""}
-                              >
-                                {line}
-                              </p>
+                              />
                             ))}
                           </div>
                         ))}
@@ -497,8 +616,15 @@ export function TopicLectureReader({
                         সতর্কতা: পরীক্ষায় সচরাচর ভুল ও ফাঁদ (Common Traps)
                       </p>
                       <ul className="space-y-1.5 text-xs sm:text-sm text-rose-950 leading-relaxed font-bangla">
-                        {ch.commonMistakes.map((mistake) => (
-                          <li key={mistake}>&bull; {mistake}</li>
+                        {ch.commonMistakes.map((mistake, mIdx) => (
+                          <li key={mistake}>
+                            &bull;{" "}
+                            <HighlightableText
+                              blockId={`ch-${idx}-mistake-${mIdx}`}
+                              sectionLabel={`${ch.heading} • সতর্কতা`}
+                              text={mistake}
+                            />
+                          </li>
                         ))}
                       </ul>
                     </div>
@@ -519,6 +645,8 @@ export function TopicLectureReader({
                         {ch.practiceProblems.map((prob, pIdx) => (
                           <ChapterPracticeCard
                             key={`${idx}-${pIdx}`}
+                            chapterIdx={idx}
+                            sectionLabel={ch.heading}
                             index={pIdx}
                             problem={prob}
                           />
@@ -568,13 +696,17 @@ export function TopicLectureReader({
             Rapid Revision Capsule &amp; High-Yield Facts
           </h3>
           <ul className="space-y-2.5">
-            {topic.keyFacts?.map((fact) => (
+            {topic.keyFacts?.map((fact, fIdx) => (
               <li
                 key={fact}
                 className="flex items-start gap-2.5 rounded-xl bg-slate-50 border border-slate-100 p-3 text-sm text-slate-800 leading-relaxed font-bangla"
               >
                 <CheckCircle2 className="h-4 w-4 text-emerald-700 shrink-0 mt-1" />
-                <span>{fact}</span>
+                <HighlightableText
+                  blockId={`fact-${fIdx}`}
+                  sectionLabel="Rapid Revision Facts"
+                  text={fact}
+                />
               </li>
             ))}
           </ul>
@@ -589,9 +721,14 @@ export function TopicLectureReader({
             Shortcuts, Memory Tricks &amp; Common Exam Traps
           </h3>
           <ul className="space-y-1.5 text-xs sm:text-sm text-amber-950/90 font-bangla">
-            {topic.memoryTricks?.map((trick) => (
+            {topic.memoryTricks?.map((trick, tIdx) => (
               <li key={trick} className="leading-relaxed">
-                &bull; {trick}
+                &bull;{" "}
+                <HighlightableText
+                  blockId={`trick-${tIdx}`}
+                  sectionLabel="Shortcuts & Traps"
+                  text={trick}
+                />
               </li>
             ))}
           </ul>
@@ -605,17 +742,25 @@ export function TopicLectureReader({
             Quick Examples &amp; High-Frequency Pairs
           </h3>
           <div className="grid gap-3 sm:grid-cols-2">
-            {topic.quickExamples?.map((ex) => (
+            {topic.quickExamples?.map((ex, qIdx) => (
               <div
                 key={ex.label}
                 className="rounded-xl border border-slate-200 bg-white p-3.5"
               >
-                <p className="text-xs font-extrabold text-emerald-800 font-bangla">
-                  {ex.label}
-                </p>
-                <p className="mt-1 text-xs sm:text-sm text-slate-700 leading-relaxed font-bangla">
-                  {ex.detail}
-                </p>
+                <HighlightableText
+                  as="p"
+                  blockId={`qex-${qIdx}-label`}
+                  sectionLabel="Quick Examples"
+                  text={ex.label}
+                  className="text-xs font-extrabold text-emerald-800 font-bangla"
+                />
+                <HighlightableText
+                  as="p"
+                  blockId={`qex-${qIdx}-detail`}
+                  sectionLabel="Quick Examples"
+                  text={ex.detail}
+                  className="mt-1 text-xs sm:text-sm text-slate-700 leading-relaxed font-bangla"
+                />
               </div>
             ))}
           </div>
@@ -648,6 +793,6 @@ export function TopicLectureReader({
           </Link>
         </div>
       </div>
-    </div>
+    </StudyHighlightScope>
   );
 }

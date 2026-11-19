@@ -176,6 +176,22 @@ export interface OverviewData {
   };
 }
 
+export type HighlightColor = "yellow" | "green" | "pink" | "blue";
+
+export interface StudyHighlight {
+  id: string;
+  scopeKey: string;
+  scopeTitle?: string;
+  blockId: string;
+  sectionLabel?: string;
+  text: string;
+  start: number;
+  end: number;
+  color: HighlightColor;
+  note?: string;
+  createdAt: string;
+}
+
 export interface LearnerProgress {
   sessionId: string;
   completedLessonSlugs: string[];
@@ -185,6 +201,7 @@ export interface LearnerProgress {
   wrongQuestionIds?: string[];
   bookmarkedQuestionIds?: string[];
   bookmarkedJobSlugs: string[];
+  studyHighlights?: StudyHighlight[];
   targetTrack: string;
 }
 

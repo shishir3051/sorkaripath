@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
   Award,
@@ -13,6 +13,18 @@ import {
   RotateCcw,
   Sparkles,
 } from "lucide-react";
+import {
+  HighlightableText,
+  jumpToHighlightMark,
+  StudyHighlightScope,
+} from "@/components/study/StudyHighlightContext";
+import {
+  StudyHighlightsPanel,
+  StudyHighlightToolbar,
+} from "@/components/study/StudyHighlightUi";
+import type { StudyHighlight } from "@/lib/types";
+
+const WRITTEN_VIVA_SCOPE = "written-viva";
 
 type LabSubTab = "written" | "typing" | "viva";
 
@@ -370,8 +382,15 @@ function computeTypingStats(target: string, typed: string, elapsedSeconds: numbe
   return { correctChars, accuracy, grossWpm, netWpm, progressPercent };
 }
 
-export function WrittenTypingVivaLab() {
+export function WrittenTypingVivaLab({
+  jumpHighlight = null,
+  onJumpHandled,
+}: {
+  jumpHighlight?: StudyHighlight | null;
+  onJumpHandled?: () => void;
+}) {
   const [subTab, setSubTab] = useState<LabSubTab>("written");
+  const [highlightsPanelOpen, setHighlightsPanelOpen] = useState(false);
   const [writtenFilter, setWrittenFilter] = useState<string>("All");
   const [openWrittenIds, setOpenWrittenIds] = useState<Record<string, boolean>>({
     "w-post-report": true,
@@ -392,6 +411,34 @@ export function WrittenTypingVivaLab() {
   const [openVivaIds, setOpenVivaIds] = useState<Record<string, boolean>>({
     "viva-intro-why": true,
   });
+
+  const handleJumpToHighlight = useCallback((hl: StudyHighlight) => {
+    const writtenMatch = hl.blockId.match(/^written:([^:]+):/);
+    if (writtenMatch) {
+      setSubTab("written");
+      setWrittenFilter("All");
+      setOpenWrittenIds((prev) => ({ ...prev, [writtenMatch[1]]: true }));
+      jumpToHighlightMark(hl.id);
+      return;
+    }
+    const vivaMatch = hl.blockId.match(/^viva:([^:]+):/);
+    if (vivaMatch) {
+      setSubTab("viva");
+      setVivaFilter("All");
+      setOpenVivaIds((prev) => ({ ...prev, [vivaMatch[1]]: true }));
+      jumpToHighlightMark(hl.id);
+      return;
+    }
+    jumpToHighlightMark(hl.id);
+  }, []);
+
+  useEffect(() => {
+    if (!jumpHighlight || jumpHighlight.scopeKey !== WRITTEN_VIVA_SCOPE) return;
+    queueMicrotask(() => {
+      handleJumpToHighlight(jumpHighlight);
+      onJumpHandled?.();
+    });
+  }, [jumpHighlight, handleJumpToHighlight, onJumpHandled]);
 
   const activePassage = useMemo(
     () => TYPING_PASSAGES.find((p) => p.id === passageId) ?? TYPING_PASSAGES[0],
@@ -459,7 +506,11 @@ export function WrittenTypingVivaLab() {
     typingStats.accuracy >= activePassage.minAccuracy;
 
   return (
-    <div className="space-y-6">
+    <StudyHighlightScope
+      scopeKey={WRITTEN_VIVA_SCOPE}
+      scopeTitle="Written & Viva Model Answers"
+      className="space-y-6"
+    >
       {/* Studio Header & Mode Switcher */}
       <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-sm space-y-4">
         <div className="flex flex-wrap items-start justify-between gap-4">
@@ -537,6 +588,22 @@ export function WrittenTypingVivaLab() {
         </div>
       </div>
 
+      {/* Highlighter Marker Toolbar & My Highlights Panel (Written & Viva tabs) */}
+      {subTab !== "typing" && (
+        <div className="space-y-3 print:hidden">
+          <StudyHighlightToolbar
+            scopeKey={WRITTEN_VIVA_SCOPE}
+            panelOpen={highlightsPanelOpen}
+            onTogglePanel={() => setHighlightsPanelOpen((v) => !v)}
+          />
+          <StudyHighlightsPanel
+            scopeKey={WRITTEN_VIVA_SCOPE}
+            open={highlightsPanelOpen}
+            onJumpToHighlight={handleJumpToHighlight}
+          />
+        </div>
+      )}
+
       {/* SUBTAB 1: WRITTEN TEMPLATES & SOLVED PROMPTS */}
       {subTab === "written" && (
         <div className="space-y-4">
@@ -605,7 +672,12 @@ export function WrittenTypingVivaLab() {
                       {item.title}
                     </h3>
                     <p className="mt-1 text-xs sm:text-sm text-slate-700 leading-relaxed bg-slate-50 rounded-xl p-3 border border-slate-100">
-                      <strong>প্রশ্ন / Prompt:</strong> {item.prompt}
+                      <strong>প্রশ্ন / Prompt:</strong>{" "}
+                      <HighlightableText
+                        blockId={`written:${item.id}:prompt`}
+                        sectionLabel={`Written • ${item.title}`}
+                        text={item.prompt}
+                      />
                     </p>
                   </div>
 
@@ -632,13 +704,22 @@ export function WrittenTypingVivaLab() {
                           <p className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-800 mb-1.5">
                             Model Full-Marks Format &amp; Answer
                           </p>
-                          <pre className="whitespace-pre-wrap font-sans text-xs sm:text-sm leading-relaxed text-slate-800 rounded-xl border border-emerald-200 bg-emerald-50/40 p-4">
-                            {item.modelAnswer}
-                          </pre>
+                          <HighlightableText
+                            as="pre"
+                            blockId={`written:${item.id}:answer`}
+                            sectionLabel={`Written Model • ${item.title}`}
+                            text={item.modelAnswer}
+                            className="whitespace-pre-wrap font-sans text-xs sm:text-sm leading-relaxed text-slate-800 rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 font-bangla"
+                          />
                         </div>
 
                         <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs text-amber-950">
-                          <strong>Examiner Warning:</strong> {item.examinerTips}
+                          <strong>Examiner Warning:</strong>{" "}
+                          <HighlightableText
+                            blockId={`written:${item.id}:tip`}
+                            sectionLabel={`Examiner Tip • ${item.title}`}
+                            text={item.examinerTips}
+                          />
                         </div>
 
                         <div className="space-y-1.5">
@@ -955,12 +1036,21 @@ export function WrittenTypingVivaLab() {
                   >
                     <div className="overflow-hidden">
                       <div className="pt-3 border-t border-slate-100 space-y-2.5">
-                        <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3.5 text-xs sm:text-sm text-slate-800 leading-relaxed">
+                        <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-3.5 text-xs sm:text-sm text-slate-800 leading-relaxed font-bangla">
                           <strong className="text-emerald-900">Model Viva Answer: </strong>
-                          {v.modelAnswer}
+                          <HighlightableText
+                            blockId={`viva:${v.id}:answer`}
+                            sectionLabel={`Viva Answer • ${v.postTrack}`}
+                            text={v.modelAnswer}
+                          />
                         </div>
-                        <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-900">
-                          <strong>Board Trap / সতর্কতা:</strong> {v.boardTrap}
+                        <div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-xs text-rose-900 font-bangla">
+                          <strong>Board Trap / সতর্কতা:</strong>{" "}
+                          <HighlightableText
+                            blockId={`viva:${v.id}:trap`}
+                            sectionLabel={`Viva Trap • ${v.postTrack}`}
+                            text={v.boardTrap}
+                          />
                         </div>
                       </div>
                     </div>
@@ -971,6 +1061,6 @@ export function WrittenTypingVivaLab() {
           </div>
         </div>
       )}
-    </div>
+    </StudyHighlightScope>
   );
 }

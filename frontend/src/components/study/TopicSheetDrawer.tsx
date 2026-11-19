@@ -3,13 +3,15 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BookOpen, GripVertical, Maximize2, Minimize2, X } from "lucide-react";
 import { TopicLectureReader } from "@/components/study/TopicLectureReader";
-import type { StudyTopic } from "@/lib/types";
+import type { StudyHighlight, StudyTopic } from "@/lib/types";
 
 interface TopicSheetDrawerProps {
   topic: StudyTopic | null;
   isCompleted: boolean;
   onToggleComplete: (slug: string) => void;
   onClose: () => void;
+  jumpHighlight?: StudyHighlight | null;
+  onJumpHandled?: () => void;
 }
 
 const DEFAULT_DRAWER_WIDTH = 820;
@@ -40,6 +42,8 @@ export function TopicSheetDrawer({
   isCompleted,
   onToggleComplete,
   onClose,
+  jumpHighlight,
+  onJumpHandled,
 }: TopicSheetDrawerProps) {
   const [drawerWidth, setDrawerWidth] = useState(DEFAULT_DRAWER_WIDTH);
   const [isResizing, setIsResizing] = useState(false);
@@ -386,6 +390,8 @@ export function TopicSheetDrawer({
             onToggleComplete={onToggleComplete}
             onClose={requestClose}
             inDrawer
+            jumpHighlight={jumpHighlight}
+            onJumpHandled={onJumpHandled}
           />
         </div>
       </aside>

@@ -14,6 +14,7 @@ import {
   FileCheck2,
   Globe,
   GraduationCap,
+  Highlighter,
   Layers,
   Newspaper,
   PenTool,
@@ -33,11 +34,17 @@ import {
   safeExternalHref,
   setCachedApiData,
 } from "@/lib/api";
+import {
+  StudyHighlightProvider,
+  useStudyHighlights,
+} from "@/components/study/StudyHighlightContext";
+import { GlobalHighlightsModal } from "@/components/study/StudyHighlightUi";
 import { TopicSheetDrawer } from "@/components/study/TopicSheetDrawer";
 import { WrittenTypingVivaLab } from "@/components/study/WrittenTypingVivaLab";
 import type {
   CurrentAffairsItem,
   LearnerProgress,
+  StudyHighlight,
   StudyOverviewData,
   StudyResource,
   StudyRoutineData,
@@ -145,6 +152,47 @@ function resolveInitialTab(param: string | null): StudyTab {
   return "topics";
 }
 
+function GlobalHighlightsButton({ onOpen }: { onOpen: () => void }) {
+  const ctx = useStudyHighlights();
+  const count = ctx?.highlights.length ?? 0;
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className={`ml-auto inline-flex items-center gap-1.5 rounded-xl border px-3.5 py-2.5 text-xs sm:text-sm font-bold transition-colors cursor-pointer ${
+        count > 0
+          ? "border-amber-300 bg-amber-50 text-amber-950 hover:bg-amber-100"
+          : "border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100"
+      }`}
+    >
+      <Highlighter className="h-4 w-4 text-amber-600 shrink-0" />
+      <span>My Highlights</span>
+      {count > 0 && (
+        <span className="rounded-full bg-amber-300/80 px-1.5 py-0.5 text-[10px] font-extrabold text-amber-950">
+          {count}
+        </span>
+      )}
+    </button>
+  );
+}
+
+function TopicCardHighlightBadge({ slug }: { slug: string }) {
+  const ctx = useStudyHighlights();
+  const count = ctx?.scopeCounts.get(`topic:${slug}`) ?? 0;
+  if (count === 0) return null;
+
+  return (
+    <span
+      title={`${count} saved highlight${count === 1 ? "" : "s"} in this lecture sheet`}
+      className="inline-flex items-center gap-1 rounded bg-yellow-100 border border-yellow-300/80 px-1.5 py-0.5 text-[10px] font-extrabold text-amber-950"
+    >
+      <Highlighter className="h-3 w-3 text-amber-700" />
+      <span>{count}</span>
+    </span>
+  );
+}
+
 export function StudyHub({
   initialData,
 }: {
@@ -170,6 +218,10 @@ export function StudyHub({
     () => initialData ?? getCachedApiData<StudyOverviewData>("/study/overview")
   );
   const [progress, setProgress] = useState<LearnerProgress | null>(null);
+  const [globalHighlightsOpen, setGlobalHighlightsOpen] = useState(false);
+  const [jumpHighlight, setJumpHighlight] = useState<StudyHighlight | null>(
+    null
+  );
 
   // Per-tab client caches eliminate repeated reloads & spinners when switching back and forth
   const routineCacheRef = useRef<Map<string, StudyRoutineData>>(new Map());
@@ -370,6 +422,33 @@ export function StudyHub({
     setSelectedTopic(null);
   }, []);
 
+  const handleJumpHandled = useCallback(() => {
+    setJumpHighlight(null);
+  }, []);
+
+  const handleOpenHighlightFromNotebook = useCallback(
+    (hl: StudyHighlight) => {
+      if (hl.scopeKey === "written-viva") {
+        setSelectedTopic(null);
+        setActiveTab("written-viva");
+        setHasOpenedWrittenViva(true);
+        setJumpHighlight(hl);
+        return;
+      }
+
+      if (hl.scopeKey.startsWith("topic:")) {
+        const slug = hl.scopeKey.slice("topic:".length);
+        const allTopics = overview?.topics ?? [];
+        const matched = allTopics.find((t) => t.slug === slug);
+        if (matched) {
+          setSelectedTopic(matched);
+          setJumpHighlight(hl);
+        }
+      }
+    },
+    [overview?.topics]
+  );
+
   async function handleToggleTopicDone(slug: string) {
     const sid = getOrCreateSessionId();
     const res = await apiFetch<LearnerProgress>(
@@ -520,7 +599,10 @@ export function StudyHub({
   const routinePercent = Math.round((completedDaysSet.size / 30) * 100);
 
   return (
-    <>
+    <StudyHighlightProvider
+      serverHighlights={progress?.studyHighlights}
+      onProgressUpdated={setProgress}
+    >
       <div className={selectedTopic ? "space-y-8 print:hidden" : "space-y-8"}>
       {/* Top Metrics */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 print:hidden">
@@ -606,6 +688,7 @@ export function StudyHub({
             </button>
           );
         })}
+        <GlobalHighlightsButton onOpen={() => setGlobalHighlightsOpen(true)} />
       </div>
 
       {/* TAB 1: TOPIC GURU (ALL-IN-ONE SUBJECT LECTURE SHEETS) */}
@@ -696,7 +779,8 @@ export function StudyHub({
                       <span className="rounded-full bg-emerald-100 px-2.5 py-0.5 text-emerald-800">
                         {item.subject}
                       </span>
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-1.5">
+                        <TopicCardHighlightBadge slug={item.slug} />
                         {(item.chapterCount ?? item.chapters?.length ?? 0) > 0 && (
                           <span className="rounded bg-amber-50 px-2 py-0.5 text-amber-800">
                             {item.chapterCount ?? item.chapters?.length} Chapters
@@ -1272,7 +1356,10 @@ export function StudyHub({
         <section
           className={activeTab === "written-viva" ? "space-y-6" : "hidden"}
         >
-          <WrittenTypingVivaLab />
+          <WrittenTypingVivaLab
+            jumpHighlight={jumpHighlight}
+            onJumpHandled={handleJumpHandled}
+          />
         </section>
       )}
 
@@ -1593,7 +1680,15 @@ export function StudyHub({
         }
         onToggleComplete={handleToggleTopicDone}
         onClose={handleCloseTopic}
+        jumpHighlight={jumpHighlight}
+        onJumpHandled={handleJumpHandled}
       />
-    </>
+
+      <GlobalHighlightsModal
+        open={globalHighlightsOpen}
+        onClose={() => setGlobalHighlightsOpen(false)}
+        onOpenHighlight={handleOpenHighlightFromNotebook}
+      />
+    </StudyHighlightProvider>
   );
 }
