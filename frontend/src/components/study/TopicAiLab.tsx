@@ -45,6 +45,12 @@ interface TutorResult {
     modelUsed: string;
     keySlotUsed: number;
     totalKeys: number;
+    usage?: {
+      promptTokens?: number;
+      outputTokens?: number;
+      thoughtsTokens?: number;
+      totalTokens?: number;
+    };
   };
 }
 
@@ -201,6 +207,12 @@ interface GeneratedQuizResult {
     modelUsed: string;
     keySlotUsed: number;
     totalKeys: number;
+    usage?: {
+      promptTokens?: number;
+      outputTokens?: number;
+      thoughtsTokens?: number;
+      totalTokens?: number;
+    };
   };
 }
 
@@ -412,6 +424,9 @@ export function TopicAiLab({
               <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">
                 {tutorData.meta.modelUsed} • Key {tutorData.meta.keySlotUsed}/
                 {tutorData.meta.totalKeys}
+                {(tutorData.meta.usage?.totalTokens ?? 0) > 0
+                  ? ` • ${tutorData.meta.usage?.totalTokens?.toLocaleString("en-US")} tokens`
+                  : ""}
               </span>
             )}
           </div>
@@ -523,6 +538,9 @@ export function TopicAiLab({
               {quizData.meta && (
                 <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">
                   {quizData.meta.modelUsed}
+                  {(quizData.meta.usage?.totalTokens ?? 0) > 0
+                    ? ` • ${quizData.meta.usage?.totalTokens?.toLocaleString("en-US")} tokens`
+                    : ""}
                 </span>
               )}
             </div>

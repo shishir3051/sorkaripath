@@ -72,12 +72,23 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    aiStats: {
+      totalRequests: { type: Number, default: 0 },
+      apiCalls: { type: Number, default: 0 },
+      cacheHits: { type: Number, default: 0 },
+      promptTokens: { type: Number, default: 0 },
+      outputTokens: { type: Number, default: 0 },
+      thoughtsTokens: { type: Number, default: 0 },
+      totalTokens: { type: Number, default: 0 },
+      lastUsedAt: { type: Date, default: null },
+    },
   },
   { timestamps: true }
 );
 
 export function toSafeUser(user) {
   if (!user) return null;
+  const stats = user.aiStats || {};
   return {
     id: String(user._id),
     name: user.name,
@@ -87,6 +98,16 @@ export function toSafeUser(user) {
     passwordSetupPending: Boolean(user.passwordSetupPending),
     lastLoginAt: user.lastLoginAt || null,
     createdAt: user.createdAt || null,
+    aiStats: {
+      totalRequests: Number(stats.totalRequests) || 0,
+      apiCalls: Number(stats.apiCalls) || 0,
+      cacheHits: Number(stats.cacheHits) || 0,
+      promptTokens: Number(stats.promptTokens) || 0,
+      outputTokens: Number(stats.outputTokens) || 0,
+      thoughtsTokens: Number(stats.thoughtsTokens) || 0,
+      totalTokens: Number(stats.totalTokens) || 0,
+      lastUsedAt: stats.lastUsedAt || null,
+    },
   };
 }
 

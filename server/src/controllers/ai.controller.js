@@ -18,7 +18,11 @@ export async function getAiStatus(_req, res) {
 export async function discoverCirculars(req, res, next) {
   try {
     const { query, liveRefresh } = req.validatedBody;
-    const data = await discoverLatestCircularsWithAi({ query, liveRefresh });
+    const data = await discoverLatestCircularsWithAi({
+      query,
+      liveRefresh,
+      actorUser: req.user || null,
+    });
     res.json({
       success: true,
       data,
@@ -38,7 +42,10 @@ export async function analyzeCircular(req, res, next) {
       });
     }
     const forceRefresh = Boolean(req.validatedBody?.forceRefresh);
-    const data = await analyzeCircularPdfWithAi(slug, { forceRefresh });
+    const data = await analyzeCircularPdfWithAi(slug, {
+      forceRefresh,
+      actorUser: req.user || null,
+    });
     res.json({
       success: true,
       data,
@@ -50,7 +57,10 @@ export async function analyzeCircular(req, res, next) {
 
 export async function studyTutor(req, res, next) {
   try {
-    const data = await explainStudyTopicWithAi(req.validatedBody);
+    const data = await explainStudyTopicWithAi({
+      ...req.validatedBody,
+      actorUser: req.user || null,
+    });
     res.json({
       success: true,
       data,
@@ -62,7 +72,10 @@ export async function studyTutor(req, res, next) {
 
 export async function generateAiMcqs(req, res, next) {
   try {
-    const data = await generatePracticeMcqsWithAi(req.validatedBody);
+    const data = await generatePracticeMcqsWithAi({
+      ...req.validatedBody,
+      actorUser: req.user || null,
+    });
     res.json({
       success: true,
       data,

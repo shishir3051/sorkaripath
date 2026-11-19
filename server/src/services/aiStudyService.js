@@ -1,5 +1,6 @@
 import { StudyTopic } from "../models/StudyTopic.js";
 import { generateJsonWithGemini } from "./aiCircularService.js";
+import { recordAiUsage } from "./aiUsageService.js";
 
 const VALID_SUBJECTS = [
   "Bangla",
@@ -398,6 +399,7 @@ export async function explainStudyTopicWithAi({
   topicSlug = "",
   subject = "All",
   question = "",
+  actorUser = null,
 } = {}) {
   const cleanQuestion = cleanText(question, 600);
   const topic = await loadGroundedTopic(topicSlug);
@@ -414,13 +416,27 @@ export async function explainStudyTopicWithAi({
     question: cleanQuestion,
   });
 
-  const { data, modelUsed, keySlotUsed, totalKeys } = await generateJsonWithGemini({
-    contents: prompt,
-    timeoutMs: 28_000,
+  const { data, modelUsed, keySlotUsed, totalKeys, usage } =
+    await generateJsonWithGemini({
+      contents: prompt,
+      timeoutMs: 28_000,
+    });
+
+  const resolvedTitle =
+    cleanScalarText(data?.topicTitle, 180) || topic?.title || "Study Tutor Note";
+
+  await recordAiUsage({
+    actorUser,
+    feature: "study_tutor",
+    modelUsed,
+    keySlotUsed,
+    usage,
+    isCacheHit: false,
+    label: cleanQuestion || resolvedTitle,
   });
 
   return {
-    topicTitle: cleanScalarText(data?.topicTitle, 180) || topic?.title || "Study Tutor Note",
+    topicTitle: resolvedTitle,
     subject: cleanScalarText(data?.subject, 80) || topic?.subject || subject || "All",
     explanationEn: cleanScalarText(data?.explanationEn, 3500),
     explanationBn: cleanScalarText(data?.explanationBn, 3500),
@@ -434,6 +450,7 @@ export async function explainStudyTopicWithAi({
       modelUsed,
       keySlotUsed,
       totalKeys,
+      usage,
       groundedTopicSlug: topic?.slug || null,
     },
   };
@@ -450,6 +467,7 @@ export async function generatePracticeMcqsWithAi({
   examTrack = "BCS Preliminary",
   difficulty = "Medium",
   count = 5,
+  actorUser = null,
 }) {
   const topic = await loadGroundedTopic(topicSlug);
   const resolvedSubject =
@@ -475,10 +493,11 @@ export async function generatePracticeMcqsWithAi({
     count: safeCount,
   });
 
-  const { data, modelUsed, keySlotUsed, totalKeys } = await generateJsonWithGemini({
-    contents: prompt,
-    timeoutMs: 28_000,
-  });
+  const { data, modelUsed, keySlotUsed, totalKeys, usage } =
+    await generateJsonWithGemini({
+      contents: prompt,
+      timeoutMs: 28_000,
+    });
 
   const questions = sanitizeGeneratedMcqs(data?.questions, {
     subject: resolvedSubject,
@@ -494,12 +513,24 @@ export async function generatePracticeMcqsWithAi({
     throw err;
   }
 
+  const resolvedTopicTitle =
+    cleanText(data?.topicTitle, 160) ||
+    topic?.title ||
+    cleanText(topicTitle, 160) ||
+    resolvedSubject;
+
+  await recordAiUsage({
+    actorUser,
+    feature: "generate_mcqs",
+    modelUsed,
+    keySlotUsed,
+    usage,
+    isCacheHit: false,
+    label: `${resolvedTopicTitle} (${questions.length} MCQs)`,
+  });
+
   return {
-    topicTitle:
-      cleanText(data?.topicTitle, 160) ||
-      topic?.title ||
-      cleanText(topicTitle, 160) ||
-      resolvedSubject,
+    topicTitle: resolvedTopicTitle,
     subject: resolvedSubject,
     examTrack: resolvedTrack,
     questions,
@@ -507,6 +538,7 @@ export async function generatePracticeMcqsWithAi({
       modelUsed,
       keySlotUsed,
       totalKeys,
+      usage,
       requestedCount: safeCount,
       generatedCount: questions.length,
       groundedTopicSlug: topic?.slug || null,

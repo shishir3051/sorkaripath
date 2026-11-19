@@ -1,6 +1,17 @@
 export type JobOrigin = "curated" | "web_sync";
 export type UserRole = "user" | "admin";
 
+export interface AiTokenStats {
+  totalRequests: number;
+  apiCalls: number;
+  cacheHits: number;
+  promptTokens: number;
+  outputTokens: number;
+  thoughtsTokens: number;
+  totalTokens: number;
+  lastUsedAt?: string | null;
+}
+
 export interface AuthUser {
   id: string;
   name: string;
@@ -11,6 +22,7 @@ export interface AuthUser {
   lastLoginAt?: string | null;
   createdAt?: string | null;
   isPrimaryAdmin?: boolean;
+  aiStats?: AiTokenStats;
 }
 export type RecordType =
   | "circular"

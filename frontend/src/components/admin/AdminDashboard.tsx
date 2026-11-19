@@ -4,12 +4,15 @@ import Link from "next/link";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
-  CheckCircle2,
+  Activity,
+  Bot,
+  Cpu,
   Crown,
   Loader2,
   PlusCircle,
   Radio,
   Shield,
+  Sparkles,
   Trash2,
   UserCheck,
   Users,
@@ -17,6 +20,59 @@ import {
 import { apiFetch, formatBdDateTime, invalidateApiCache } from "@/lib/api";
 import { useAuth } from "@/components/auth/AuthContext";
 import type { AuthUser, JobOrigin, RecordType } from "@/lib/types";
+
+export interface AiSummaryStats {
+  totalRequests: number;
+  apiCalls: number;
+  cacheHits: number;
+  promptTokens: number;
+  outputTokens: number;
+  thoughtsTokens: number;
+  cachedTokens: number;
+  totalTokens: number;
+  uniqueUsersCount: number;
+}
+
+export interface AiUserBreakdownItem {
+  userId: string | null;
+  userEmail: string;
+  userName: string;
+  role: "user" | "admin" | "guest";
+  totalRequests: number;
+  apiCalls: number;
+  cacheHits: number;
+  promptTokens: number;
+  outputTokens: number;
+  thoughtsTokens: number;
+  totalTokens: number;
+  lastUsedAt?: string | null;
+  features: {
+    study_tutor: number;
+    generate_mcqs: number;
+    circular_discover: number;
+    circular_analyze: number;
+  };
+}
+
+export interface AiUsageLogItem {
+  id: string;
+  userEmail: string;
+  userName: string;
+  feature:
+    | "study_tutor"
+    | "generate_mcqs"
+    | "circular_discover"
+    | "circular_analyze";
+  modelUsed: string;
+  keySlotUsed: number;
+  promptTokens: number;
+  outputTokens: number;
+  thoughtsTokens: number;
+  totalTokens: number;
+  isCacheHit: boolean;
+  label: string;
+  createdAt: string;
+}
 
 export interface AdminOverviewData {
   stats: {
@@ -40,6 +96,35 @@ export interface AdminOverviewData {
     publishedDate: string;
     isFeatured: boolean;
   }>;
+  aiSummary?: AiSummaryStats;
+  aiUserBreakdown?: AiUserBreakdownItem[];
+  recentAiLogs?: AiUsageLogItem[];
+}
+
+const FEATURE_META: Record<
+  AiUsageLogItem["feature"],
+  { label: string; badgeClass: string }
+> = {
+  study_tutor: {
+    label: "Study Tutor",
+    badgeClass: "bg-indigo-100 text-indigo-800",
+  },
+  generate_mcqs: {
+    label: "5-MCQ Lab",
+    badgeClass: "bg-emerald-100 text-emerald-800",
+  },
+  circular_discover: {
+    label: "Circular AI",
+    badgeClass: "bg-sky-100 text-sky-800",
+  },
+  circular_analyze: {
+    label: "PDF Analyzer",
+    badgeClass: "bg-amber-100 text-amber-900",
+  },
+};
+
+function formatCount(n?: number | null): string {
+  return (Number(n) || 0).toLocaleString("en-US");
 }
 
 export function AdminDashboard({
@@ -192,6 +277,9 @@ export function AdminDashboard({
   }
 
   const stats = data?.stats;
+  const aiSummary = data?.aiSummary;
+  const aiUserBreakdown = data?.aiUserBreakdown ?? [];
+  const recentAiLogs = data?.recentAiLogs ?? [];
 
   return (
     <div className="space-y-8">
@@ -206,8 +294,8 @@ export function AdminDashboard({
             Signed in as {currentUser?.name} ({currentUser?.email})
           </h2>
           <p className="text-xs text-emerald-100/80">
-            Manage registered users, admin privileges, curated job circulars, and
-            cooldown-free live web scraping.
+            Manage registered users, Gemini AI token consumption per user,
+            curated job circulars, and cooldown-free live web scraping.
           </p>
         </div>
 
@@ -258,50 +346,239 @@ export function AdminDashboard({
               {stats.totalUsers}
             </p>
             <p className="mt-1 text-xs text-slate-500">
-              {stats.verifiedUsers} email-verified
+              {stats.verifiedUsers} email-verified • {stats.adminUsers} admin
             </p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-500">
-              <span>Admin Accounts</span>
-              <Crown className="h-4 w-4 text-amber-600" />
+              <span>Gemini Tokens Used</span>
+              <Sparkles className="h-4 w-4 text-indigo-600" />
             </div>
-            <p className="mt-2 text-2xl font-extrabold text-slate-900">
-              {stats.adminUsers}
+            <p className="mt-2 text-2xl font-extrabold text-indigo-700">
+              {formatCount(aiSummary?.totalTokens)}
             </p>
             <p className="mt-1 text-xs text-slate-500">
-              Full platform access
+              {formatCount(aiSummary?.promptTokens)} in •{" "}
+              {formatCount(aiSummary?.outputTokens)} out
             </p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-500">
-              <span>Active Circulars</span>
-              <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+              <span>AI Assistant Calls</span>
+              <Bot className="h-4 w-4 text-emerald-600" />
             </div>
             <p className="mt-2 text-2xl font-extrabold text-slate-900">
-              {stats.totalCirculars}
+              {formatCount(aiSummary?.totalRequests)}
             </p>
             <p className="mt-1 text-xs text-slate-500">
-              Public job &amp; notice records
+              {formatCount(aiSummary?.apiCalls)} live API •{" "}
+              {formatCount(aiSummary?.cacheHits)} cached •{" "}
+              {formatCount(aiSummary?.uniqueUsersCount)} users
             </p>
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-xs">
             <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-500">
-              <span>Locked Study Content</span>
-              <Shield className="h-4 w-4 text-indigo-600" />
+              <span>Content &amp; Circulars</span>
+              <Shield className="h-4 w-4 text-amber-600" />
             </div>
             <p className="mt-2 text-2xl font-extrabold text-slate-900">
-              {stats.topicCount} Sheets
+              {formatCount(stats.totalCirculars)} Circulars
             </p>
             <p className="mt-1 text-xs text-slate-500">
-              {stats.lessonCount} A–Z modules • {stats.mcqCount} MCQs
+              {stats.topicCount} Sheets • {stats.lessonCount} A–Z •{" "}
+              {stats.mcqCount} MCQs
             </p>
           </div>
         </div>
       )}
+
+      {/* Gemini AI Assistant Users & Token Usage */}
+      <section className="rounded-2xl border border-indigo-200 bg-white shadow-xs overflow-hidden">
+        <div className="border-b border-indigo-100 bg-gradient-to-r from-indigo-50/80 via-white to-emerald-50/50 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <Cpu className="h-4.5 w-4.5 text-indigo-600" />
+              <span>Gemini AI Assistant — Users &amp; Token Usage</span>
+            </h3>
+            <p className="text-xs text-slate-600 mt-0.5">
+              Tracks every user who invokes Gemini AI (Study Tutor, 5-MCQ Lab,
+              Circular Finder, and PDF Analyzer) with exact prompt, output, and
+              total tokens.
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 text-xs">
+            <span className="rounded-full bg-indigo-100 px-3 py-1 font-bold text-indigo-900">
+              {formatCount(aiSummary?.uniqueUsersCount)} Active AI Users
+            </span>
+            <span className="rounded-full bg-emerald-100 px-3 py-1 font-bold text-emerald-900">
+              {formatCount(aiSummary?.totalTokens)} Total Tokens
+            </span>
+          </div>
+        </div>
+
+        {aiUserBreakdown.length === 0 ? (
+          <div className="px-6 py-10 text-center text-sm text-slate-500">
+            No Gemini AI Assistant requests recorded yet. Token usage per user
+            will appear here automatically as learners use Study Tutor, 5-MCQ
+            Generator, Circular Finder, or PDF Analyzer.
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs sm:text-sm">
+              <thead className="bg-slate-50 text-[11px] font-extrabold uppercase tracking-wider text-slate-500 border-b border-slate-200">
+                <tr>
+                  <th className="px-6 py-3">User</th>
+                  <th className="px-6 py-3">Features Used</th>
+                  <th className="px-6 py-3 text-right">Requests</th>
+                  <th className="px-6 py-3 text-right">Prompt Tok</th>
+                  <th className="px-6 py-3 text-right">Output Tok</th>
+                  <th className="px-6 py-3 text-right">Total Tokens</th>
+                  <th className="px-6 py-3 text-right">Last Used</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {aiUserBreakdown.map((entry) => (
+                  <tr key={entry.userEmail} className="hover:bg-slate-50/70">
+                    <td className="px-6 py-3.5">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-slate-900">
+                          {entry.userName}
+                        </span>
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-extrabold uppercase ${
+                            entry.role === "admin"
+                              ? "bg-amber-100 text-amber-900"
+                              : entry.role === "guest"
+                              ? "bg-slate-100 text-slate-600"
+                              : "bg-emerald-100 text-emerald-800"
+                          }`}
+                        >
+                          {entry.role}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500">{entry.userEmail}</p>
+                    </td>
+                    <td className="px-6 py-3.5">
+                      <div className="flex flex-wrap gap-1">
+                        {entry.features.study_tutor > 0 && (
+                          <span className="rounded-md bg-indigo-50 px-2 py-0.5 text-[11px] font-semibold text-indigo-800">
+                            Tutor: {entry.features.study_tutor}
+                          </span>
+                        )}
+                        {entry.features.generate_mcqs > 0 && (
+                          <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
+                            5-MCQ: {entry.features.generate_mcqs}
+                          </span>
+                        )}
+                        {entry.features.circular_discover > 0 && (
+                          <span className="rounded-md bg-sky-50 px-2 py-0.5 text-[11px] font-semibold text-sky-800">
+                            Circulars: {entry.features.circular_discover}
+                          </span>
+                        )}
+                        {entry.features.circular_analyze > 0 && (
+                          <span className="rounded-md bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-900">
+                            PDF: {entry.features.circular_analyze}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-6 py-3.5 text-right font-mono text-xs text-slate-700">
+                      <span className="font-bold text-slate-900">
+                        {formatCount(entry.totalRequests)}
+                      </span>
+                      {entry.cacheHits > 0 && (
+                        <span className="block text-[10px] text-emerald-700">
+                          {entry.cacheHits} cached
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-3.5 text-right font-mono text-xs text-slate-600">
+                      {formatCount(entry.promptTokens)}
+                    </td>
+                    <td className="px-6 py-3.5 text-right font-mono text-xs text-slate-600">
+                      {formatCount(
+                        entry.outputTokens + (entry.thoughtsTokens || 0)
+                      )}
+                    </td>
+                    <td className="px-6 py-3.5 text-right font-mono text-xs font-extrabold text-indigo-700">
+                      {formatCount(entry.totalTokens)}
+                    </td>
+                    <td className="px-6 py-3.5 text-right text-xs text-slate-500">
+                      {formatBdDateTime(entry.lastUsedAt, "—")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {recentAiLogs.length > 0 && (
+          <div className="border-t border-slate-200 bg-slate-50/60 px-6 py-4 space-y-3">
+            <h4 className="text-xs font-extrabold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
+              <Activity className="h-3.5 w-3.5 text-indigo-600" />
+              <span>Recent Gemini AI Requests (Latest 25)</span>
+            </h4>
+            <div className="divide-y divide-slate-200/80 rounded-xl border border-slate-200 bg-white max-h-80 overflow-y-auto">
+              {recentAiLogs.map((log) => {
+                const feat = FEATURE_META[log.feature] || {
+                  label: log.feature,
+                  badgeClass: "bg-slate-100 text-slate-700",
+                };
+                return (
+                  <div
+                    key={log.id}
+                    className="px-4 py-2.5 flex flex-wrap items-center justify-between gap-2 text-xs"
+                  >
+                    <div className="min-w-0 flex-1 space-y-0.5">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span
+                          className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${feat.badgeClass}`}
+                        >
+                          {feat.label}
+                        </span>
+                        <span className="font-bold text-slate-900">
+                          {log.userName}
+                        </span>
+                        <span className="text-slate-500">({log.userEmail})</span>
+                      </div>
+                      {log.label && (
+                        <p className="text-slate-600 truncate">{log.label}</p>
+                      )}
+                    </div>
+
+                    <div className="shrink-0 text-right font-mono">
+                      {log.isCacheHit ? (
+                        <span className="rounded-md bg-emerald-50 px-2 py-0.5 text-[11px] font-bold text-emerald-800">
+                          Cache Hit (0 tok)
+                        </span>
+                      ) : (
+                        <span className="font-bold text-indigo-700">
+                          {formatCount(log.totalTokens)} tok{" "}
+                          <span className="font-normal text-slate-500">
+                            ({formatCount(log.promptTokens)} in /{" "}
+                            {formatCount(
+                              log.outputTokens + (log.thoughtsTokens || 0)
+                            )}{" "}
+                            out)
+                          </span>
+                        </span>
+                      )}
+                      <p className="text-[10px] text-slate-400 font-sans mt-0.5">
+                        {log.modelUsed || "gemini"} •{" "}
+                        {formatBdDateTime(log.createdAt, "")}
+                      </p>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </section>
 
       {/* User Management */}
       <section className="rounded-2xl border border-slate-200 bg-white shadow-xs overflow-hidden">
@@ -311,7 +588,8 @@ export function AdminDashboard({
               User Accounts &amp; Role Permissions
             </h3>
             <p className="text-xs text-slate-500">
-              View signed-up learners and promote or revoke admin permissions.
+              View signed-up learners, their Gemini token usage, and promote or
+              revoke admin permissions.
             </p>
           </div>
         </div>
@@ -323,6 +601,7 @@ export function AdminDashboard({
                 <th className="px-6 py-3">User</th>
                 <th className="px-6 py-3">Status</th>
                 <th className="px-6 py-3">Role</th>
+                <th className="px-6 py-3">Gemini AI Usage</th>
                 <th className="px-6 py-3">Last Login</th>
                 <th className="px-6 py-3 text-right">Actions</th>
               </tr>
@@ -331,6 +610,8 @@ export function AdminDashboard({
               {(data?.users || []).map((u) => {
                 const isSelf = u.id === currentUser?.id;
                 const lockedPrimary = Boolean(u.isPrimaryAdmin);
+                const userAiTokens = u.aiStats?.totalTokens ?? 0;
+                const userAiCalls = u.aiStats?.totalRequests ?? 0;
                 return (
                   <tr key={u.id} className="hover:bg-slate-50/70">
                     <td className="px-6 py-3.5">
@@ -365,6 +646,21 @@ export function AdminDashboard({
                         <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-bold text-slate-700">
                           User
                         </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-3.5 text-xs">
+                      {userAiCalls > 0 ? (
+                        <div>
+                          <span className="font-mono font-bold text-indigo-700">
+                            {formatCount(userAiTokens)} tokens
+                          </span>
+                          <span className="block text-[11px] text-slate-500">
+                            {formatCount(userAiCalls)} call
+                            {userAiCalls === 1 ? "" : "s"}
+                          </span>
+                        </div>
+                      ) : (
+                        <span className="text-slate-400">No AI calls</span>
                       )}
                     </td>
                     <td className="px-6 py-3.5 text-xs text-slate-500">

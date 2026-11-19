@@ -11,6 +11,7 @@ import {
   buildTokenCondition,
 } from "../utils/jobSearchQuery.js";
 import { capSearchQuery, sanitizeHttpUrl } from "../utils/security.js";
+import { extractTokenUsage, recordAiUsage } from "./aiUsageService.js";
 
 const DEFAULT_MODEL_FALLBACKS = [
   "gemini-4-hydrogen",
@@ -488,6 +489,7 @@ export async function generateJsonWithGemini({
         signal: controller.signal,
       });
       const data = safeParseJsonText(response?.text);
+      const usage = extractTokenUsage(response);
       recordGeminiKeySuccess(candidate.apiKey, model);
       return {
         success: true,
@@ -496,6 +498,7 @@ export async function generateJsonWithGemini({
           modelUsed: model,
           keySlotUsed: candidate.slotIndex + 1,
           totalKeys: keys.length,
+          usage,
         },
       };
     } catch (err) {
@@ -783,7 +786,10 @@ function isPlaceholderValue(current, placeholders) {
   return placeholders.some((p) => clean.toLowerCase().includes(p));
 }
 
-export async function analyzeCircularPdfWithAi(slug, { forceRefresh = false } = {}) {
+export async function analyzeCircularPdfWithAi(
+  slug,
+  { forceRefresh = false, actorUser = null } = {}
+) {
   const job = await JobCircular.findOne({ slug, isActive: true });
   if (!job) {
     const err = new Error("Job circular or notice not found");
@@ -792,12 +798,20 @@ export async function analyzeCircularPdfWithAi(slug, { forceRefresh = false } = 
   }
 
   if (job.aiExtraction?.extractedAt && !forceRefresh) {
+    const cachedModel = job.aiExtraction.modelUsed || getGeminiModelChain()[0];
+    await recordAiUsage({
+      actorUser,
+      feature: "circular_analyze",
+      modelUsed: cachedModel,
+      isCacheHit: true,
+      label: job.title || slug,
+    });
     return {
       job: job.toObject(),
       aiExtraction: job.aiExtraction,
       cached: true,
       sourceMode: "cached",
-      modelUsed: job.aiExtraction.modelUsed || getGeminiModelChain()[0],
+      modelUsed: cachedModel,
     };
   }
 
@@ -837,6 +851,7 @@ Return strictly valid JSON with these exact keys:
     modelUsed,
     keySlotUsed,
     totalKeys,
+    usage,
   } = await generateJsonWithGemini({
     contents,
     timeoutMs: 32000,
@@ -938,6 +953,16 @@ Return strictly valid JSON with these exact keys:
   await job.save();
   DISCOVERY_CACHE.clear();
 
+  await recordAiUsage({
+    actorUser,
+    feature: "circular_analyze",
+    modelUsed,
+    keySlotUsed,
+    usage,
+    isCacheHit: false,
+    label: job.title || slug,
+  });
+
   return {
     job: job.toObject(),
     aiExtraction: job.aiExtraction,
@@ -946,6 +971,7 @@ Return strictly valid JSON with these exact keys:
     modelUsed,
     keySlotUsed,
     totalKeys,
+    usage,
   };
 }
 
@@ -960,6 +986,7 @@ function setDiscoveryCache(cacheKey, value) {
 export async function discoverLatestCircularsWithAi({
   query,
   liveRefresh = false,
+  actorUser = null,
 } = {}) {
   const cleanQuery = capSearchQuery(query, 240);
   if (!cleanQuery || cleanQuery.length < 2) {
@@ -972,7 +999,28 @@ export async function discoverLatestCircularsWithAi({
   if (!liveRefresh) {
     const hit = DISCOVERY_CACHE.get(cacheKey);
     if (hit && hit.expiresAt > Date.now()) {
-      return { ...hit.value, cached: true };
+      await recordAiUsage({
+        actorUser,
+        feature: "circular_discover",
+        modelUsed: hit.value?.meta?.modelUsed || "",
+        keySlotUsed: hit.value?.meta?.keySlotUsed || 1,
+        isCacheHit: true,
+        label: cleanQuery,
+      });
+      return {
+        ...hit.value,
+        meta: {
+          ...hit.value.meta,
+          usage: {
+            promptTokens: 0,
+            outputTokens: 0,
+            thoughtsTokens: 0,
+            cachedTokens: 0,
+            totalTokens: 0,
+          },
+        },
+        cached: true,
+      };
     }
   }
 
@@ -1046,7 +1094,9 @@ export async function discoverLatestCircularsWithAi({
     !matchedDocs[targetIdx].aiExtraction?.extractedAt
   ) {
     try {
-      const enriched = await analyzeCircularPdfWithAi(matchedDocs[targetIdx].slug);
+      const enriched = await analyzeCircularPdfWithAi(matchedDocs[targetIdx].slug, {
+        actorUser,
+      });
       matchedDocs[targetIdx] = enriched.job;
     } catch {
       // Non-fatal: still answer with available notice metadata
@@ -1108,6 +1158,7 @@ export async function discoverLatestCircularsWithAi({
     modelUsed,
     keySlotUsed,
     totalKeys,
+    usage,
   } = await generateJsonWithGemini({
     contents: prompt,
     timeoutMs: 16000,
@@ -1161,6 +1212,7 @@ export async function discoverLatestCircularsWithAi({
       modelUsed,
       keySlotUsed,
       totalKeys,
+      usage,
       groundedCount: groundedDocs.length,
       sourcesRefreshed: liveSyncStats.sourcesRefreshed,
       checkedSourceNames: liveSyncStats.checkedSourceNames,
@@ -1168,6 +1220,16 @@ export async function discoverLatestCircularsWithAi({
     },
     cached: false,
   };
+
+  await recordAiUsage({
+    actorUser,
+    feature: "circular_discover",
+    modelUsed,
+    keySlotUsed,
+    usage,
+    isCacheHit: false,
+    label: cleanQuery,
+  });
 
   setDiscoveryCache(cacheKey, payload);
   return payload;
