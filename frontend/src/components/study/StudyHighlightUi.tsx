@@ -22,7 +22,10 @@ import {
   Waves,
   X,
 } from "lucide-react";
-import { useStudyHighlights } from "@/components/study/StudyHighlightContext";
+import {
+  SavedAiAnswerModal,
+  useStudyHighlights,
+} from "@/components/study/StudyHighlightContext";
 import {
   DRAW_WIDTH_OPTIONS,
   getHighlightMarkClass,
@@ -438,13 +441,14 @@ export function StudyHighlightsPanel({
   scopeKey: string;
   open: boolean;
   onJumpToHighlight: (hl: StudyHighlight) => void;
-  onAskAi?: (text: string) => void;
+  onAskAi?: (text: string, highlightId?: string) => void;
 }) {
   const ctx = useStudyHighlights();
   const [colorFilter, setColorFilter] = useState<"all" | HighlightColor>("all");
   const [confirmClear, setConfirmClear] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
+  const [savedAiHighlightId, setSavedAiHighlightId] = useState<string | null>(null);
 
   const scopeItems = useMemo(() => {
     if (!ctx) return [];
@@ -598,7 +602,8 @@ export function StudyHighlightsPanel({
                         title="Ask AI on this highlight"
                         onClick={() =>
                           onAskAi(
-                            `Explain this highlighted excerpt clearly for Bangladesh Govt Job exams:\n"${hl.text.slice(0, 220)}"`
+                            `Explain this highlighted excerpt clearly for Bangladesh Govt Job exams:\n"${hl.text.slice(0, 220)}"`,
+                            hl.id
                           )
                         }
                         className="rounded-md p-1 text-indigo-700 hover:bg-indigo-100 cursor-pointer"
@@ -627,6 +632,17 @@ export function StudyHighlightsPanel({
                     {hl.text}
                   </span>
                 </p>
+
+                {hl.aiExplanation && (
+                  <button
+                    type="button"
+                    onClick={() => setSavedAiHighlightId(hl.id)}
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[11px] font-bold text-indigo-900 hover:bg-indigo-100 cursor-pointer"
+                  >
+                    <Sparkles className="h-3 w-3 text-indigo-600" />
+                    <span>View Saved Gemini Answer</span>
+                  </button>
+                )}
 
                 {!isEditing && hl.note && (
                   <p className="text-[11px] font-medium text-amber-950 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1 font-bangla">
@@ -665,6 +681,25 @@ export function StudyHighlightsPanel({
           })}
         </div>
       )}
+      {savedAiHighlightId && (
+        <SavedAiAnswerModal
+          highlight={
+            ctx.highlights.find((h) => h.id === savedAiHighlightId) ?? null
+          }
+          onClose={() => setSavedAiHighlightId(null)}
+          onReAsk={
+            onAskAi
+              ? (hl) => {
+                  setSavedAiHighlightId(null);
+                  onAskAi(
+                    `Explain this highlighted excerpt clearly for Bangladesh Govt Job exams:\n"${hl.text.slice(0, 220)}"`,
+                    hl.id
+                  );
+                }
+              : undefined
+          }
+        />
+      )}
     </div>
   );
 }
@@ -685,6 +720,7 @@ export function GlobalHighlightsModal({
   const ctx = useStudyHighlights();
   const [query, setQuery] = useState("");
   const [colorFilter, setColorFilter] = useState<"all" | HighlightColor>("all");
+  const [savedAiHighlightId, setSavedAiHighlightId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -894,6 +930,17 @@ export function GlobalHighlightsModal({
                           </span>
                         </p>
 
+                        {hl.aiExplanation && (
+                          <button
+                            type="button"
+                            onClick={() => setSavedAiHighlightId(hl.id)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-2.5 py-1 text-[11px] font-bold text-indigo-900 hover:bg-indigo-100 cursor-pointer"
+                          >
+                            <Sparkles className="h-3 w-3 text-indigo-600" />
+                            <span>View Saved Gemini Answer</span>
+                          </button>
+                        )}
+
                         {hl.note && (
                           <p className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-1 text-[11px] font-medium text-amber-950 font-bangla">
                             <strong>Note:</strong> {hl.note}
@@ -908,6 +955,14 @@ export function GlobalHighlightsModal({
           )}
         </div>
       </div>
+      {savedAiHighlightId && (
+        <SavedAiAnswerModal
+          highlight={
+            ctx.highlights.find((h) => h.id === savedAiHighlightId) ?? null
+          }
+          onClose={() => setSavedAiHighlightId(null)}
+        />
+      )}
     </div>,
     document.body
   );

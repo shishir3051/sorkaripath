@@ -34,6 +34,41 @@ const questionBookmarkBody = z.object({
 
 const highlightColorSchema = z.enum(["yellow", "green", "pink", "blue"]);
 const highlightStyleSchema = z.enum(["highlight", "underline", "wavy", "box"]);
+const aiExplanationSchema = z.object({
+  topicTitle: z.string().max(220),
+  explanationBn: z.string().max(4000).optional(),
+  explanationEn: z.string().max(4000).optional(),
+  keyPoints: z.array(z.string().max(400)).max(10).optional(),
+  ruleSteps: z
+    .array(
+      z.object({
+        stepNumber: z.number().int().min(1).max(10),
+        ruleTitle: z.string().max(220),
+        formula: z.string().max(260).optional(),
+        exampleHeader: z.string().max(260).optional(),
+        breakdownLines: z.array(z.string().max(320)).max(8).optional(),
+        moreExamples: z.array(z.string().max(200)).max(8).optional(),
+      })
+    )
+    .max(8)
+    .optional(),
+  summaryTable: z
+    .object({
+      title: z.string().max(200).optional(),
+      headers: z.array(z.string().max(100)).max(6),
+      rows: z.array(z.array(z.string().max(240)).max(6)).max(10),
+    })
+    .nullable()
+    .optional(),
+  workedExamples: z
+    .array(z.object({ label: z.string().max(200), detail: z.string().max(1000) }))
+    .max(6)
+    .optional(),
+  memoryTip: z.string().max(700).optional(),
+  answeredAt: z.string().max(60),
+  modelUsed: z.string().max(80).optional(),
+});
+
 const highlightItemSchema = z
   .object({
     id: z.string().min(1).max(100),
@@ -47,6 +82,7 @@ const highlightItemSchema = z
     color: highlightColorSchema.optional(),
     style: highlightStyleSchema.optional(),
     note: z.string().max(300).optional(),
+    aiExplanation: aiExplanationSchema.nullable().optional(),
     createdAt: z.string().max(60).optional(),
   })
   .refine((item) => item.end > item.start, {
@@ -62,14 +98,16 @@ const updateHighlightBody = z
     color: highlightColorSchema.optional(),
     style: highlightStyleSchema.optional(),
     note: z.string().max(300).optional(),
+    aiExplanation: aiExplanationSchema.nullable().optional(),
   })
   .refine(
     (val) =>
       val.color !== undefined ||
       val.style !== undefined ||
-      val.note !== undefined,
+      val.note !== undefined ||
+      val.aiExplanation !== undefined,
     {
-      message: "Provide color, style, or note to update.",
+      message: "Provide color, style, note, or aiExplanation to update.",
     }
   );
 

@@ -151,6 +151,7 @@ export async function saveStudyHighlights(req, res, next) {
         color: item.color || "yellow",
         style: item.style || "highlight",
         note: item.note || "",
+        aiExplanation: item.aiExplanation ?? null,
         createdAt: item.createdAt || new Date().toISOString(),
       });
     }
@@ -200,6 +201,9 @@ export async function updateStudyHighlight(req, res, next) {
     }
     if (req.validatedBody.note !== undefined) {
       target.note = req.validatedBody.note;
+    }
+    if (req.validatedBody.aiExplanation !== undefined) {
+      target.aiExplanation = req.validatedBody.aiExplanation;
     }
 
     await progress.save();

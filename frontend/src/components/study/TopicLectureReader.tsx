@@ -221,8 +221,8 @@ export function TopicLectureReader({
     onJumpHandled,
   ]);
 
-  const handleAskAi = useCallback((prompt: string) => {
-    aiLabRef.current?.focusWithPrompt(prompt);
+  const handleAskAi = useCallback((prompt: string, highlightId?: string) => {
+    aiLabRef.current?.focusWithPrompt(prompt, highlightId);
   }, []);
 
   const safeIdx = Math.min(activeChapterIdx, Math.max(0, chapters.length - 1));

@@ -26,7 +26,7 @@ const envSchema = z
     SCRAPER_TIMEOUT_MS: z.coerce.number().int().min(3000).max(30000).default(10000),
     GEMINI_API_KEY: z.string().optional().default(""),
     GEMINI_API_KEYS: z.string().optional().default(""),
-    GEMINI_MODEL: z.string().trim().optional().default("gemini-4-hydrogen"),
+    GEMINI_MODEL: z.string().trim().optional().default("gemini-3.5-flash-lite"),
     JWT_SECRET: z
       .string()
       .optional()

@@ -21,6 +21,7 @@ const studyHighlightSchema = new mongoose.Schema(
       default: "highlight",
     },
     note: { type: String, default: "" },
+    aiExplanation: { type: mongoose.Schema.Types.Mixed, default: null },
     createdAt: { type: String, default: () => new Date().toISOString() },
   },
   { _id: false }

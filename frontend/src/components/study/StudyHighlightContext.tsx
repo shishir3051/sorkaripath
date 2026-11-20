@@ -47,6 +47,7 @@ import {
 import { SheetCanvasLayer } from "@/components/study/SheetCanvasLayer";
 import type {
   DrawingPoint,
+  HighlightAiExplanation,
   HighlightColor,
   HighlightStyle,
   InkColor,
@@ -80,7 +81,12 @@ interface HighlightContextValue {
   ) => StudyHighlight[];
   updateHighlight: (
     id: string,
-    patch: { color?: HighlightColor; style?: HighlightStyle; note?: string }
+    patch: {
+      color?: HighlightColor;
+      style?: HighlightStyle;
+      note?: string;
+      aiExplanation?: HighlightAiExplanation | null;
+    }
   ) => void;
   deleteHighlight: (id: string) => void;
   clearScopeHighlights: (scopeKey: string) => void;
@@ -106,7 +112,7 @@ const StudyHighlightContext = createContext<HighlightContextValue | null>(null);
 interface ScopeContextValue {
   scopeKey: string;
   scopeTitle: string;
-  onAskAi?: (text: string) => void;
+  onAskAi?: (text: string, highlightId?: string) => void;
 }
 
 const StudyHighlightScopeContext = createContext<ScopeContextValue | null>(
@@ -367,7 +373,12 @@ export function StudyHighlightProvider({
   const updateHighlight = useCallback(
     (
       id: string,
-      patch: { color?: HighlightColor; style?: HighlightStyle; note?: string }
+      patch: {
+        color?: HighlightColor;
+        style?: HighlightStyle;
+        note?: string;
+        aiExplanation?: HighlightAiExplanation | null;
+      }
     ) => {
       setHighlights((prev) => {
         const next = prev.map((h) => (h.id === id ? { ...h, ...patch } : h));
@@ -772,7 +783,7 @@ export function StudyHighlightScope({
   scopeKey: string;
   scopeTitle: string;
   annotationViewKey?: string;
-  onAskAi?: (text: string) => void;
+  onAskAi?: (text: string, highlightId?: string) => void;
   className?: string;
   children: React.ReactNode;
 }) {
@@ -793,6 +804,7 @@ export function StudyHighlightScope({
   const [editingNote, setEditingNote] = useState(false);
   const [activeStroke, setActiveStroke] = useState<SheetDrawingStroke | null>(null);
   const [editingSheetNoteId, setEditingSheetNoteId] = useState<string | null>(null);
+  const [savedAiHighlightId, setSavedAiHighlightId] = useState<string | null>(null);
 
   const viewDrawings = useMemo(
     () => (ctx ? ctx.getViewDrawings(scopeKey, annotationViewKey) : []),
@@ -1103,6 +1115,13 @@ export function StudyHighlightScope({
     const existing = ctx.highlights.find((h) => h.id === hlId);
     if (!existing) return;
 
+    if (existing.aiExplanation) {
+      setPendingSel(null);
+      setInspector(null);
+      setSavedAiHighlightId(hlId);
+      return;
+    }
+
     const rect = markEl.getBoundingClientRect();
     const pos = clampPopoverPosition(rect, 272);
     setPendingSel(null);
@@ -1260,10 +1279,24 @@ export function StudyHighlightScope({
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => {
                   const snippet = combinedPendingText.slice(0, 220);
+                  const created = ctx.addHighlights(
+                    pendingSel.slices.map((s) => ({
+                      scopeKey,
+                      scopeTitle,
+                      blockId: s.blockId,
+                      sectionLabel: s.sectionLabel,
+                      text: s.text,
+                      start: s.start,
+                      end: s.end,
+                      color: ctx.activeColor,
+                      style: ctx.activeStyle,
+                    }))
+                  );
                   window.getSelection()?.removeAllRanges();
                   setPendingSel(null);
                   onAskAi(
-                    `Explain this marked excerpt from "${scopeTitle}" clearly with exam tips:\n"${snippet}"`
+                    `Explain this marked excerpt from "${scopeTitle}" clearly with exam tips:\n"${snippet}"`,
+                    created[0]?.id
                   );
                 }}
                 className="inline-flex items-center gap-1 rounded-full bg-indigo-600 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-indigo-500 cursor-pointer"
@@ -1349,7 +1382,8 @@ export function StudyHighlightScope({
                       const snippet = inspectedHighlight.text.slice(0, 220);
                       setInspector(null);
                       onAskAi(
-                        `Explain this highlighted point from "${scopeTitle}" with exam examples:\n"${snippet}"`
+                        `Explain this highlighted point from "${scopeTitle}" with exam examples:\n"${snippet}"`,
+                        inspectedHighlight.id
                       );
                     }}
                     className="rounded-lg p-1.5 text-indigo-700 hover:bg-indigo-50 cursor-pointer"
@@ -1403,6 +1437,25 @@ export function StudyHighlightScope({
               })}
             </div>
 
+            {!editingNote && inspectedHighlight.aiExplanation && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSavedAiHighlightId(inspectedHighlight.id);
+                  setInspector(null);
+                }}
+                className="flex w-full items-center justify-between gap-2 rounded-xl border border-indigo-200 bg-indigo-50/90 px-3 py-2 text-xs font-bold text-indigo-900 hover:bg-indigo-100 cursor-pointer"
+              >
+                <span className="inline-flex items-center gap-1.5">
+                  <Sparkles className="h-3.5 w-3.5 text-indigo-600" />
+                  <span>View Saved Gemini Answer</span>
+                </span>
+                <span className="text-[10px] font-semibold text-indigo-700">
+                  DB Saved
+                </span>
+              </button>
+            )}
+
             {!editingNote && inspectedHighlight.note && (
               <p className="rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1.5 text-xs text-amber-950 font-bangla">
                 {inspectedHighlight.note}
@@ -1449,7 +1502,242 @@ export function StudyHighlightScope({
           </div>,
           document.body
         )}
+
+      {/* Saved Gemini AI Explanation Modal for clicked highlight */}
+      {savedAiHighlightId && ctx && (
+        <SavedAiAnswerModal
+          highlight={
+            ctx.highlights.find((h) => h.id === savedAiHighlightId) ?? null
+          }
+          onClose={() => setSavedAiHighlightId(null)}
+          onReAsk={
+            onAskAi
+              ? (hl) => {
+                  setSavedAiHighlightId(null);
+                  onAskAi(
+                    `Explain this highlighted point from "${scopeTitle}" with exam examples:\n"${hl.text.slice(0, 220)}"`,
+                    hl.id
+                  );
+                }
+              : undefined
+          }
+        />
+      )}
     </StudyHighlightScopeContext.Provider>
+  );
+}
+
+/**
+ * Reusable modal displaying a Gemini Tutor explanation saved on a highlighted keyword in DB.
+ */
+export function SavedAiAnswerModal({
+  highlight,
+  onClose,
+  onReAsk,
+}: {
+  highlight: StudyHighlight | null;
+  onClose: () => void;
+  onReAsk?: (hl: StudyHighlight) => void;
+}) {
+  const ctx = useStudyHighlights();
+  const ai = highlight?.aiExplanation;
+  if (!highlight || !ai || typeof document === "undefined") return null;
+
+  return createPortal(
+    <div
+      data-hl-ignore="true"
+      role="dialog"
+      aria-modal="true"
+      aria-label={ai.topicTitle || "Saved Gemini Answer"}
+      onClick={onClose}
+      className="fixed inset-0 z-[90] flex items-center justify-center bg-slate-950/50 p-3 sm:p-6 backdrop-blur-xs print:hidden"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="flex max-h-[86vh] w-full max-w-2xl flex-col overflow-hidden rounded-2xl border border-indigo-200 bg-white shadow-2xl"
+      >
+        <div className="flex items-start justify-between gap-3 border-b border-slate-200 bg-indigo-50/70 px-4 py-3 sm:px-5">
+          <div className="min-w-0 space-y-1">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1 rounded-full bg-indigo-700 px-2.5 py-0.5 text-[10px] font-bold text-white">
+                <Sparkles className="h-3 w-3" />
+                Saved Gemini Answer
+              </span>
+              {ai.modelUsed && (
+                <span className="text-[11px] font-semibold text-slate-500">
+                  {ai.modelUsed}
+                </span>
+              )}
+              {ctx && (
+                <div className="inline-flex items-center gap-1 ml-1">
+                  {HIGHLIGHT_COLORS.map((c) => (
+                    <button
+                      key={c.id}
+                      type="button"
+                      title={`Highlight color: ${c.label}`}
+                      onClick={() =>
+                        ctx.updateHighlight(highlight.id, { color: c.id })
+                      }
+                      className={`h-3.5 w-3.5 rounded-full border cursor-pointer ${
+                        c.swatchClass
+                      } ${
+                        highlight.color === c.id
+                          ? "ring-1 ring-slate-900 scale-110"
+                          : "opacity-65 hover:opacity-100"
+                      }`}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+            <h3 className="text-sm sm:text-base font-extrabold text-slate-900 font-bangla">
+              {ai.topicTitle}
+            </h3>
+            <p className="text-xs text-slate-600 font-bangla line-clamp-2">
+              Keyword: &ldquo;{highlight.text}&rdquo;
+            </p>
+          </div>
+          <div className="flex items-center gap-1.5 shrink-0">
+            {onReAsk && (
+              <button
+                type="button"
+                onClick={() => onReAsk(highlight)}
+                className="rounded-lg border border-indigo-200 bg-white px-2.5 py-1 text-[11px] font-bold text-indigo-800 hover:bg-indigo-100 cursor-pointer"
+              >
+                Re-Ask AI
+              </button>
+            )}
+            {ctx && (
+              <button
+                type="button"
+                title="Delete highlight"
+                onClick={() => {
+                  ctx.deleteHighlight(highlight.id);
+                  onClose();
+                }}
+                className="rounded-lg border border-rose-200 bg-white p-1.5 text-rose-600 hover:bg-rose-50 cursor-pointer"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
+            )}
+            <button
+              type="button"
+              aria-label="Close saved answer"
+              onClick={onClose}
+              className="rounded-lg border border-slate-200 bg-white p-1.5 text-slate-500 hover:bg-slate-100 cursor-pointer"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3.5 text-xs sm:text-sm">
+          {ai.explanationBn && (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50/70 p-3">
+              <p className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-800 mb-1">
+                বাংলা সহজ ব্যাখ্যা ও কৌশল
+              </p>
+              <p className="text-slate-800 leading-relaxed font-bangla whitespace-pre-line">
+                {ai.explanationBn}
+              </p>
+            </div>
+          )}
+
+          {ai.explanationEn && (
+            <p className="text-slate-700 leading-relaxed whitespace-pre-line">
+              {ai.explanationEn}
+            </p>
+          )}
+
+          {ai.ruleSteps && ai.ruleSteps.length > 0 && (
+            <div className="space-y-2">
+              {ai.ruleSteps.map((step, idx) => (
+                <div
+                  key={`${step.stepNumber}-${idx}`}
+                  className="rounded-xl border border-slate-200 bg-slate-50/80 p-3 space-y-1.5"
+                >
+                  <p className="font-bold text-slate-900 font-bangla">
+                    {step.stepNumber}. {step.ruleTitle}
+                  </p>
+                  {step.formula && (
+                    <code className="block rounded bg-white px-2 py-1 text-xs font-bold text-indigo-900 font-mono">
+                      {step.formula}
+                    </code>
+                  )}
+                  {(step.breakdownLines ?? []).map((line, lIdx) => (
+                    <p
+                      key={lIdx}
+                      className="text-xs text-slate-700 font-bangla leading-relaxed"
+                    >
+                      {line}
+                    </p>
+                  ))}
+                  {(step.moreExamples ?? []).length > 0 && (
+                    <p className="text-xs font-semibold text-emerald-800 font-bangla">
+                      উদাহরণ: {step.moreExamples?.join(" • ")}
+                    </p>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+
+          {ai.summaryTable &&
+            ai.summaryTable.headers?.length > 0 &&
+            ai.summaryTable.rows?.length > 0 && (
+              <div className="overflow-x-auto rounded-xl border border-slate-200">
+                <table className="w-full text-left text-xs font-bangla">
+                  <thead className="bg-slate-900 text-white">
+                    <tr>
+                      {ai.summaryTable.headers.map((h, i) => (
+                        <th key={i} className="px-3 py-2 font-bold">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 bg-white">
+                    {ai.summaryTable.rows.map((row, rIdx) => (
+                      <tr key={rIdx}>
+                        {row.map((cell, cIdx) => (
+                          <td key={cIdx} className="px-3 py-2 text-slate-800">
+                            {cell}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+          {ai.workedExamples && ai.workedExamples.length > 0 && (
+            <div className="grid gap-2 sm:grid-cols-2">
+              {ai.workedExamples.map((ex, i) => (
+                <div
+                  key={i}
+                  className="rounded-lg border border-slate-200 bg-slate-50 p-2.5 text-xs"
+                >
+                  <p className="font-bold text-slate-900 font-bangla">
+                    {ex.label}
+                  </p>
+                  <p className="mt-1 text-slate-700 font-bangla whitespace-pre-line">
+                    {ex.detail}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {ai.memoryTip && (
+            <p className="rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-xs font-semibold text-amber-950 font-bangla">
+              <strong>Memory Tip:</strong> {ai.memoryTip}
+            </p>
+          )}
+        </div>
+      </div>
+    </div>,
+    document.body
   );
 }
 
@@ -1495,6 +1783,7 @@ export function HighlightableText({
     }
     const styleKind = seg.highlight.style ?? "highlight";
     const markClass = getHighlightMarkClass(seg.highlight.color, styleKind);
+    const hasAi = Boolean(seg.highlight.aiExplanation);
     const hasNote = Boolean(seg.highlight.note);
     const noteClass = hasNote
       ? styleKind === "underline" || styleKind === "wavy"
@@ -1507,9 +1796,11 @@ export function HighlightableText({
         data-hl-id={seg.highlight.id}
         data-hl-style={styleKind}
         title={
-          hasNote
+          hasAi
+            ? "Saved Gemini AI answer attached — click to view"
+            : hasNote
             ? `Note: ${seg.highlight.note} (click to edit)`
-            : "Click to change style/color, add note, or remove"
+            : "Click to change style/color, add note, Ask AI, or remove"
         }
         className={`study-hl-mark ${isSheetCursorMode ? "" : "cursor-pointer"} ${markClass} ${noteClass}`}
       >

@@ -266,8 +266,8 @@ function buildTutorPrompt({ topic, subject, question }) {
     "- Write natural, authoritative, exam-ready Bangla in `explanationBn`, `ruleSteps`, `summaryTable`, `workedExamples`, and `memoryTip` (keep English grammar sentences/terms crisp in English alongside Bangla guidance).",
     "- Write crisp English technical/grammar clarity in `explanationEn` (precise rules, formulas, constitutional articles, or exam terminology).",
     "",
-    "STEP-BY-STEP BREAKDOWN RULES (`ruleSteps` - 1 to 6 ordered steps):",
-    "- Show explicit line-by-line `breakdownLines` tailored to the subject (never skip intermediate steps):",
+    "STEP-BY-STEP BREAKDOWN RULES (`ruleSteps` - 1 to 4 focused steps):",
+    "- Show explicit line-by-line `breakdownLines` tailored to the subject (concise, never skip intermediate steps):",
     "  * Bangla (সন্ধি, সমাস, প্রত্যয়, কারক, উপসর্গ, ধাতু, বানান): break letter-by-letter/phoneme-by-phoneme (`ন্ + এ`, `অ + ন`, `এ → অয়`, `ন্ + (অয়) + অন = নয়ন`) or clause-by-clause (`ব্যাসবাক্য`, পূর্বপদ/পরপদ, পদলোপ, অর্থের প্রাধান্য, প্রত্যয়/বিভক্তি).",
     "  * English (Tense, Clause, Conditionals, Voice, Narration, Right Form of Verbs, Correction): show clause split, trigger word/marker, exact grammar formula rule, and word-by-word transformation step-by-step.",
     "  * Math & Mental Ability / General Science & ICT: explicitly show (1) Given values (প্রদত্ত মান), (2) Formula chosen (নির্বাচিত সূত্র), (3) Line-by-line substitution & algebraic/binary/logic simplification, and (4) Final unit/answer + shortcut verification.",
@@ -419,7 +419,7 @@ export async function explainStudyTopicWithAi({
   const { data, modelUsed, keySlotUsed, totalKeys, usage } =
     await generateJsonWithGemini({
       contents: prompt,
-      timeoutMs: 28_000,
+      timeoutMs: 15_000,
     });
 
   const resolvedTitle =
@@ -496,7 +496,7 @@ export async function generatePracticeMcqsWithAi({
   const { data, modelUsed, keySlotUsed, totalKeys, usage } =
     await generateJsonWithGemini({
       contents: prompt,
-      timeoutMs: 28_000,
+      timeoutMs: 15_000,
     });
 
   const questions = sanitizeGeneratedMcqs(data?.questions, {

@@ -207,6 +207,30 @@ export type HighlightColor = "yellow" | "green" | "pink" | "blue";
 export type HighlightStyle = "highlight" | "underline" | "wavy" | "box";
 export type InkColor = HighlightColor | "dark";
 
+export interface HighlightAiExplanation {
+  topicTitle: string;
+  explanationBn?: string;
+  explanationEn?: string;
+  keyPoints?: string[];
+  ruleSteps?: Array<{
+    stepNumber: number;
+    ruleTitle: string;
+    formula?: string;
+    exampleHeader?: string;
+    breakdownLines?: string[];
+    moreExamples?: string[];
+  }>;
+  summaryTable?: {
+    title?: string;
+    headers: string[];
+    rows: string[][];
+  } | null;
+  workedExamples?: Array<{ label: string; detail: string }>;
+  memoryTip?: string;
+  answeredAt: string;
+  modelUsed?: string;
+}
+
 export interface StudyHighlight {
   id: string;
   scopeKey: string;
@@ -219,6 +243,7 @@ export interface StudyHighlight {
   color: HighlightColor;
   style?: HighlightStyle;
   note?: string;
+  aiExplanation?: HighlightAiExplanation | null;
   createdAt: string;
 }
 

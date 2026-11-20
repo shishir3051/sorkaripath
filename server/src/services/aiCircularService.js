@@ -14,10 +14,10 @@ import { capSearchQuery, sanitizeHttpUrl } from "../utils/security.js";
 import { extractTokenUsage, recordAiUsage } from "./aiUsageService.js";
 
 const DEFAULT_MODEL_FALLBACKS = [
-  "gemini-4-hydrogen",
-  "gemini-3.5-flash",
   "gemini-3.5-flash-lite",
   "gemini-3.1-flash-lite",
+  "gemini-3.5-flash",
+  "gemini-4-hydrogen",
 ];
 
 const DISCOVERY_CACHE = new Map();
@@ -229,7 +229,7 @@ function getGeminiClientForKey(apiKey) {
 export function getAiCapabilityStatus() {
   const keys = getGeminiApiKeys();
   const chain = getGeminiModelChain();
-  const primaryModel = chain[0] || "gemini-4-hydrogen";
+  const primaryModel = chain[0] || "gemini-3.5-flash-lite";
   const now = Date.now();
 
   const keyStatuses = keys.map((key, idx) => {
@@ -448,7 +448,7 @@ async function callDefaultGeminiJson({ apiKey, model, contents, signal }) {
  */
 export async function generateJsonWithGemini({
   contents,
-  timeoutMs = 22000,
+  timeoutMs = 15000,
   _generateFn,
 }) {
   const keys = getGeminiApiKeys();
@@ -462,7 +462,7 @@ export async function generateJsonWithGemini({
 
   const models = getGeminiModelChain();
   const runGenerate = _generateFn || callDefaultGeminiJson;
-  const totalBudgetMs = Math.min(48_000, Math.max(timeoutMs * 2 + 12_000, 40_000));
+  const totalBudgetMs = Math.min(26_000, Math.max(timeoutMs + 10_000, 22_000));
   const deadlineAt = Date.now() + totalBudgetMs;
   const maxAttempts = Math.min(12, models.length * keys.length);
 
@@ -526,7 +526,7 @@ export async function generateJsonWithGemini({
         );
       }
       if (
-        (kind === "timeout" || kind === "transient") &&
+        kind === "timeout" &&
         models.indexOf(model) < models.length - 1
       ) {
         return { skipModel: true };
@@ -543,12 +543,19 @@ export async function generateJsonWithGemini({
     const candidates = orderKeyCandidatesForModel(keys, model).filter(
       (c) => !c.inCooldown
     );
+    let modelTransientFailures = 0;
     for (const candidate of candidates) {
       if (attempts >= maxAttempts) break;
       const outcome = await tryAttempt(model, candidate);
       if (outcome.success) return outcome.result;
       if (outcome.stopAll) break;
       if (outcome.skipModel) break;
+      if (lastKind === "transient") {
+        modelTransientFailures += 1;
+        if (modelTransientFailures >= 2 && models.indexOf(model) < models.length - 1) {
+          break;
+        }
+      }
     }
     if (lastKind === "fatal" || Date.now() >= deadlineAt - 1500) break;
   }

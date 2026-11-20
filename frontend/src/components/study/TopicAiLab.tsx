@@ -13,6 +13,7 @@ import {
   XCircle,
 } from "lucide-react";
 import { apiFetch } from "@/lib/api";
+import { useStudyHighlights } from "@/components/study/StudyHighlightContext";
 import type { McqQuestion, StudyTopic } from "@/lib/types";
 
 interface TutorRuleStep {
@@ -217,7 +218,7 @@ interface GeneratedQuizResult {
 }
 
 export interface TopicAiLabHandle {
-  focusWithPrompt: (prompt: string) => void;
+  focusWithPrompt: (prompt: string, highlightId?: string) => void;
 }
 
 export function TopicAiLab({
@@ -227,9 +228,13 @@ export function TopicAiLab({
   topic: StudyTopic;
   ref?: Ref<TopicAiLabHandle>;
 }) {
+  const highlightCtx = useStudyHighlights();
   const containerRef = useRef<HTMLDivElement>(null);
   const questionInputRef = useRef<HTMLInputElement>(null);
+  const linkedHighlightIdRef = useRef<string | null>(null);
   const [question, setQuestion] = useState("");
+  const [linkedHighlightId, setLinkedHighlightId] = useState<string | null>(null);
+  const [savedToHighlight, setSavedToHighlight] = useState(false);
   const [askingTutor, setAskingTutor] = useState(false);
   const [tutorAction, setTutorAction] = useState<
     "breakdown" | "shortcut" | "ask" | null
@@ -242,22 +247,15 @@ export function TopicAiLab({
   const [quizData, setQuizData] = useState<GeneratedQuizResult | null>(null);
   const [selectedAnswers, setSelectedAnswers] = useState<Record<string, number>>({});
 
-  useImperativeHandle(ref, () => ({
-    focusWithPrompt(prompt: string) {
-      setQuestion(prompt);
-      containerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      window.setTimeout(() => questionInputRef.current?.focus(), 220);
-    },
-  }));
-
-  async function handleAskTutor(
-    customQuestion?: string,
-    action: "breakdown" | "shortcut" | "ask" = "ask"
+  async function runTutorQuery(
+    qText: string,
+    action: "breakdown" | "shortcut" | "ask",
+    targetHighlightId: string | null
   ) {
-    const qText = (customQuestion ?? question).trim();
     setTutorAction(action);
     setAskingTutor(true);
     setTutorError(null);
+    setSavedToHighlight(false);
     try {
       const data = await apiFetch<TutorResult>("/ai/study-tutor", {
         method: "POST",
@@ -268,6 +266,23 @@ export function TopicAiLab({
         }),
       });
       setTutorData(data);
+      if (targetHighlightId && highlightCtx) {
+        highlightCtx.updateHighlight(targetHighlightId, {
+          aiExplanation: {
+            topicTitle: data.topicTitle,
+            explanationBn: data.explanationBn,
+            explanationEn: data.explanationEn,
+            keyPoints: data.keyPoints,
+            ruleSteps: data.ruleSteps,
+            summaryTable: data.summaryTable,
+            workedExamples: data.workedExamples,
+            memoryTip: data.memoryTip,
+            answeredAt: new Date().toISOString(),
+            modelUsed: data.meta?.modelUsed,
+          },
+        });
+        setSavedToHighlight(true);
+      }
     } catch (err) {
       setTutorError(
         err instanceof Error ? err.message : "Could not reach Gemini Tutor right now."
@@ -276,6 +291,33 @@ export function TopicAiLab({
       setAskingTutor(false);
       setTutorAction(null);
     }
+  }
+
+  useImperativeHandle(ref, () => ({
+    focusWithPrompt(prompt: string, highlightId?: string) {
+      const nextId = highlightId ?? null;
+      linkedHighlightIdRef.current = nextId;
+      setLinkedHighlightId(nextId);
+      setQuestion(prompt);
+      containerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      window.setTimeout(() => questionInputRef.current?.focus(), 220);
+      if (nextId) {
+        void runTutorQuery(prompt.trim(), "ask", nextId);
+      }
+    },
+  }));
+
+  async function handleAskTutor(
+    customQuestion?: string,
+    action: "breakdown" | "shortcut" | "ask" = "ask"
+  ) {
+    const qText = (customQuestion ?? question).trim();
+    const targetId = customQuestion ? null : linkedHighlightIdRef.current;
+    if (customQuestion) {
+      linkedHighlightIdRef.current = null;
+      setLinkedHighlightId(null);
+    }
+    await runTutorQuery(qText, action, targetId);
   }
 
   async function handleGenerateQuiz() {
@@ -418,9 +460,22 @@ export function TopicAiLab({
       {tutorData && (
         <div className="rounded-xl border border-indigo-200 bg-white p-4 space-y-3.5 shadow-xs">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <p className="text-xs font-extrabold uppercase tracking-wider text-indigo-800">
-              {tutorData.topicTitle}
-            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-xs font-extrabold uppercase tracking-wider text-indigo-800">
+                {tutorData.topicTitle}
+              </p>
+              {savedToHighlight && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[10px] font-bold text-emerald-800">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Saved on Highlight in DB
+                </span>
+              )}
+              {!savedToHighlight && linkedHighlightId && (
+                <span className="text-[11px] font-semibold text-indigo-700">
+                  Linked to highlighted keyword
+                </span>
+              )}
+            </div>
             {tutorData.meta && (
               <span className="rounded-full bg-slate-100 px-2.5 py-0.5 text-[11px] font-semibold text-slate-600">
                 {tutorData.meta.modelUsed} • Key {tutorData.meta.keySlotUsed}/
