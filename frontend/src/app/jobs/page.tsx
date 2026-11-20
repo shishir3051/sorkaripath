@@ -41,15 +41,15 @@ export default async function JobsPage({
       : null;
 
   return (
-    <div className="app-container py-8 space-y-6">
+    <div className="app-container py-5 sm:py-6 space-y-5">
       <div>
-        <span className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-800">
+        <span className="inline-block rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-emerald-800">
           Live Circulars &amp; Official Notice Board
         </span>
-        <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold text-slate-900">
+        <h1 className="mt-1.5 text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
           Bangladesh Government Jobs &amp; Live Web Notices
         </h1>
-        <p className="mt-1 text-sm text-slate-600 max-w-3xl">
+        <p className="mt-1 text-xs sm:text-sm text-slate-600 max-w-3xl">
           Browse curated track blueprints alongside live circulars, exam schedules,
           and results pulled directly from{" "}
           {sourceCount ? `${sourceCount} ` : ""}official ministries, boards &amp;

@@ -46,19 +46,19 @@ export default async function LessonDetailPage({
   const { lesson, prevLesson, nextLesson, relatedMcqCount } = data;
 
   return (
-    <div className="app-container py-8 space-y-8">
+    <div className="app-container py-5 sm:py-6 space-y-5">
       <Link
         href="/learn"
-        className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-700 hover:underline"
+        className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-emerald-700 hover:underline"
       >
         <ArrowLeft className="h-4 w-4" />
         <span>Back to A-to-Z Academy</span>
       </Link>
 
       {/* Module Header */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-4">
+      <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-3.5">
         <div className="flex flex-wrap items-center gap-3">
-          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-700 to-teal-900 text-xl font-extrabold text-white">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-700 to-teal-900 text-lg font-bold text-white">
             {lesson.letter}
           </span>
           <div>
@@ -75,16 +75,16 @@ export default async function LessonDetailPage({
           </div>
         </div>
 
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
           {lesson.title}
         </h1>
         {lesson.titleBn && (
-          <p className="text-base font-bold text-emerald-800">{lesson.titleBn}</p>
+          <p className="text-sm sm:text-base font-bold text-emerald-800">{lesson.titleBn}</p>
         )}
         {lesson.subtitle && (
-          <p className="text-sm font-medium text-slate-500">{lesson.subtitle}</p>
+          <p className="text-xs sm:text-sm font-medium text-slate-500">{lesson.subtitle}</p>
         )}
-        <p className="text-sm sm:text-base text-slate-700 leading-relaxed pt-2 border-t border-slate-100">
+        <p className="text-xs sm:text-sm text-slate-700 leading-relaxed pt-2 border-t border-slate-100">
           {lesson.summary}
         </p>
 

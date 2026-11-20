@@ -21,6 +21,20 @@ html {
   font-synthesis-weight: none;
 }
 
+/* Balanced desktop typography scale; installed desktop PWA runs denser native-app scale */
+@media (min-width: 1024px) {
+  html {
+    font-size: 14.5px;
+  }
+}
+
+@media (min-width: 1024px) and (display-mode: standalone),
+  (min-width: 1024px) and (display-mode: window-controls-overlay) {
+  html {
+    font-size: 14px;
+  }
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

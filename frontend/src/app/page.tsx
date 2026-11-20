@@ -53,11 +53,11 @@ export default async function HomePage() {
                 "radial-gradient(circle at 18% 22%, #10b981 0, transparent 48%), radial-gradient(circle at 84% 78%, #0f766e 0, transparent 42%)",
             }}
           />
-          <div className="relative px-4 py-7 sm:px-9 sm:py-12 lg:px-12 lg:py-14">
-          <div className="grid gap-8 lg:gap-10 lg:grid-cols-12 lg:items-center">
+          <div className="relative px-4 py-6 sm:px-8 sm:py-9 lg:px-10 lg:py-10">
+          <div className="grid gap-6 lg:gap-8 lg:grid-cols-12 lg:items-center">
             <div className="min-w-0 lg:col-span-7">
               <div className="flex flex-wrap items-center gap-2">
-                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3.5 py-1.5 text-xs font-semibold text-emerald-200 ring-1 ring-white/20">
+                <div className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-emerald-200 ring-1 ring-white/20">
                   <Radio className="h-3.5 w-3.5 text-emerald-400 animate-pulse" />
                   <span>
                     Live Synced from {stats ? `${stats.enabledSources} ` : ""}Official .gov.bd &amp; Bank Portals
@@ -66,11 +66,11 @@ export default async function HomePage() {
                 <DhakaClockBadge variant="hero" />
               </div>
 
-              <h1 className="mt-5 text-3xl font-extrabold tracking-tight sm:text-5xl leading-[1.15]">
+              <h1 className="mt-4 text-2xl font-extrabold tracking-tight sm:text-3xl lg:text-4xl leading-[1.15]">
                 Master Bangladesh Govt Jobs{" "}
                 <span className="text-emerald-300">from A to Z</span>
               </h1>
-              <p className="mt-4 max-w-2xl text-base sm:text-lg text-emerald-50/90 leading-relaxed">
+              <p className="mt-3 max-w-2xl text-sm sm:text-base text-emerald-50/90 leading-relaxed">
                 Track live official circulars, exam schedules, and results directly
                 from BPSC, Bangladesh Bank, MOPA &amp; ministries—while learning
                 every rule, syllabus, 2026 Pay Scale, and MCQ strategy in one
@@ -79,7 +79,7 @@ export default async function HomePage() {
 
               <HeroSearch />
 
-              <div className="mt-6 flex flex-wrap gap-3 text-xs font-semibold">
+              <div className="mt-5 flex flex-wrap gap-2.5 text-xs font-semibold">
                 <Link
                   href="/learn"
                   className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3.5 py-2 text-white hover:bg-white/25 transition-colors"
@@ -244,10 +244,10 @@ export default async function HomePage() {
           <div className="lg:col-span-7 space-y-4">
             <div className="flex items-center justify-between gap-2">
               <div>
-                <h2 className="text-xl font-extrabold text-slate-900">
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">
                   Latest Live Official Circulars &amp; Notices
                 </h2>
-                <p className="text-sm text-slate-500">
+                <p className="text-xs sm:text-sm text-slate-500">
                   Diverse latest feed across {stats ? `${stats.enabledSources} ` : ""}connected govt ministries, BPSC &amp; Bangladesh Bank
                 </p>
               </div>
@@ -360,8 +360,8 @@ export default async function HomePage() {
           {/* Curated Career Tracks & 2026 Quota Card */}
           <div className="lg:col-span-5 space-y-6">
             <div>
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-xl font-extrabold text-slate-900">
+              <div className="flex items-center justify-between mb-3.5">
+                <h2 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900">
                   Featured Career Tracks
                 </h2>
                 <Link

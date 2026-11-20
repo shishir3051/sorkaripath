@@ -15,8 +15,8 @@ export function RouteLoadingShell({
     <div
       className={
         includeHeader
-          ? "app-container py-8 space-y-6 animate-pulse"
-          : "space-y-6 animate-pulse"
+          ? "app-container py-5 sm:py-6 space-y-5 animate-pulse"
+          : "space-y-5 animate-pulse"
       }
       aria-busy="true"
       aria-label="Loading page content"
