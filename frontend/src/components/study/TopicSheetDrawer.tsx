@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { BookOpen, GripVertical, Maximize2, Minimize2, X } from "lucide-react";
 import { TopicLectureReader } from "@/components/study/TopicLectureReader";
+import { useStudyHighlights } from "@/components/study/StudyHighlightContext";
 import type { StudyHighlight, StudyTopic } from "@/lib/types";
 
 interface TopicSheetDrawerProps {
@@ -58,6 +59,20 @@ export function TopicSheetDrawer({
   const displayTopic = topic ?? closingTopic;
   const isOpen = Boolean(topic);
   const activeSlug = displayTopic?.slug ?? null;
+  const highlightCtx = useStudyHighlights();
+  const setToolMode = highlightCtx?.setToolMode;
+
+  // Automatically enable Pen Mode when Topic Guru Sheet opens and restore normal cursor on close
+  useEffect(() => {
+    if (!setToolMode) return;
+    if (isOpen) {
+      setToolMode("pen");
+      return () => {
+        setToolMode("off");
+      };
+    }
+    setToolMode("off");
+  }, [isOpen, topic?.slug, setToolMode]);
 
   const requestClose = useCallback(() => {
     if (topic) {

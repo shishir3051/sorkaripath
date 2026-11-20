@@ -204,6 +204,7 @@ export interface OverviewData {
 }
 
 export type HighlightColor = "yellow" | "green" | "pink" | "blue";
+export type HighlightStyle = "highlight" | "underline" | "wavy" | "box";
 
 export interface StudyHighlight {
   id: string;
@@ -215,6 +216,7 @@ export interface StudyHighlight {
   start: number;
   end: number;
   color: HighlightColor;
+  style?: HighlightStyle;
   note?: string;
   createdAt: string;
 }

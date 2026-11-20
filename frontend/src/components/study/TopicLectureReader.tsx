@@ -271,7 +271,11 @@ export function TopicLectureReader({
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 font-bangla">
-            {topic.title}
+            <HighlightableText
+              blockId="title"
+              sectionLabel="Topic Title"
+              text={topic.title}
+            />
           </h2>
           <HighlightableText
             as="p"
@@ -346,7 +350,10 @@ export function TopicLectureReader({
       {chapters.length > 0 && (
         <div ref={chapterTopRef} className="space-y-5 scroll-mt-4">
           {/* Chapter Index & Reading Mode Bar */}
-          <div className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4 space-y-3 print:hidden">
+          <div
+            data-hl-ignore="true"
+            className="rounded-xl border border-emerald-200 bg-emerald-50/50 p-4 space-y-3 print:hidden"
+          >
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-xs font-extrabold uppercase tracking-wider text-emerald-900 flex items-center gap-1.5">
                 <BookOpen className="h-4 w-4 text-emerald-700" />
@@ -448,7 +455,11 @@ export function TopicLectureReader({
                       </button>
                     </div>
                     <h3 className="text-base sm:text-xl font-extrabold text-slate-900 font-bangla">
-                      {ch.heading}
+                      <HighlightableText
+                        blockId={`ch-${idx}-heading`}
+                        sectionLabel={ch.heading}
+                        text={ch.heading}
+                      />
                     </h3>
                     <div className="rounded-xl border border-slate-200/80 bg-white p-4 sm:p-5 space-y-3">
                       {paragraphs.map((para, pIdx) => (
@@ -512,19 +523,27 @@ export function TopicLectureReader({
                       {ch.comparisonTable.title && (
                         <div className="flex items-center gap-1.5 bg-slate-100 px-4 py-2.5 text-xs font-extrabold text-slate-900 font-bangla border-b border-slate-200">
                           <Table2 className="h-4 w-4 text-emerald-700" />
-                          <span>{ch.comparisonTable.title}</span>
+                          <HighlightableText
+                            blockId={`ch-${idx}-tbl-title`}
+                            sectionLabel={`${ch.heading} • ছক`}
+                            text={ch.comparisonTable.title}
+                          />
                         </div>
                       )}
                       <div className="overflow-x-auto">
                         <table className="w-full text-left text-xs sm:text-sm font-bangla">
                           <thead className="bg-emerald-900 text-white">
                             <tr>
-                              {ch.comparisonTable.headers.map((header) => (
+                              {ch.comparisonTable.headers.map((header, hIdx) => (
                                 <th
-                                  key={header}
+                                  key={`${hIdx}-${header}`}
                                   className="px-4 py-2.5 font-bold whitespace-nowrap"
                                 >
-                                  {header}
+                                  <HighlightableText
+                                    blockId={`ch-${idx}-tbl-h-${hIdx}`}
+                                    sectionLabel={`${ch.heading} • ছক হেডার`}
+                                    text={header}
+                                  />
                                 </th>
                               ))}
                             </tr>

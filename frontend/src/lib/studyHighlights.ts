@@ -1,4 +1,8 @@
-import type { HighlightColor, StudyHighlight } from "@/lib/types";
+import type {
+  HighlightColor,
+  HighlightStyle,
+  StudyHighlight,
+} from "@/lib/types";
 
 export const HIGHLIGHT_STORAGE_KEY = "sorkaripath:study-highlights:v1";
 export const MAX_LOCAL_HIGHLIGHTS = 400;
@@ -9,10 +13,47 @@ export interface HighlightColorMeta {
   labelBn: string;
   hint: string;
   markClass: string;
+  underlineClass: string;
+  wavyClass: string;
+  boxClass: string;
   swatchClass: string;
   badgeClass: string;
   borderClass: string;
 }
+
+export interface HighlightStyleMeta {
+  id: HighlightStyle;
+  label: string;
+  shortLabel: string;
+  hint: string;
+}
+
+export const HIGHLIGHT_STYLES: HighlightStyleMeta[] = [
+  {
+    id: "highlight",
+    label: "Marker",
+    shortLabel: "Mark",
+    hint: "Highlight background",
+  },
+  {
+    id: "underline",
+    label: "Underline",
+    shortLabel: "Line",
+    hint: "Solid pen underline",
+  },
+  {
+    id: "wavy",
+    label: "Wavy",
+    shortLabel: "Wavy",
+    hint: "Wavy emphasis underline",
+  },
+  {
+    id: "box",
+    label: "Box",
+    shortLabel: "Box",
+    hint: "Framed keyword box",
+  },
+];
 
 export const HIGHLIGHT_COLORS: HighlightColorMeta[] = [
   {
@@ -21,6 +62,9 @@ export const HIGHLIGHT_COLORS: HighlightColorMeta[] = [
     labelBn: "হলুদ",
     hint: "Key Facts",
     markClass: "bg-yellow-200/90 text-slate-950",
+    underlineClass: "bg-transparent underline decoration-amber-500 decoration-2 underline-offset-[3px]",
+    wavyClass: "bg-transparent underline decoration-amber-500 decoration-wavy decoration-[1.5px] underline-offset-[3px]",
+    boxClass: "bg-yellow-50/90 text-slate-950 ring-1 ring-inset ring-amber-400 px-0.5",
     swatchClass: "bg-yellow-300 border-yellow-500",
     badgeClass: "bg-yellow-100 text-yellow-950 border-yellow-300",
     borderClass: "border-l-yellow-400",
@@ -31,6 +75,9 @@ export const HIGHLIGHT_COLORS: HighlightColorMeta[] = [
     labelBn: "সবুজ",
     hint: "Rules & Formulas",
     markClass: "bg-emerald-200/85 text-slate-950",
+    underlineClass: "bg-transparent underline decoration-emerald-600 decoration-2 underline-offset-[3px]",
+    wavyClass: "bg-transparent underline decoration-emerald-600 decoration-wavy decoration-[1.5px] underline-offset-[3px]",
+    boxClass: "bg-emerald-50/90 text-slate-950 ring-1 ring-inset ring-emerald-500 px-0.5",
     swatchClass: "bg-emerald-300 border-emerald-500",
     badgeClass: "bg-emerald-100 text-emerald-950 border-emerald-300",
     borderClass: "border-l-emerald-500",
@@ -41,6 +88,9 @@ export const HIGHLIGHT_COLORS: HighlightColorMeta[] = [
     labelBn: "গোলাপি",
     hint: "Exam Traps",
     markClass: "bg-rose-200/85 text-slate-950",
+    underlineClass: "bg-transparent underline decoration-rose-500 decoration-2 underline-offset-[3px]",
+    wavyClass: "bg-transparent underline decoration-rose-500 decoration-wavy decoration-[1.5px] underline-offset-[3px]",
+    boxClass: "bg-rose-50/90 text-slate-950 ring-1 ring-inset ring-rose-400 px-0.5",
     swatchClass: "bg-rose-300 border-rose-500",
     badgeClass: "bg-rose-100 text-rose-950 border-rose-300",
     borderClass: "border-l-rose-400",
@@ -51,6 +101,9 @@ export const HIGHLIGHT_COLORS: HighlightColorMeta[] = [
     labelBn: "নীল",
     hint: "Examples & Refs",
     markClass: "bg-sky-200/85 text-slate-950",
+    underlineClass: "bg-transparent underline decoration-sky-600 decoration-2 underline-offset-[3px]",
+    wavyClass: "bg-transparent underline decoration-sky-600 decoration-wavy decoration-[1.5px] underline-offset-[3px]",
+    boxClass: "bg-sky-50/90 text-slate-950 ring-1 ring-inset ring-sky-500 px-0.5",
     swatchClass: "bg-sky-300 border-sky-500",
     badgeClass: "bg-sky-100 text-sky-950 border-sky-300",
     borderClass: "border-l-sky-400",
@@ -63,6 +116,20 @@ export const HIGHLIGHT_COLOR_MAP: Record<HighlightColor, HighlightColorMeta> = {
   pink: HIGHLIGHT_COLORS[2],
   blue: HIGHLIGHT_COLORS[3],
 };
+
+/**
+ * Returns Tailwind classes for the given highlight color + pen style (highlight/underline/wavy/box).
+ */
+export function getHighlightMarkClass(
+  color: HighlightColor,
+  style: HighlightStyle = "highlight"
+): string {
+  const meta = HIGHLIGHT_COLOR_MAP[color] ?? HIGHLIGHT_COLOR_MAP.yellow;
+  if (style === "underline") return meta.underlineClass;
+  if (style === "wavy") return meta.wavyClass;
+  if (style === "box") return meta.boxClass;
+  return meta.markClass;
+}
 
 export interface TextSegment {
   start: number;

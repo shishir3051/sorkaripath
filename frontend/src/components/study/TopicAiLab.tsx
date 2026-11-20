@@ -315,6 +315,7 @@ export function TopicAiLab({
   return (
     <div
       ref={containerRef}
+      data-hl-ignore="true"
       className="rounded-2xl border border-indigo-200 bg-gradient-to-br from-indigo-50/70 via-white to-emerald-50/50 p-5 space-y-4 print:hidden"
     >
       <div className="flex flex-wrap items-center justify-between gap-2">

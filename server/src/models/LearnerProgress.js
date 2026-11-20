@@ -15,6 +15,11 @@ const studyHighlightSchema = new mongoose.Schema(
       enum: ["yellow", "green", "pink", "blue"],
       default: "yellow",
     },
+    style: {
+      type: String,
+      enum: ["highlight", "underline", "wavy", "box"],
+      default: "highlight",
+    },
     note: { type: String, default: "" },
     createdAt: { type: String, default: () => new Date().toISOString() },
   },

@@ -26,8 +26,9 @@ import {
 import {
   createHighlightId,
   extractSelectionSlices,
-  HIGHLIGHT_COLOR_MAP,
+  getHighlightMarkClass,
   HIGHLIGHT_COLORS,
+  HIGHLIGHT_STYLES,
   loadLocalHighlights,
   MAX_LOCAL_HIGHLIGHTS,
   mergeHighlights,
@@ -37,6 +38,7 @@ import {
 } from "@/lib/studyHighlights";
 import type {
   HighlightColor,
+  HighlightStyle,
   LearnerProgress,
   StudyHighlight,
 } from "@/lib/types";
@@ -49,15 +51,17 @@ interface HighlightContextValue {
   highlights: StudyHighlight[];
   toolMode: HighlightToolMode;
   activeColor: HighlightColor;
+  activeStyle: HighlightStyle;
   syncState: HighlightSyncState;
   setToolMode: (mode: HighlightToolMode) => void;
   selectMarkerColor: (color: HighlightColor, activatePen?: boolean) => void;
+  selectMarkerStyle: (style: HighlightStyle, activatePen?: boolean) => void;
   addHighlights: (
     items: Array<Omit<StudyHighlight, "id" | "createdAt">>
   ) => StudyHighlight[];
   updateHighlight: (
     id: string,
-    patch: { color?: HighlightColor; note?: string }
+    patch: { color?: HighlightColor; style?: HighlightStyle; note?: string }
   ) => void;
   deleteHighlight: (id: string) => void;
   clearScopeHighlights: (scopeKey: string) => void;
@@ -118,6 +122,7 @@ export function StudyHighlightProvider({
   const [highlights, setHighlights] = useState<StudyHighlight[]>([]);
   const [toolMode, setToolMode] = useState<HighlightToolMode>("off");
   const [activeColor, setActiveColor] = useState<HighlightColor>("yellow");
+  const [activeStyle, setActiveStyle] = useState<HighlightStyle>("highlight");
   const [syncState, setSyncState] = useState<HighlightSyncState>("idle");
   const localHydratedRef = useRef(false);
   const serverMergedRef = useRef(false);
@@ -201,6 +206,16 @@ export function StudyHighlightProvider({
     []
   );
 
+  const selectMarkerStyle = useCallback(
+    (style: HighlightStyle, activatePen = true) => {
+      setActiveStyle(style);
+      if (activatePen) {
+        setToolMode("pen");
+      }
+    },
+    []
+  );
+
   const addHighlights = useCallback(
     (items: Array<Omit<StudyHighlight, "id" | "createdAt">>) => {
       if (!items.length) return [];
@@ -241,7 +256,10 @@ export function StudyHighlightProvider({
   );
 
   const updateHighlight = useCallback(
-    (id: string, patch: { color?: HighlightColor; note?: string }) => {
+    (
+      id: string,
+      patch: { color?: HighlightColor; style?: HighlightStyle; note?: string }
+    ) => {
       setHighlights((prev) => {
         const next = prev.map((h) => (h.id === id ? { ...h, ...patch } : h));
         saveLocalHighlights(next, userId);
@@ -361,9 +379,11 @@ export function StudyHighlightProvider({
       highlights,
       toolMode,
       activeColor,
+      activeStyle,
       syncState,
       setToolMode,
       selectMarkerColor,
+      selectMarkerStyle,
       addHighlights,
       updateHighlight,
       deleteHighlight,
@@ -376,8 +396,10 @@ export function StudyHighlightProvider({
       highlights,
       toolMode,
       activeColor,
+      activeStyle,
       syncState,
       selectMarkerColor,
+      selectMarkerStyle,
       addHighlights,
       updateHighlight,
       deleteHighlight,
@@ -467,8 +489,13 @@ export function StudyHighlightScope({
   }, [inspector, ctx]);
 
   const applyPendingSlices = useCallback(
-    (slices: ExtractedSelectionSlice[], color: HighlightColor) => {
+    (
+      slices: ExtractedSelectionSlice[],
+      color: HighlightColor,
+      style?: HighlightStyle
+    ) => {
       if (!ctx || !slices.length) return;
+      const chosenStyle = style ?? ctx.activeStyle;
       ctx.addHighlights(
         slices.map((s) => ({
           scopeKey,
@@ -479,6 +506,7 @@ export function StudyHighlightScope({
           start: s.start,
           end: s.end,
           color,
+          style: chosenStyle,
         }))
       );
       window.getSelection()?.removeAllRanges();
@@ -577,7 +605,7 @@ export function StudyHighlightScope({
     }
 
     if (ctx.toolMode === "pen") {
-      applyPendingSlices(extracted.slices, ctx.activeColor);
+      applyPendingSlices(extracted.slices, ctx.activeColor, ctx.activeStyle);
       return;
     }
 
@@ -585,7 +613,7 @@ export function StudyHighlightScope({
       return;
     }
 
-    const pos = clampPopoverPosition(extracted.rect, onAskAi ? 258 : 206);
+    const pos = clampPopoverPosition(extracted.rect, onAskAi ? 340 : 280);
     setInspector(null);
     setPendingSel({
       slices: extracted.slices,
@@ -640,6 +668,8 @@ export function StudyHighlightScope({
       <div
         ref={containerRef}
         data-hl-pen-active={ctx?.toolMode === "pen" ? "true" : undefined}
+        data-hl-pen-color={ctx?.toolMode === "pen" ? ctx.activeColor : undefined}
+        data-hl-pen-style={ctx?.toolMode === "pen" ? ctx.activeStyle : undefined}
         data-hl-eraser-active={ctx?.toolMode === "eraser" ? "true" : undefined}
         onPointerDown={handlePointerDown}
         onMouseUp={handleMouseUp}
@@ -678,26 +708,53 @@ export function StudyHighlightScope({
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() =>
-                  applyPendingSlices(pendingSel.slices, ctx.activeColor)
+                  applyPendingSlices(
+                    pendingSel.slices,
+                    ctx.activeColor,
+                    ctx.activeStyle
+                  )
                 }
                 className="inline-flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3 py-1.5 text-xs font-bold text-white hover:bg-emerald-500 cursor-pointer"
               >
                 <Highlighter className="h-3.5 w-3.5" />
-                <span>Highlight</span>
+                <span>Apply</span>
               </button>
             )}
+
+            <div className="flex items-center gap-1 pr-1 border-r border-slate-700">
+              {HIGHLIGHT_STYLES.map((st) => (
+                <button
+                  key={st.id}
+                  type="button"
+                  title={st.hint}
+                  aria-label={st.label}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => {
+                    ctx.selectMarkerStyle(st.id, ctx.toolMode === "pen");
+                    applyPendingSlices(pendingSel.slices, ctx.activeColor, st.id);
+                  }}
+                  className={`rounded-full px-2 py-0.5 text-[10px] font-bold transition-colors cursor-pointer ${
+                    ctx.activeStyle === st.id
+                      ? "bg-white text-slate-900"
+                      : "text-slate-300 hover:bg-white/10 hover:text-white"
+                  }`}
+                >
+                  {st.shortLabel}
+                </button>
+              ))}
+            </div>
 
             <div className="flex items-center gap-1.5">
               {HIGHLIGHT_COLORS.map((c) => (
                 <button
                   key={c.id}
                   type="button"
-                  title={`Highlight ${c.label} (${c.hint})`}
-                  aria-label={`Highlight ${c.label}`}
+                  title={`${HIGHLIGHT_STYLES.find((s) => s.id === ctx.activeStyle)?.label ?? "Mark"} ${c.label} (${c.hint})`}
+                  aria-label={`Mark ${c.label}`}
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => {
                     ctx.selectMarkerColor(c.id, ctx.toolMode === "pen");
-                    applyPendingSlices(pendingSel.slices, c.id);
+                    applyPendingSlices(pendingSel.slices, c.id, ctx.activeStyle);
                   }}
                   className={`h-6 w-6 rounded-full border-2 transition-transform hover:scale-110 cursor-pointer ${
                     c.swatchClass
@@ -835,6 +892,30 @@ export function StudyHighlightScope({
               </div>
             </div>
 
+            <div className="flex items-center gap-1 rounded-lg bg-slate-100 p-1">
+              {HIGHLIGHT_STYLES.map((st) => {
+                const active =
+                  (inspectedHighlight.style ?? "highlight") === st.id;
+                return (
+                  <button
+                    key={st.id}
+                    type="button"
+                    title={st.hint}
+                    onClick={() =>
+                      ctx.updateHighlight(inspectedHighlight.id, { style: st.id })
+                    }
+                    className={`flex-1 rounded-md px-2 py-1 text-[11px] font-bold transition-colors cursor-pointer ${
+                      active
+                        ? "bg-slate-900 text-white shadow-2xs"
+                        : "text-slate-600 hover:bg-white hover:text-slate-900"
+                    }`}
+                  >
+                    {st.label}
+                  </button>
+                );
+              })}
+            </div>
+
             {!editingNote && inspectedHighlight.note && (
               <p className="rounded-lg bg-amber-50 border border-amber-200 px-2.5 py-1.5 text-xs text-amber-950 font-bangla">
                 {inspectedHighlight.note}
@@ -916,26 +997,31 @@ export function HighlightableText({
     return resolveBlockSegments(text, blockHighlights);
   }, [text, getBlockHighlights, scopeKey, blockId]);
 
+  const isPenActive = ctx?.toolMode === "pen";
+
   const content = segments.map((seg) => {
     if (!seg.highlight) {
       return seg.text;
     }
-    const meta = HIGHLIGHT_COLOR_MAP[seg.highlight.color] ?? HIGHLIGHT_COLOR_MAP.yellow;
+    const styleKind = seg.highlight.style ?? "highlight";
+    const markClass = getHighlightMarkClass(seg.highlight.color, styleKind);
     const hasNote = Boolean(seg.highlight.note);
+    const noteClass = hasNote
+      ? styleKind === "underline" || styleKind === "wavy"
+        ? "bg-amber-100/45"
+        : "underline decoration-dotted decoration-slate-700/80 underline-offset-2"
+      : "";
     return (
       <mark
         key={`${seg.highlight.id}-${seg.start}`}
         data-hl-id={seg.highlight.id}
+        data-hl-style={styleKind}
         title={
           hasNote
             ? `Note: ${seg.highlight.note} (click to edit)`
-            : "Click to change color, add note, or remove"
+            : "Click to change style/color, add note, or remove"
         }
-        className={`study-hl-mark cursor-pointer ${meta.markClass} ${
-          hasNote
-            ? "underline decoration-dotted decoration-slate-700/80 underline-offset-2"
-            : ""
-        }`}
+        className={`study-hl-mark ${isPenActive ? "" : "cursor-pointer"} ${markClass} ${noteClass}`}
       >
         {seg.text}
       </mark>

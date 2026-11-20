@@ -141,6 +141,7 @@ export async function saveStudyHighlights(req, res, next) {
         start: item.start,
         end: item.end,
         color: item.color || "yellow",
+        style: item.style || "highlight",
         note: item.note || "",
         createdAt: item.createdAt || new Date().toISOString(),
       });
@@ -185,6 +186,9 @@ export async function updateStudyHighlight(req, res, next) {
 
     if (req.validatedBody.color !== undefined) {
       target.color = req.validatedBody.color;
+    }
+    if (req.validatedBody.style !== undefined) {
+      target.style = req.validatedBody.style;
     }
     if (req.validatedBody.note !== undefined) {
       target.note = req.validatedBody.note;

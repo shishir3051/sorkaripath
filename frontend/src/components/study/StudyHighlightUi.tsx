@@ -9,18 +9,31 @@ import {
   ChevronDown,
   Eraser,
   Highlighter,
+  PenTool,
   Search,
   Sparkles,
+  Square,
   StickyNote,
   Trash2,
+  Underline,
+  Waves,
   X,
 } from "lucide-react";
 import { useStudyHighlights } from "@/components/study/StudyHighlightContext";
 import {
+  getHighlightMarkClass,
   HIGHLIGHT_COLOR_MAP,
   HIGHLIGHT_COLORS,
+  HIGHLIGHT_STYLES,
 } from "@/lib/studyHighlights";
-import type { HighlightColor, StudyHighlight } from "@/lib/types";
+import type { HighlightColor, HighlightStyle, StudyHighlight } from "@/lib/types";
+
+function StyleIcon({ style }: { style: HighlightStyle }) {
+  if (style === "underline") return <Underline className="h-3.5 w-3.5 shrink-0" />;
+  if (style === "wavy") return <Waves className="h-3.5 w-3.5 shrink-0" />;
+  if (style === "box") return <Square className="h-3 w-3 shrink-0" />;
+  return <Highlighter className="h-3.5 w-3.5 shrink-0" />;
+}
 
 /**
  * Compact sticky-friendly Highlighter Marker Toolbar for Topic Guru sheets and Written/Viva lab.
@@ -44,6 +57,8 @@ export function StudyHighlightToolbar({
   const isPen = ctx.toolMode === "pen";
   const isEraser = ctx.toolMode === "eraser";
   const activeMeta = HIGHLIGHT_COLOR_MAP[ctx.activeColor];
+  const activeStyleMeta =
+    HIGHLIGHT_STYLES.find((s) => s.id === ctx.activeStyle) ?? HIGHLIGHT_STYLES[0];
 
   return (
     <div
@@ -62,15 +77,54 @@ export function StudyHighlightToolbar({
           <button
             type="button"
             onClick={() => ctx.setToolMode(isPen ? "off" : "pen")}
+            title={
+              isPen
+                ? "Click to exit Pen Cursor and use normal cursor"
+                : "Turn on Pen Cursor to highlight or underline text"
+            }
             className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
               isPen
                 ? "bg-slate-900 text-white shadow-2xs"
                 : "border border-slate-200 bg-white text-slate-800 hover:bg-slate-100"
             }`}
           >
-            <Highlighter className="h-3.5 w-3.5" />
-            <span>{isPen ? `Marker ON (${activeMeta.label})` : "Highlighter"}</span>
+            <PenTool className="h-3.5 w-3.5" />
+            <span>
+              {isPen
+                ? `Pen ON (${activeStyleMeta.label} • ${activeMeta.label})`
+                : "Pen Mode"}
+            </span>
           </button>
+
+          {/* Mark Styles: Highlight / Underline / Wavy / Box */}
+          <div
+            className="inline-flex items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5"
+            role="group"
+            aria-label="Pen marking style"
+          >
+            {HIGHLIGHT_STYLES.map((st) => {
+              const selected = ctx.activeStyle === st.id;
+              return (
+                <button
+                  key={st.id}
+                  type="button"
+                  title={`${st.label} — ${st.hint}`}
+                  aria-pressed={isPen && selected}
+                  onClick={() => ctx.selectMarkerStyle(st.id, true)}
+                  className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-bold transition-colors cursor-pointer ${
+                    selected
+                      ? isPen
+                        ? "bg-emerald-700 text-white shadow-2xs"
+                        : "bg-slate-100 text-slate-900"
+                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  }`}
+                >
+                  <StyleIcon style={st.id} />
+                  <span className="hidden sm:inline">{st.label}</span>
+                </button>
+              );
+            })}
+          </div>
 
           {/* 4 Color Swatches */}
           <div
@@ -85,7 +139,7 @@ export function StudyHighlightToolbar({
                   key={c.id}
                   type="button"
                   title={`${c.label} (${c.labelBn}) — ${c.hint}`}
-                  aria-label={`${c.label} highlighter (${c.hint})`}
+                  aria-label={`${c.label} pen ink (${c.hint})`}
                   aria-pressed={isPen && selected}
                   onClick={() => ctx.selectMarkerColor(c.id, true)}
                   className={`h-5 w-5 rounded-full border-2 transition-transform hover:scale-110 cursor-pointer ${
@@ -106,7 +160,7 @@ export function StudyHighlightToolbar({
           <button
             type="button"
             onClick={() => ctx.setToolMode(isEraser ? "off" : "eraser")}
-            title="Click any existing highlight to remove it"
+            title="Click any existing highlight or underline to remove it"
             className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
               isEraser
                 ? "bg-rose-700 text-white"
@@ -119,12 +173,18 @@ export function StudyHighlightToolbar({
             </span>
           </button>
 
-          <span className="hidden md:inline text-[11px] font-medium text-slate-500">
+          <span className="hidden xl:inline text-[11px] font-medium text-slate-500">
             {isPen
-              ? "Drag over Bangla or English text to highlight"
+              ? ctx.activeStyle === "underline"
+                ? "Drag across text to underline • Click any mark to edit"
+                : ctx.activeStyle === "wavy"
+                ? "Drag across text for wavy underline • Click mark to edit"
+                : ctx.activeStyle === "box"
+                ? "Drag across text to box keywords • Click mark to edit"
+                : "Drag across text to highlight • Click mark to edit"
               : isEraser
               ? "Click any marked text to erase"
-              : "Select any text to mark, or pick a color"}
+              : "Select text to mark, or click Pen Mode"}
           </span>
         </div>
 
@@ -365,7 +425,12 @@ export function StudyHighlightsPanel({
                 </div>
 
                 <p className="text-xs sm:text-sm text-slate-900 leading-relaxed font-bangla">
-                  <span className={`rounded px-1 py-0.5 ${meta.markClass}`}>
+                  <span
+                    className={`rounded px-1 py-0.5 ${getHighlightMarkClass(
+                      hl.color,
+                      hl.style
+                    )}`}
+                  >
                     {hl.text}
                   </span>
                 </p>
@@ -626,7 +691,12 @@ export function GlobalHighlightsModal({
                         </div>
 
                         <p className="text-xs sm:text-sm text-slate-900 leading-relaxed font-bangla">
-                          <span className={`rounded px-1 py-0.5 ${meta.markClass}`}>
+                          <span
+                            className={`rounded px-1 py-0.5 ${getHighlightMarkClass(
+                              hl.color,
+                              hl.style
+                            )}`}
+                          >
                             {hl.text}
                           </span>
                         </p>

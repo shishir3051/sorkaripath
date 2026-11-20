@@ -28,6 +28,7 @@ const questionBookmarkBody = z.object({
 });
 
 const highlightColorSchema = z.enum(["yellow", "green", "pink", "blue"]);
+const highlightStyleSchema = z.enum(["highlight", "underline", "wavy", "box"]);
 const highlightItemSchema = z
   .object({
     id: z.string().min(1).max(100),
@@ -39,6 +40,7 @@ const highlightItemSchema = z
     start: z.number().int().min(0).max(50000),
     end: z.number().int().min(1).max(50000),
     color: highlightColorSchema.optional(),
+    style: highlightStyleSchema.optional(),
     note: z.string().max(300).optional(),
     createdAt: z.string().max(60).optional(),
   })
@@ -53,11 +55,18 @@ const saveHighlightsBody = z.object({
 const updateHighlightBody = z
   .object({
     color: highlightColorSchema.optional(),
+    style: highlightStyleSchema.optional(),
     note: z.string().max(300).optional(),
   })
-  .refine((val) => val.color !== undefined || val.note !== undefined, {
-    message: "Provide color or note to update.",
-  });
+  .refine(
+    (val) =>
+      val.color !== undefined ||
+      val.style !== undefined ||
+      val.note !== undefined,
+    {
+      message: "Provide color, style, or note to update.",
+    }
+  );
 
 const router = Router();
 router.use(requireAuth);
