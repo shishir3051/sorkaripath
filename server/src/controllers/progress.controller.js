@@ -1,6 +1,14 @@
 import { LearnerProgress } from "../models/LearnerProgress.js";
 
 const MAX_STUDY_HIGHLIGHTS = 400;
+const MAX_STUDY_DRAWINGS = 600;
+const MAX_STUDY_NOTES = 200;
+
+function toPlainArray(list) {
+  return Array.isArray(list)
+    ? list.map((item) => (typeof item.toObject === "function" ? item.toObject() : item))
+    : [];
+}
 
 function validateSessionParam(req, res) {
   if (!req.user?.id) {
@@ -236,6 +244,135 @@ export async function clearStudyHighlights(req, res, next) {
       ? (progress.studyHighlights || []).filter((h) => h.scopeKey !== scopeKey)
       : [];
 
+    await progress.save();
+    res.json({ success: true, data: progress });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function saveStudyDrawings(req, res, next) {
+  try {
+    const sessionId = validateSessionParam(req, res);
+    if (!sessionId) return;
+
+    const incoming = req.validatedBody.drawings;
+    const progress = await getOrCreateProgress(sessionId);
+    const byId = new Map(toPlainArray(progress.studyDrawings).map((d) => [d.id, d]));
+
+    for (const item of incoming) {
+      if (!item.points?.length) continue;
+      byId.set(item.id, {
+        id: item.id,
+        scopeKey: item.scopeKey,
+        viewKey: item.viewKey || "default",
+        color: item.color || "dark",
+        width: item.width ?? 3,
+        points: item.points,
+        createdAt: item.createdAt || new Date().toISOString(),
+      });
+    }
+
+    progress.studyDrawings = Array.from(byId.values())
+      .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)))
+      .slice(-MAX_STUDY_DRAWINGS);
+    await progress.save();
+    res.json({ success: true, data: progress });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteStudyDrawing(req, res, next) {
+  try {
+    const sessionId = validateSessionParam(req, res);
+    if (!sessionId) return;
+
+    const drawingId = String(req.params.drawingId || "").trim();
+    if (!drawingId || drawingId.length > 100) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid drawing identifier.",
+      });
+    }
+
+    const progress = await getOrCreateProgress(sessionId);
+    progress.studyDrawings = (progress.studyDrawings || []).filter(
+      (d) => d.id !== drawingId
+    );
+    await progress.save();
+    res.json({ success: true, data: progress });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function clearStudyDrawings(req, res, next) {
+  try {
+    const sessionId = validateSessionParam(req, res);
+    if (!sessionId) return;
+
+    const scopeKey = String(req.query.scopeKey || "").trim();
+    const viewKey = String(req.query.viewKey || "").trim();
+    const progress = await getOrCreateProgress(sessionId);
+    progress.studyDrawings = (progress.studyDrawings || []).filter((d) => {
+      if (scopeKey && d.scopeKey !== scopeKey) return true;
+      if (viewKey && (d.viewKey || "default") !== viewKey) return true;
+      return false;
+    });
+
+    await progress.save();
+    res.json({ success: true, data: progress });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function saveStudyNote(req, res, next) {
+  try {
+    const sessionId = validateSessionParam(req, res);
+    if (!sessionId) return;
+
+    const incoming = req.validatedBody.note;
+    const progress = await getOrCreateProgress(sessionId);
+    const byId = new Map(toPlainArray(progress.studyNotes).map((n) => [n.id, n]));
+
+    byId.set(incoming.id, {
+      id: incoming.id,
+      scopeKey: incoming.scopeKey,
+      viewKey: incoming.viewKey || "default",
+      x: incoming.x,
+      y: incoming.y,
+      text: incoming.text ?? "",
+      color: incoming.color || "yellow",
+      createdAt: incoming.createdAt || new Date().toISOString(),
+    });
+
+    progress.studyNotes = Array.from(byId.values())
+      .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)))
+      .slice(-MAX_STUDY_NOTES);
+    await progress.save();
+    res.json({ success: true, data: progress });
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function deleteStudyNote(req, res, next) {
+  try {
+    const sessionId = validateSessionParam(req, res);
+    if (!sessionId) return;
+
+    const noteId = String(req.params.noteId || "").trim();
+    if (!noteId || noteId.length > 100) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid note identifier.",
+      });
+    }
+
+    const progress = await getOrCreateProgress(sessionId);
+    progress.studyNotes = (progress.studyNotes || []).filter((n) => n.id !== noteId);
     await progress.save();
     res.json({ success: true, data: progress });
   } catch (err) {

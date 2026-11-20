@@ -601,6 +601,8 @@ export function StudyHub({
   return (
     <StudyHighlightProvider
       serverHighlights={progress?.studyHighlights}
+      serverDrawings={progress?.studyDrawings}
+      serverNotes={progress?.studyNotes}
       onProgressUpdated={setProgress}
     >
       <div className={selectedTopic ? "space-y-5 print:hidden" : "space-y-5"}>

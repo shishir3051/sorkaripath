@@ -1,11 +1,79 @@
 import type {
+  DrawingPoint,
   HighlightColor,
   HighlightStyle,
+  InkColor,
+  SheetDrawingStroke,
+  SheetStickyNote,
   StudyHighlight,
 } from "@/lib/types";
 
 export const HIGHLIGHT_STORAGE_KEY = "sorkaripath:study-highlights:v1";
+export const DRAWING_STORAGE_KEY = "sorkaripath:study-drawings:v1";
+export const NOTE_STORAGE_KEY = "sorkaripath:study-notes:v1";
 export const MAX_LOCAL_HIGHLIGHTS = 400;
+export const MAX_LOCAL_DRAWINGS = 600;
+export const MAX_LOCAL_NOTES = 200;
+
+export interface InkColorMeta {
+  id: InkColor;
+  label: string;
+  strokeHex: string;
+  swatchClass: string;
+  noteCardClass: string;
+}
+
+export const INK_COLORS: InkColorMeta[] = [
+  {
+    id: "dark",
+    label: "Black",
+    strokeHex: "#0f172a",
+    swatchClass: "bg-slate-900 border-slate-950",
+    noteCardClass: "bg-white/95 border-slate-300 text-slate-900",
+  },
+  {
+    id: "blue",
+    label: "Blue",
+    strokeHex: "#0284c7",
+    swatchClass: "bg-sky-500 border-sky-700",
+    noteCardClass: "bg-sky-50/95 border-sky-300 text-slate-900",
+  },
+  {
+    id: "green",
+    label: "Green",
+    strokeHex: "#059669",
+    swatchClass: "bg-emerald-500 border-emerald-700",
+    noteCardClass: "bg-emerald-50/95 border-emerald-300 text-slate-900",
+  },
+  {
+    id: "pink",
+    label: "Red / Pink",
+    strokeHex: "#e11d48",
+    swatchClass: "bg-rose-500 border-rose-700",
+    noteCardClass: "bg-rose-50/95 border-rose-300 text-slate-900",
+  },
+  {
+    id: "yellow",
+    label: "Amber",
+    strokeHex: "#eab308",
+    swatchClass: "bg-amber-400 border-amber-600",
+    noteCardClass: "bg-amber-50/95 border-amber-300 text-slate-900",
+  },
+];
+
+export const INK_COLOR_MAP: Record<InkColor, InkColorMeta> = {
+  dark: INK_COLORS[0],
+  blue: INK_COLORS[1],
+  green: INK_COLORS[2],
+  pink: INK_COLORS[3],
+  yellow: INK_COLORS[4],
+};
+
+export const DRAW_WIDTH_OPTIONS = [
+  { width: 2, label: "Fine" },
+  { width: 4, label: "Medium" },
+  { width: 10, label: "Marker" },
+] as const;
 
 export interface HighlightColorMeta {
   id: HighlightColor;
@@ -437,4 +505,167 @@ export function mergeHighlights(
     .slice(-MAX_LOCAL_HIGHLIGHTS);
 
   return { merged, unsyncedLocal };
+}
+
+function getScopedStorageKey(base: string, userId?: string | null): string {
+  return userId ? `${base}:${userId}` : base;
+}
+
+export function loadLocalDrawings(userId?: string | null): SheetDrawingStroke[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(
+      getScopedStorageKey(DRAWING_STORAGE_KEY, userId)
+    );
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (item): item is SheetDrawingStroke =>
+        Boolean(item) &&
+        typeof item.id === "string" &&
+        typeof item.scopeKey === "string" &&
+        Array.isArray(item.points) &&
+        item.points.length > 0
+    );
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalDrawings(
+  items: SheetDrawingStroke[],
+  userId?: string | null
+): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      getScopedStorageKey(DRAWING_STORAGE_KEY, userId),
+      JSON.stringify(items.slice(-MAX_LOCAL_DRAWINGS))
+    );
+  } catch {
+    // Ignore storage quota / privacy mode errors
+  }
+}
+
+export function mergeDrawings(
+  localItems: SheetDrawingStroke[],
+  serverItems: SheetDrawingStroke[]
+): { merged: SheetDrawingStroke[]; unsyncedLocal: SheetDrawingStroke[] } {
+  const serverIds = new Set(serverItems.map((d) => d.id));
+  const byId = new Map<string, SheetDrawingStroke>();
+  for (const item of serverItems) byId.set(item.id, item);
+
+  const unsyncedLocal: SheetDrawingStroke[] = [];
+  for (const item of localItems) {
+    if (!serverIds.has(item.id)) {
+      byId.set(item.id, item);
+      unsyncedLocal.push(item);
+    }
+  }
+
+  const merged = Array.from(byId.values())
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    .slice(-MAX_LOCAL_DRAWINGS);
+
+  return { merged, unsyncedLocal };
+}
+
+export function loadLocalNotes(userId?: string | null): SheetStickyNote[] {
+  if (typeof window === "undefined") return [];
+  try {
+    const raw = window.localStorage.getItem(
+      getScopedStorageKey(NOTE_STORAGE_KEY, userId)
+    );
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (item): item is SheetStickyNote =>
+        Boolean(item) &&
+        typeof item.id === "string" &&
+        typeof item.scopeKey === "string" &&
+        typeof item.x === "number" &&
+        typeof item.y === "number"
+    );
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalNotes(
+  items: SheetStickyNote[],
+  userId?: string | null
+): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(
+      getScopedStorageKey(NOTE_STORAGE_KEY, userId),
+      JSON.stringify(items.slice(-MAX_LOCAL_NOTES))
+    );
+  } catch {
+    // Ignore storage quota / privacy mode errors
+  }
+}
+
+export function mergeNotes(
+  localItems: SheetStickyNote[],
+  serverItems: SheetStickyNote[]
+): { merged: SheetStickyNote[]; unsyncedLocal: SheetStickyNote[] } {
+  const serverIds = new Set(serverItems.map((n) => n.id));
+  const byId = new Map<string, SheetStickyNote>();
+  for (const item of serverItems) byId.set(item.id, item);
+
+  const unsyncedLocal: SheetStickyNote[] = [];
+  for (const item of localItems) {
+    if (!serverIds.has(item.id)) {
+      byId.set(item.id, item);
+      unsyncedLocal.push(item);
+    }
+  }
+
+  const merged = Array.from(byId.values())
+    .sort((a, b) => a.createdAt.localeCompare(b.createdAt))
+    .slice(-MAX_LOCAL_NOTES);
+
+  return { merged, unsyncedLocal };
+}
+
+/**
+ * Converts normalized drawing points (x in [0..1] of container width, y in px)
+ * into a smooth SVG path string using midpoint quadratic Bezier smoothing.
+ */
+export function pointsToSmoothSvgPath(
+  points: DrawingPoint[],
+  containerWidth: number
+): string {
+  if (!points.length || containerWidth <= 0) return "";
+  const toScreen = (pt: DrawingPoint) => ({
+    x: Number((pt.x * containerWidth).toFixed(1)),
+    y: Number(pt.y.toFixed(1)),
+  });
+
+  if (points.length === 1) {
+    const p = toScreen(points[0]);
+    return `M ${p.x} ${p.y} L ${p.x + 0.1} ${p.y + 0.1}`;
+  }
+
+  const first = toScreen(points[0]);
+  if (points.length === 2) {
+    const second = toScreen(points[1]);
+    return `M ${first.x} ${first.y} L ${second.x} ${second.y}`;
+  }
+
+  let d = `M ${first.x} ${first.y}`;
+  for (let i = 1; i < points.length - 1; i += 1) {
+    const curr = toScreen(points[i]);
+    const next = toScreen(points[i + 1]);
+    const midX = Number(((curr.x + next.x) / 2).toFixed(1));
+    const midY = Number(((curr.y + next.y) / 2).toFixed(1));
+    d += ` Q ${curr.x} ${curr.y} ${midX} ${midY}`;
+  }
+
+  const last = toScreen(points[points.length - 1]);
+  d += ` L ${last.x} ${last.y}`;
+  return d;
 }

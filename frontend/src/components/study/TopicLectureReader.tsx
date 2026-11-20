@@ -239,10 +239,14 @@ export function TopicLectureReader({
       ? topic.mcqSubjectFilter
       : topic.subject;
 
+  const annotationViewKey =
+    focusMode && chapters.length > 0 ? `ch-${safeIdx}` : "all";
+
   return (
     <StudyHighlightScope
       scopeKey={scopeKey}
       scopeTitle={topic.title}
+      annotationViewKey={annotationViewKey}
       onAskAi={handleAskAi}
       className={
         inDrawer
@@ -324,6 +328,7 @@ export function TopicLectureReader({
       <div className="space-y-3 print:hidden">
         <StudyHighlightToolbar
           scopeKey={scopeKey}
+          viewKey={annotationViewKey}
           panelOpen={highlightsPanelOpen}
           onTogglePanel={() => setHighlightsPanelOpen((v) => !v)}
         />

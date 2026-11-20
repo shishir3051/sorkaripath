@@ -29,31 +29,50 @@ import {
   getHighlightMarkClass,
   HIGHLIGHT_COLORS,
   HIGHLIGHT_STYLES,
+  loadLocalDrawings,
   loadLocalHighlights,
+  loadLocalNotes,
+  MAX_LOCAL_DRAWINGS,
   MAX_LOCAL_HIGHLIGHTS,
+  MAX_LOCAL_NOTES,
+  mergeDrawings,
   mergeHighlights,
+  mergeNotes,
   resolveBlockSegments,
+  saveLocalDrawings,
   saveLocalHighlights,
+  saveLocalNotes,
   type ExtractedSelectionSlice,
 } from "@/lib/studyHighlights";
+import { SheetCanvasLayer } from "@/components/study/SheetCanvasLayer";
 import type {
+  DrawingPoint,
   HighlightColor,
   HighlightStyle,
+  InkColor,
   LearnerProgress,
+  SheetDrawingStroke,
+  SheetStickyNote,
   StudyHighlight,
 } from "@/lib/types";
 import { useAuth } from "@/components/auth/AuthContext";
 
-export type HighlightToolMode = "off" | "pen" | "eraser";
+export type HighlightToolMode = "off" | "pen" | "draw" | "write" | "eraser";
 export type HighlightSyncState = "idle" | "saving" | "saved" | "offline";
 
 interface HighlightContextValue {
   highlights: StudyHighlight[];
+  drawings: SheetDrawingStroke[];
+  notes: SheetStickyNote[];
   toolMode: HighlightToolMode;
   activeColor: HighlightColor;
   activeStyle: HighlightStyle;
+  inkColor: InkColor;
+  strokeWidth: number;
   syncState: HighlightSyncState;
   setToolMode: (mode: HighlightToolMode) => void;
+  setInkColor: (color: InkColor) => void;
+  setStrokeWidth: (width: number) => void;
   selectMarkerColor: (color: HighlightColor, activatePen?: boolean) => void;
   selectMarkerStyle: (style: HighlightStyle, activatePen?: boolean) => void;
   addHighlights: (
@@ -67,6 +86,18 @@ interface HighlightContextValue {
   clearScopeHighlights: (scopeKey: string) => void;
   getScopeHighlights: (scopeKey: string) => StudyHighlight[];
   getBlockHighlights: (scopeKey: string, blockId: string) => StudyHighlight[];
+  addDrawing: (
+    stroke: Omit<SheetDrawingStroke, "id" | "createdAt">
+  ) => SheetDrawingStroke;
+  undoLastDrawing: (scopeKey: string, viewKey?: string) => void;
+  deleteDrawing: (id: string) => void;
+  clearViewDrawings: (scopeKey: string, viewKey?: string) => void;
+  saveNote: (
+    note: Omit<SheetStickyNote, "createdAt"> & { createdAt?: string }
+  ) => SheetStickyNote;
+  deleteNote: (id: string) => void;
+  getViewDrawings: (scopeKey: string, viewKey?: string) => SheetDrawingStroke[];
+  getViewNotes: (scopeKey: string, viewKey?: string) => SheetStickyNote[];
   scopeCounts: Map<string, number>;
 }
 
@@ -110,22 +141,32 @@ export function jumpToHighlightMark(highlightId: string): void {
 
 export function StudyHighlightProvider({
   serverHighlights,
+  serverDrawings,
+  serverNotes,
   onProgressUpdated,
   children,
 }: {
   serverHighlights?: StudyHighlight[];
+  serverDrawings?: SheetDrawingStroke[];
+  serverNotes?: SheetStickyNote[];
   onProgressUpdated?: (progress: LearnerProgress) => void;
   children: React.ReactNode;
 }) {
   const { user } = useAuth();
   const userId = user?.id ?? null;
   const [highlights, setHighlights] = useState<StudyHighlight[]>([]);
+  const [drawings, setDrawings] = useState<SheetDrawingStroke[]>([]);
+  const [notes, setNotes] = useState<SheetStickyNote[]>([]);
   const [toolMode, setToolMode] = useState<HighlightToolMode>("off");
   const [activeColor, setActiveColor] = useState<HighlightColor>("yellow");
   const [activeStyle, setActiveStyle] = useState<HighlightStyle>("highlight");
+  const [inkColor, setInkColor] = useState<InkColor>("dark");
+  const [strokeWidth, setStrokeWidth] = useState<number>(3);
   const [syncState, setSyncState] = useState<HighlightSyncState>("idle");
   const localHydratedRef = useRef(false);
   const serverMergedRef = useRef(false);
+  const drawingsMergedRef = useRef(false);
+  const notesMergedRef = useRef(false);
   const syncTimerRef = useRef<number | null>(null);
 
   const flashSyncState = useCallback((next: HighlightSyncState) => {
@@ -150,16 +191,30 @@ export function StudyHighlightProvider({
     };
   }, []);
 
-  // Hydrate instant offline highlights from localStorage on client mount
+  // Hydrate instant offline highlights, drawings, and written notes from localStorage on client mount
   useEffect(() => {
     if (localHydratedRef.current) return;
     localHydratedRef.current = true;
     const localItems = loadLocalHighlights(userId);
-    if (localItems.length > 0) {
+    const localDrawings = loadLocalDrawings(userId);
+    const localNotes = loadLocalNotes(userId);
+    if (localItems.length > 0 || localDrawings.length > 0 || localNotes.length > 0) {
       queueMicrotask(() => {
-        setHighlights((prev) =>
-          prev.length > 0 ? mergeHighlights(localItems, prev).merged : localItems
-        );
+        if (localItems.length > 0) {
+          setHighlights((prev) =>
+            prev.length > 0 ? mergeHighlights(localItems, prev).merged : localItems
+          );
+        }
+        if (localDrawings.length > 0) {
+          setDrawings((prev) =>
+            prev.length > 0 ? mergeDrawings(localDrawings, prev).merged : localDrawings
+          );
+        }
+        if (localNotes.length > 0) {
+          setNotes((prev) =>
+            prev.length > 0 ? mergeNotes(localNotes, prev).merged : localNotes
+          );
+        }
       });
     }
   }, [userId]);
@@ -195,6 +250,60 @@ export function StudyHighlightProvider({
         .catch(() => {});
     }
   }, [serverHighlights, onProgressUpdated, userId]);
+
+  // Merge MongoDB drawings once fetched
+  useEffect(() => {
+    if (!serverDrawings || drawingsMergedRef.current) return;
+    drawingsMergedRef.current = true;
+    const localItems = loadLocalDrawings(userId);
+    const { merged, unsyncedLocal } = mergeDrawings(localItems, serverDrawings);
+    saveLocalDrawings(merged, userId);
+    queueMicrotask(() => {
+      setDrawings(merged);
+    });
+    if (unsyncedLocal.length > 0) {
+      const sid = getOrCreateSessionId();
+      apiFetch<LearnerProgress>(
+        `/progress/${encodeURIComponent(sid)}/drawings`,
+        {
+          method: "POST",
+          body: JSON.stringify({ drawings: unsyncedLocal.slice(-40) }),
+        }
+      )
+        .then((res) => {
+          invalidateApiCache(`/progress/${encodeURIComponent(sid)}`);
+          onProgressUpdated?.(res);
+        })
+        .catch(() => {});
+    }
+  }, [serverDrawings, onProgressUpdated, userId]);
+
+  // Merge MongoDB sticky notes once fetched
+  useEffect(() => {
+    if (!serverNotes || notesMergedRef.current) return;
+    notesMergedRef.current = true;
+    const localItems = loadLocalNotes(userId);
+    const { merged, unsyncedLocal } = mergeNotes(localItems, serverNotes);
+    saveLocalNotes(merged, userId);
+    queueMicrotask(() => {
+      setNotes(merged);
+    });
+    for (const note of unsyncedLocal.slice(-20)) {
+      const sid = getOrCreateSessionId();
+      apiFetch<LearnerProgress>(
+        `/progress/${encodeURIComponent(sid)}/notes`,
+        {
+          method: "POST",
+          body: JSON.stringify({ note }),
+        }
+      )
+        .then((res) => {
+          invalidateApiCache(`/progress/${encodeURIComponent(sid)}`);
+          onProgressUpdated?.(res);
+        })
+        .catch(() => {});
+    }
+  }, [serverNotes, onProgressUpdated, userId]);
 
   const selectMarkerColor = useCallback(
     (color: HighlightColor, activatePen = true) => {
@@ -374,14 +483,194 @@ export function StudyHighlightProvider({
     [indexes.byScopeBlock]
   );
 
+  const addDrawing = useCallback(
+    (stroke: Omit<SheetDrawingStroke, "id" | "createdAt">) => {
+      const created: SheetDrawingStroke = {
+        ...stroke,
+        id: createHighlightId(),
+        createdAt: new Date().toISOString(),
+      };
+      setDrawings((prev) => {
+        const next = [...prev, created].slice(-MAX_LOCAL_DRAWINGS);
+        saveLocalDrawings(next, userId);
+        return next;
+      });
+      const sid = getOrCreateSessionId();
+      flashSyncState("saving");
+      apiFetch<LearnerProgress>(
+        `/progress/${encodeURIComponent(sid)}/drawings`,
+        {
+          method: "POST",
+          body: JSON.stringify({ drawings: [created] }),
+        }
+      )
+        .then((res) => {
+          invalidateApiCache(`/progress/${encodeURIComponent(sid)}`);
+          onProgressUpdated?.(res);
+          flashSyncState("saved");
+        })
+        .catch(() => {
+          flashSyncState("offline");
+        });
+      return created;
+    },
+    [flashSyncState, onProgressUpdated, userId]
+  );
+
+  const deleteDrawing = useCallback(
+    (id: string) => {
+      setDrawings((prev) => {
+        const next = prev.filter((d) => d.id !== id);
+        saveLocalDrawings(next, userId);
+        return next;
+      });
+      const sid = getOrCreateSessionId();
+      flashSyncState("saving");
+      apiFetch<LearnerProgress>(
+        `/progress/${encodeURIComponent(sid)}/drawings/${encodeURIComponent(id)}`,
+        { method: "DELETE" }
+      )
+        .then((res) => {
+          invalidateApiCache(`/progress/${encodeURIComponent(sid)}`);
+          onProgressUpdated?.(res);
+          flashSyncState("saved");
+        })
+        .catch(() => {
+          flashSyncState("offline");
+        });
+    },
+    [flashSyncState, onProgressUpdated, userId]
+  );
+
+  const undoLastDrawing = useCallback(
+    (scopeKey: string, viewKey = "default") => {
+      const matching = drawings.filter(
+        (d) => d.scopeKey === scopeKey && (d.viewKey || "default") === viewKey
+      );
+      const last = matching[matching.length - 1];
+      if (last) {
+        deleteDrawing(last.id);
+      }
+    },
+    [drawings, deleteDrawing]
+  );
+
+  const clearViewDrawings = useCallback(
+    (scopeKey: string, viewKey = "default") => {
+      setDrawings((prev) => {
+        const next = prev.filter(
+          (d) => !(d.scopeKey === scopeKey && (d.viewKey || "default") === viewKey)
+        );
+        saveLocalDrawings(next, userId);
+        return next;
+      });
+      const sid = getOrCreateSessionId();
+      flashSyncState("saving");
+      apiFetch<LearnerProgress>(
+        `/progress/${encodeURIComponent(sid)}/drawings?scopeKey=${encodeURIComponent(scopeKey)}&viewKey=${encodeURIComponent(viewKey)}`,
+        { method: "DELETE" }
+      )
+        .then((res) => {
+          invalidateApiCache(`/progress/${encodeURIComponent(sid)}`);
+          onProgressUpdated?.(res);
+          flashSyncState("saved");
+        })
+        .catch(() => {
+          flashSyncState("offline");
+        });
+    },
+    [flashSyncState, onProgressUpdated, userId]
+  );
+
+  const saveNote = useCallback(
+    (note: Omit<SheetStickyNote, "createdAt"> & { createdAt?: string }) => {
+      const saved: SheetStickyNote = {
+        ...note,
+        createdAt: note.createdAt || new Date().toISOString(),
+      };
+      setNotes((prev) => {
+        const without = prev.filter((n) => n.id !== saved.id);
+        const next = [...without, saved].slice(-MAX_LOCAL_NOTES);
+        saveLocalNotes(next, userId);
+        return next;
+      });
+      const sid = getOrCreateSessionId();
+      flashSyncState("saving");
+      apiFetch<LearnerProgress>(
+        `/progress/${encodeURIComponent(sid)}/notes`,
+        {
+          method: "POST",
+          body: JSON.stringify({ note: saved }),
+        }
+      )
+        .then((res) => {
+          invalidateApiCache(`/progress/${encodeURIComponent(sid)}`);
+          onProgressUpdated?.(res);
+          flashSyncState("saved");
+        })
+        .catch(() => {
+          flashSyncState("offline");
+        });
+      return saved;
+    },
+    [flashSyncState, onProgressUpdated, userId]
+  );
+
+  const deleteNote = useCallback(
+    (id: string) => {
+      setNotes((prev) => {
+        const next = prev.filter((n) => n.id !== id);
+        saveLocalNotes(next, userId);
+        return next;
+      });
+      const sid = getOrCreateSessionId();
+      flashSyncState("saving");
+      apiFetch<LearnerProgress>(
+        `/progress/${encodeURIComponent(sid)}/notes/${encodeURIComponent(id)}`,
+        { method: "DELETE" }
+      )
+        .then((res) => {
+          invalidateApiCache(`/progress/${encodeURIComponent(sid)}`);
+          onProgressUpdated?.(res);
+          flashSyncState("saved");
+        })
+        .catch(() => {
+          flashSyncState("offline");
+        });
+    },
+    [flashSyncState, onProgressUpdated, userId]
+  );
+
+  const getViewDrawings = useCallback(
+    (scopeKey: string, viewKey = "default") =>
+      drawings.filter(
+        (d) => d.scopeKey === scopeKey && (d.viewKey || "default") === viewKey
+      ),
+    [drawings]
+  );
+
+  const getViewNotes = useCallback(
+    (scopeKey: string, viewKey = "default") =>
+      notes.filter(
+        (n) => n.scopeKey === scopeKey && (n.viewKey || "default") === viewKey
+      ),
+    [notes]
+  );
+
   const value = useMemo<HighlightContextValue>(
     () => ({
       highlights,
+      drawings,
+      notes,
       toolMode,
       activeColor,
       activeStyle,
+      inkColor,
+      strokeWidth,
       syncState,
       setToolMode,
+      setInkColor,
+      setStrokeWidth,
       selectMarkerColor,
       selectMarkerStyle,
       addHighlights,
@@ -390,13 +679,25 @@ export function StudyHighlightProvider({
       clearScopeHighlights,
       getScopeHighlights,
       getBlockHighlights,
+      addDrawing,
+      undoLastDrawing,
+      deleteDrawing,
+      clearViewDrawings,
+      saveNote,
+      deleteNote,
+      getViewDrawings,
+      getViewNotes,
       scopeCounts: indexes.scopeCounts,
     }),
     [
       highlights,
+      drawings,
+      notes,
       toolMode,
       activeColor,
       activeStyle,
+      inkColor,
+      strokeWidth,
       syncState,
       selectMarkerColor,
       selectMarkerStyle,
@@ -406,6 +707,14 @@ export function StudyHighlightProvider({
       clearScopeHighlights,
       getScopeHighlights,
       getBlockHighlights,
+      addDrawing,
+      undoLastDrawing,
+      deleteDrawing,
+      clearViewDrawings,
+      saveNote,
+      deleteNote,
+      getViewDrawings,
+      getViewNotes,
       indexes.scopeCounts,
     ]
   );
@@ -455,12 +764,14 @@ function clampPopoverPosition(rect: DOMRect, popoverWidth: number) {
 export function StudyHighlightScope({
   scopeKey,
   scopeTitle,
+  annotationViewKey = "default",
   onAskAi,
   className,
   children,
 }: {
   scopeKey: string;
   scopeTitle: string;
+  annotationViewKey?: string;
   onAskAi?: (text: string) => void;
   className?: string;
   children: React.ReactNode;
@@ -470,6 +781,9 @@ export function StudyHighlightScope({
   const popoverRef = useRef<HTMLDivElement | null>(null);
   const inspectorRef = useRef<HTMLDivElement | null>(null);
   const lastPointerTouchRef = useRef(false);
+  const drawingPointerIdRef = useRef<number | null>(null);
+  const activePointsRef = useRef<DrawingPoint[]>([]);
+  const lastScreenPtRef = useRef<{ x: number; y: number } | null>(null);
 
   const [pendingSel, setPendingSel] = useState<PendingSelectionState | null>(
     null
@@ -477,6 +791,17 @@ export function StudyHighlightScope({
   const [inspector, setInspector] = useState<InspectorState | null>(null);
   const [noteDraft, setNoteDraft] = useState("");
   const [editingNote, setEditingNote] = useState(false);
+  const [activeStroke, setActiveStroke] = useState<SheetDrawingStroke | null>(null);
+  const [editingSheetNoteId, setEditingSheetNoteId] = useState<string | null>(null);
+
+  const viewDrawings = useMemo(
+    () => (ctx ? ctx.getViewDrawings(scopeKey, annotationViewKey) : []),
+    [ctx, scopeKey, annotationViewKey]
+  );
+  const viewNotes = useMemo(
+    () => (ctx ? ctx.getViewNotes(scopeKey, annotationViewKey) : []),
+    [ctx, scopeKey, annotationViewKey]
+  );
 
   const scopeValue = useMemo<ScopeContextValue>(
     () => ({ scopeKey, scopeTitle, onAskAi }),
@@ -585,13 +910,123 @@ export function StudyHighlightScope({
     };
   }, [pendingSel, inspector]);
 
+  // Ctrl+Z / Cmd+Z shortcut to undo last freehand drawing while in Draw mode
+  useEffect(() => {
+    if (!ctx || ctx.toolMode !== "draw") return;
+    const handleUndoKey = (e: KeyboardEvent) => {
+      const activeTag = (document.activeElement as HTMLElement | null)?.tagName;
+      if (activeTag === "INPUT" || activeTag === "TEXTAREA") return;
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "z" && !e.shiftKey) {
+        e.preventDefault();
+        ctx.undoLastDrawing(scopeKey, annotationViewKey);
+      }
+    };
+    window.addEventListener("keydown", handleUndoKey);
+    return () => window.removeEventListener("keydown", handleUndoKey);
+  }, [ctx, scopeKey, annotationViewKey]);
+
+  function isInteractiveOrIgnored(target: EventTarget | null): boolean {
+    const el = target as HTMLElement | null;
+    return Boolean(
+      el?.closest(
+        "button, a, input, textarea, select, [role='button'], [data-hl-ignore='true'], [data-sheet-note='true']"
+      )
+    );
+  }
+
+  function toNormalizedPoint(clientX: number, clientY: number): DrawingPoint | null {
+    const el = containerRef.current;
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    if (rect.width <= 0) return null;
+    const x = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+    const y = Math.max(0, clientY - rect.top);
+    return { x: Number(x.toFixed(4)), y: Number(y.toFixed(1)) };
+  }
+
   function handlePointerDown(e: React.PointerEvent<HTMLDivElement>) {
     lastPointerTouchRef.current = e.pointerType === "touch";
+    if (!ctx || ctx.toolMode !== "draw") return;
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    if (isInteractiveOrIgnored(e.target)) return;
+
+    const pt = toNormalizedPoint(e.clientX, e.clientY);
+    if (!pt) return;
+
+    e.preventDefault();
+    drawingPointerIdRef.current = e.pointerId;
+    activePointsRef.current = [pt];
+    lastScreenPtRef.current = { x: e.clientX, y: e.clientY };
+
+    try {
+      e.currentTarget.setPointerCapture(e.pointerId);
+    } catch {
+      // Ignore synthetic pointer capture edge cases
+    }
+
+    setActiveStroke({
+      id: "draft-stroke",
+      scopeKey,
+      viewKey: annotationViewKey,
+      color: ctx.inkColor,
+      width: ctx.strokeWidth,
+      points: [pt],
+      createdAt: "",
+    });
+  }
+
+  function handlePointerMove(e: React.PointerEvent<HTMLDivElement>) {
+    if (drawingPointerIdRef.current !== e.pointerId || !ctx) return;
+    const prev = lastScreenPtRef.current;
+    if (prev) {
+      const dx = e.clientX - prev.x;
+      const dy = e.clientY - prev.y;
+      if (dx * dx + dy * dy < 6.25) return; // >= 2.5px step keeps strokes smooth and lightweight
+    }
+
+    const pt = toNormalizedPoint(e.clientX, e.clientY);
+    if (!pt) return;
+    lastScreenPtRef.current = { x: e.clientX, y: e.clientY };
+    activePointsRef.current = [...activePointsRef.current, pt];
+    setActiveStroke((curr) =>
+      curr
+        ? { ...curr, points: activePointsRef.current }
+        : null
+    );
+  }
+
+  function finishDrawingStroke(e: React.PointerEvent<HTMLDivElement>) {
+    if (drawingPointerIdRef.current !== e.pointerId) return;
+    drawingPointerIdRef.current = null;
+    lastScreenPtRef.current = null;
+
+    try {
+      if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+        e.currentTarget.releasePointerCapture(e.pointerId);
+      }
+    } catch {
+      // Ignore release errors
+    }
+
+    const points = activePointsRef.current;
+    activePointsRef.current = [];
+    setActiveStroke(null);
+
+    if (ctx && points.length > 0) {
+      ctx.addDrawing({
+        scopeKey,
+        viewKey: annotationViewKey,
+        color: ctx.inkColor,
+        width: ctx.strokeWidth,
+        points: points.slice(0, 1500),
+      });
+    }
   }
 
   function handleMouseUp(e: React.MouseEvent<HTMLDivElement>) {
     if (!ctx || lastPointerTouchRef.current) return;
     if (e.button !== 0) return;
+    if (ctx.toolMode === "draw" || ctx.toolMode === "write") return;
 
     const sel = window.getSelection();
     const extracted = extractSelectionSlices(
@@ -625,6 +1060,28 @@ export function StudyHighlightScope({
 
   function handleClick(e: React.MouseEvent<HTMLDivElement>) {
     if (!ctx) return;
+
+    if (ctx.toolMode === "write") {
+      if (isInteractiveOrIgnored(e.target)) return;
+      const sel = window.getSelection();
+      if (sel && !sel.isCollapsed) return;
+      const pt = toNormalizedPoint(e.clientX, e.clientY);
+      if (!pt) return;
+
+      const noteId = createHighlightId();
+      ctx.saveNote({
+        id: noteId,
+        scopeKey,
+        viewKey: annotationViewKey,
+        x: Math.min(0.7, Math.max(0.02, pt.x)),
+        y: Math.max(16, pt.y - 12),
+        text: "",
+        color: ctx.inkColor,
+      });
+      setEditingSheetNoteId(noteId);
+      return;
+    }
+
     const sel = window.getSelection();
     if (sel && !sel.isCollapsed) return;
 
@@ -663,20 +1120,50 @@ export function StudyHighlightScope({
     [pendingSel]
   );
 
+  const penOrDrawCursorActive =
+    ctx?.toolMode === "pen" || ctx?.toolMode === "draw";
+  const cursorInkColor =
+    ctx?.toolMode === "draw"
+      ? ctx.inkColor
+      : ctx?.toolMode === "pen"
+      ? ctx.activeColor
+      : undefined;
+
   return (
     <StudyHighlightScopeContext.Provider value={scopeValue}>
       <div
         ref={containerRef}
-        data-hl-pen-active={ctx?.toolMode === "pen" ? "true" : undefined}
-        data-hl-pen-color={ctx?.toolMode === "pen" ? ctx.activeColor : undefined}
+        data-hl-pen-active={penOrDrawCursorActive ? "true" : undefined}
+        data-hl-draw-active={ctx?.toolMode === "draw" ? "true" : undefined}
+        data-hl-write-active={ctx?.toolMode === "write" ? "true" : undefined}
+        data-hl-pen-color={cursorInkColor}
         data-hl-pen-style={ctx?.toolMode === "pen" ? ctx.activeStyle : undefined}
         data-hl-eraser-active={ctx?.toolMode === "eraser" ? "true" : undefined}
         onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={finishDrawingStroke}
+        onPointerCancel={finishDrawingStroke}
         onMouseUp={handleMouseUp}
         onClick={handleClick}
-        className={className}
+        className={`relative ${
+          ctx?.toolMode === "draw" ? "select-none touch-none" : ""
+        } ${className ?? ""}`}
       >
         {children}
+        {ctx && (
+          <SheetCanvasLayer
+            containerRef={containerRef}
+            drawings={viewDrawings}
+            activeStroke={activeStroke}
+            notes={viewNotes}
+            editingNoteId={editingSheetNoteId}
+            toolMode={ctx.toolMode}
+            onSetEditingNoteId={setEditingSheetNoteId}
+            onDeleteDrawing={ctx.deleteDrawing}
+            onSaveNote={ctx.saveNote}
+            onDeleteNote={ctx.deleteNote}
+          />
+        )}
       </div>
 
       {/* Floating Selection Popover (Desktop quick picker OR Mobile touch action bar) */}
@@ -997,7 +1484,10 @@ export function HighlightableText({
     return resolveBlockSegments(text, blockHighlights);
   }, [text, getBlockHighlights, scopeKey, blockId]);
 
-  const isPenActive = ctx?.toolMode === "pen";
+  const isSheetCursorMode =
+    ctx?.toolMode === "pen" ||
+    ctx?.toolMode === "draw" ||
+    ctx?.toolMode === "write";
 
   const content = segments.map((seg) => {
     if (!seg.highlight) {
@@ -1021,7 +1511,7 @@ export function HighlightableText({
             ? `Note: ${seg.highlight.note} (click to edit)`
             : "Click to change style/color, add note, or remove"
         }
-        className={`study-hl-mark ${isPenActive ? "" : "cursor-pointer"} ${markClass} ${noteClass}`}
+        className={`study-hl-mark ${isSheetCursorMode ? "" : "cursor-pointer"} ${markClass} ${noteClass}`}
       >
         {seg.text}
       </mark>

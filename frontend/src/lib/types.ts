@@ -205,6 +205,7 @@ export interface OverviewData {
 
 export type HighlightColor = "yellow" | "green" | "pink" | "blue";
 export type HighlightStyle = "highlight" | "underline" | "wavy" | "box";
+export type InkColor = HighlightColor | "dark";
 
 export interface StudyHighlight {
   id: string;
@@ -221,6 +222,32 @@ export interface StudyHighlight {
   createdAt: string;
 }
 
+export interface DrawingPoint {
+  x: number;
+  y: number;
+}
+
+export interface SheetDrawingStroke {
+  id: string;
+  scopeKey: string;
+  viewKey: string;
+  color: InkColor;
+  width: number;
+  points: DrawingPoint[];
+  createdAt: string;
+}
+
+export interface SheetStickyNote {
+  id: string;
+  scopeKey: string;
+  viewKey: string;
+  x: number;
+  y: number;
+  text: string;
+  color: InkColor;
+  createdAt: string;
+}
+
 export interface LearnerProgress {
   sessionId: string;
   completedLessonSlugs: string[];
@@ -231,6 +258,8 @@ export interface LearnerProgress {
   bookmarkedQuestionIds?: string[];
   bookmarkedJobSlugs: string[];
   studyHighlights?: StudyHighlight[];
+  studyDrawings?: SheetDrawingStroke[];
+  studyNotes?: SheetStickyNote[];
   targetTrack: string;
 }
 

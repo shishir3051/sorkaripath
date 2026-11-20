@@ -9,22 +9,27 @@ import {
   ChevronDown,
   Eraser,
   Highlighter,
+  MousePointer2,
   PenTool,
   Search,
   Sparkles,
   Square,
   StickyNote,
   Trash2,
+  Type,
   Underline,
+  Undo2,
   Waves,
   X,
 } from "lucide-react";
 import { useStudyHighlights } from "@/components/study/StudyHighlightContext";
 import {
+  DRAW_WIDTH_OPTIONS,
   getHighlightMarkClass,
   HIGHLIGHT_COLOR_MAP,
   HIGHLIGHT_COLORS,
   HIGHLIGHT_STYLES,
+  INK_COLORS,
 } from "@/lib/studyHighlights";
 import type { HighlightColor, HighlightStyle, StudyHighlight } from "@/lib/types";
 
@@ -40,155 +45,126 @@ function StyleIcon({ style }: { style: HighlightStyle }) {
  */
 export function StudyHighlightToolbar({
   scopeKey,
+  viewKey = "default",
   panelOpen,
   onTogglePanel,
   compact = false,
 }: {
   scopeKey: string;
+  viewKey?: string;
   panelOpen: boolean;
   onTogglePanel: () => void;
   compact?: boolean;
 }) {
   const ctx = useStudyHighlights();
+  const [confirmClearInk, setConfirmClearInk] = useState(false);
+
   if (!ctx) return null;
 
   const scopeItems = ctx.getScopeHighlights(scopeKey);
+  const viewDrawings = ctx.getViewDrawings(scopeKey, viewKey);
+  const viewNotes = ctx.getViewNotes(scopeKey, viewKey);
   const count = scopeItems.length;
+  const isOff = ctx.toolMode === "off";
   const isPen = ctx.toolMode === "pen";
+  const isDraw = ctx.toolMode === "draw";
+  const isWrite = ctx.toolMode === "write";
   const isEraser = ctx.toolMode === "eraser";
-  const activeMeta = HIGHLIGHT_COLOR_MAP[ctx.activeColor];
-  const activeStyleMeta =
-    HIGHLIGHT_STYLES.find((s) => s.id === ctx.activeStyle) ?? HIGHLIGHT_STYLES[0];
+
+  const modes = [
+    {
+      id: "off" as const,
+      label: "Normal",
+      title: "Normal mouse pointer and text selection",
+      icon: MousePointer2,
+      activeClass: "bg-slate-900 text-white shadow-2xs",
+    },
+    {
+      id: "pen" as const,
+      label: "Mark / Line",
+      title: "Highlight, underline, wavy-line, or box any text",
+      icon: Highlighter,
+      activeClass: "bg-emerald-700 text-white shadow-2xs",
+    },
+    {
+      id: "draw" as const,
+      label: "Draw",
+      title: "Draw freehand shapes, arrows, circles, or handwrite anywhere",
+      icon: PenTool,
+      activeClass: "bg-indigo-700 text-white shadow-2xs",
+    },
+    {
+      id: "write" as const,
+      label: "Write Note",
+      title: "Click anywhere on the sheet to write a typed Bangla/English note",
+      icon: Type,
+      activeClass: "bg-amber-600 text-white shadow-2xs",
+    },
+    {
+      id: "eraser" as const,
+      label: "Eraser",
+      title: "Click any mark, drawing stroke, or sticky note to remove it",
+      icon: Eraser,
+      activeClass: "bg-rose-700 text-white shadow-2xs",
+    },
+  ];
 
   return (
     <div
       data-hl-ignore="true"
-      className={`rounded-xl border transition-colors print:hidden ${
+      className={`rounded-xl border transition-colors space-y-2 print:hidden ${
         isPen
+          ? "border-emerald-300 bg-emerald-50/60"
+          : isDraw
+          ? "border-indigo-300 bg-indigo-50/60"
+          : isWrite
           ? "border-amber-300 bg-amber-50/70"
           : isEraser
           ? "border-rose-300 bg-rose-50/70"
           : "border-slate-200 bg-slate-50/80"
       } ${compact ? "px-3 py-2" : "px-3.5 py-2.5"}`}
     >
+      {/* Row 1: Plain-English Tool Selector + My Highlights */}
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-2">
-          {/* Pen Toggle */}
-          <button
-            type="button"
-            onClick={() => ctx.setToolMode(isPen ? "off" : "pen")}
-            title={
-              isPen
-                ? "Click to exit Pen Cursor and use normal cursor"
-                : "Turn on Pen Cursor to highlight or underline text"
-            }
-            className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
-              isPen
-                ? "bg-slate-900 text-white shadow-2xs"
-                : "border border-slate-200 bg-white text-slate-800 hover:bg-slate-100"
-            }`}
-          >
-            <PenTool className="h-3.5 w-3.5" />
-            <span>
-              {isPen
-                ? `Pen ON (${activeStyleMeta.label} • ${activeMeta.label})`
-                : "Pen Mode"}
-            </span>
-          </button>
-
-          {/* Mark Styles: Highlight / Underline / Wavy / Box */}
-          <div
-            className="inline-flex items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5"
-            role="group"
-            aria-label="Pen marking style"
-          >
-            {HIGHLIGHT_STYLES.map((st) => {
-              const selected = ctx.activeStyle === st.id;
-              return (
-                <button
-                  key={st.id}
-                  type="button"
-                  title={`${st.label} — ${st.hint}`}
-                  aria-pressed={isPen && selected}
-                  onClick={() => ctx.selectMarkerStyle(st.id, true)}
-                  className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-bold transition-colors cursor-pointer ${
-                    selected
-                      ? isPen
-                        ? "bg-emerald-700 text-white shadow-2xs"
-                        : "bg-slate-100 text-slate-900"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
-                  }`}
-                >
-                  <StyleIcon style={st.id} />
-                  <span className="hidden sm:inline">{st.label}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {/* 4 Color Swatches */}
-          <div
-            className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1"
-            role="group"
-            aria-label="Highlight marker color"
-          >
-            {HIGHLIGHT_COLORS.map((c) => {
-              const selected = ctx.activeColor === c.id;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  title={`${c.label} (${c.labelBn}) — ${c.hint}`}
-                  aria-label={`${c.label} pen ink (${c.hint})`}
-                  aria-pressed={isPen && selected}
-                  onClick={() => ctx.selectMarkerColor(c.id, true)}
-                  className={`h-5 w-5 rounded-full border-2 transition-transform hover:scale-110 cursor-pointer ${
-                    c.swatchClass
-                  } ${
-                    selected
-                      ? isPen
-                        ? "ring-2 ring-slate-900 ring-offset-1 scale-105"
-                        : "ring-1 ring-slate-400 ring-offset-1"
-                      : "opacity-80 hover:opacity-100"
-                  }`}
-                />
-              );
-            })}
-          </div>
-
-          {/* Eraser Toggle */}
-          <button
-            type="button"
-            onClick={() => ctx.setToolMode(isEraser ? "off" : "eraser")}
-            title="Click any existing highlight or underline to remove it"
-            className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
-              isEraser
-                ? "bg-rose-700 text-white"
-                : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
-            }`}
-          >
-            <Eraser className="h-3.5 w-3.5" />
-            <span className="hidden sm:inline">
-              {isEraser ? "Erasing..." : "Eraser"}
-            </span>
-          </button>
-
-          <span className="hidden xl:inline text-[11px] font-medium text-slate-500">
-            {isPen
-              ? ctx.activeStyle === "underline"
-                ? "Drag across text to underline • Click any mark to edit"
-                : ctx.activeStyle === "wavy"
-                ? "Drag across text for wavy underline • Click mark to edit"
-                : ctx.activeStyle === "box"
-                ? "Drag across text to box keywords • Click mark to edit"
-                : "Drag across text to highlight • Click mark to edit"
-              : isEraser
-              ? "Click any marked text to erase"
-              : "Select text to mark, or click Pen Mode"}
-          </span>
+        <div
+          className="inline-flex flex-wrap items-center gap-1 rounded-xl border border-slate-200 bg-white p-1"
+          role="group"
+          aria-label="Sheet pen and writing mode"
+        >
+          {modes.map((m) => {
+            const Icon = m.icon;
+            const active = ctx.toolMode === m.id;
+            return (
+              <button
+                key={m.id}
+                type="button"
+                title={m.title}
+                aria-pressed={active}
+                onClick={() => {
+                  setConfirmClearInk(false);
+                  ctx.setToolMode(m.id);
+                }}
+                className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs font-bold transition-colors cursor-pointer ${
+                  active
+                    ? m.activeClass
+                    : "text-slate-700 hover:bg-slate-100 hover:text-slate-900"
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5 shrink-0" />
+                <span>{m.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         <div className="flex items-center gap-2">
+          {(viewDrawings.length > 0 || viewNotes.length > 0) && (
+            <span className="hidden sm:inline text-[11px] font-semibold text-slate-500">
+              {viewDrawings.length > 0 ? `${viewDrawings.length} strokes` : ""}
+              {viewDrawings.length > 0 && viewNotes.length > 0 ? " • " : ""}
+              {viewNotes.length > 0 ? `${viewNotes.length} notes` : ""}
+            </span>
+          )}
           {ctx.syncState === "saving" && (
             <span className="text-[11px] font-semibold text-slate-400">
               Syncing...
@@ -215,7 +191,7 @@ export function StudyHighlightToolbar({
               panelOpen
                 ? "bg-emerald-700 text-white"
                 : count > 0
-                ? "border border-emerald-200 bg-emerald-50 text-emerald-900 hover:bg-emerald-100"
+                ? "border border-emerald-200 bg-white text-emerald-900 hover:bg-emerald-50"
                 : "border border-slate-200 bg-white text-slate-700 hover:bg-slate-100"
             }`}
           >
@@ -228,6 +204,223 @@ export function StudyHighlightToolbar({
             />
           </button>
         </div>
+      </div>
+
+      {/* Row 2: Contextual Sub-Options for Normal / Mark / Draw / Write / Eraser */}
+      <div className="flex flex-wrap items-center justify-between gap-2 pt-0.5">
+        {isPen && (
+          <div className="flex flex-wrap items-center gap-2">
+            <div
+              className="inline-flex items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5"
+              role="group"
+              aria-label="Pen marking style"
+            >
+              {HIGHLIGHT_STYLES.map((st) => {
+                const selected = ctx.activeStyle === st.id;
+                return (
+                  <button
+                    key={st.id}
+                    type="button"
+                    title={`${st.label} — ${st.hint}`}
+                    aria-pressed={selected}
+                    onClick={() => ctx.selectMarkerStyle(st.id, true)}
+                    className={`inline-flex items-center gap-1 rounded-md px-2 py-1 text-[11px] font-bold transition-colors cursor-pointer ${
+                      selected
+                        ? "bg-slate-900 text-white shadow-2xs"
+                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                    }`}
+                  >
+                    <StyleIcon style={st.id} />
+                    <span>{st.label}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1"
+              role="group"
+              aria-label="Highlight marker color"
+            >
+              {HIGHLIGHT_COLORS.map((c) => {
+                const selected = ctx.activeColor === c.id;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    title={`${c.label} (${c.labelBn}) — ${c.hint}`}
+                    aria-label={`${c.label} pen ink (${c.hint})`}
+                    aria-pressed={selected}
+                    onClick={() => ctx.selectMarkerColor(c.id, true)}
+                    className={`h-5 w-5 rounded-full border-2 transition-transform hover:scale-110 cursor-pointer ${
+                      c.swatchClass
+                    } ${
+                      selected
+                        ? "ring-2 ring-slate-900 ring-offset-1 scale-105"
+                        : "opacity-80 hover:opacity-100"
+                    }`}
+                  />
+                );
+              })}
+            </div>
+
+            <span className="hidden lg:inline text-[11px] font-medium text-slate-600">
+              {ctx.activeStyle === "underline"
+                ? "Drag text to underline • Click mark to edit"
+                : ctx.activeStyle === "wavy"
+                ? "Drag text for wavy underline • Click mark to edit"
+                : ctx.activeStyle === "box"
+                ? "Drag text to box keywords • Click mark to edit"
+                : "Drag text to highlight • Click mark to edit"}
+            </span>
+          </div>
+        )}
+
+        {isDraw && (
+          <div className="flex flex-wrap items-center gap-2">
+            <div
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1"
+              role="group"
+              aria-label="Drawing ink color"
+            >
+              {INK_COLORS.map((c) => {
+                const selected = ctx.inkColor === c.id;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    title={`Ink: ${c.label}`}
+                    aria-label={`${c.label} drawing ink`}
+                    aria-pressed={selected}
+                    onClick={() => ctx.setInkColor(c.id)}
+                    className={`h-5 w-5 rounded-full border-2 transition-transform hover:scale-110 cursor-pointer ${
+                      c.swatchClass
+                    } ${
+                      selected
+                        ? "ring-2 ring-indigo-700 ring-offset-1 scale-105"
+                        : "opacity-80 hover:opacity-100"
+                    }`}
+                  />
+                );
+              })}
+            </div>
+
+            <div
+              className="inline-flex items-center gap-0.5 rounded-lg border border-slate-200 bg-white p-0.5"
+              role="group"
+              aria-label="Stroke thickness"
+            >
+              {DRAW_WIDTH_OPTIONS.map((opt) => (
+                <button
+                  key={opt.width}
+                  type="button"
+                  onClick={() => ctx.setStrokeWidth(opt.width)}
+                  className={`rounded-md px-2 py-1 text-[11px] font-bold transition-colors cursor-pointer ${
+                    ctx.strokeWidth === opt.width ||
+                    (opt.width === 4 && ctx.strokeWidth === 3)
+                      ? "bg-slate-900 text-white"
+                      : "text-slate-600 hover:bg-slate-100"
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              disabled={viewDrawings.length === 0}
+              onClick={() => ctx.undoLastDrawing(scopeKey, viewKey)}
+              title="Undo last drawing stroke (Ctrl+Z)"
+              className="inline-flex items-center gap-1 rounded-lg border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-bold text-slate-700 hover:bg-slate-100 disabled:opacity-40 cursor-pointer"
+            >
+              <Undo2 className="h-3.5 w-3.5" />
+              <span>Undo</span>
+            </button>
+
+            {viewDrawings.length > 0 &&
+              (confirmClearInk ? (
+                <div className="inline-flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      ctx.clearViewDrawings(scopeKey, viewKey);
+                      setConfirmClearInk(false);
+                    }}
+                    className="rounded-lg bg-rose-700 px-2.5 py-1 text-[11px] font-bold text-white hover:bg-rose-800 cursor-pointer"
+                  >
+                    Clear {viewDrawings.length} strokes?
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmClearInk(false)}
+                    className="rounded-lg border border-slate-200 bg-white px-2 py-1 text-[11px] font-bold text-slate-600 hover:bg-slate-100 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setConfirmClearInk(true)}
+                  className="inline-flex items-center gap-1 rounded-lg border border-rose-200 bg-white px-2.5 py-1 text-[11px] font-bold text-rose-700 hover:bg-rose-50 cursor-pointer"
+                >
+                  <Trash2 className="h-3 w-3" />
+                  <span>Clear Drawings</span>
+                </button>
+              ))}
+
+            <span className="hidden xl:inline text-[11px] font-medium text-indigo-900/80">
+              Drag anywhere to handwrite, circle, or draw arrows
+            </span>
+          </div>
+        )}
+
+        {isWrite && (
+          <div className="flex flex-wrap items-center gap-2">
+            <div
+              className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2 py-1"
+              role="group"
+              aria-label="Sticky note color"
+            >
+              {INK_COLORS.map((c) => {
+                const selected = ctx.inkColor === c.id;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    title={`Note color: ${c.label}`}
+                    aria-label={`${c.label} note color`}
+                    aria-pressed={selected}
+                    onClick={() => ctx.setInkColor(c.id)}
+                    className={`h-5 w-5 rounded-full border-2 transition-transform hover:scale-110 cursor-pointer ${
+                      c.swatchClass
+                    } ${
+                      selected
+                        ? "ring-2 ring-amber-700 ring-offset-1 scale-105"
+                        : "opacity-80 hover:opacity-100"
+                    }`}
+                  />
+                );
+              })}
+            </div>
+            <span className="text-[11px] font-medium text-amber-950/90">
+              Click anywhere on the sheet to write a note in Bangla or English • Drag grip to move
+            </span>
+          </div>
+        )}
+
+        {isEraser && (
+          <span className="text-[11px] font-medium text-rose-900">
+            Click any highlight, underline, freehand stroke, or note card to erase it
+          </span>
+        )}
+
+        {isOff && (
+          <span className="text-[11px] font-medium text-slate-600">
+            Normal cursor • Drag any text for quick mark/underline, or choose Mark / Draw / Write Note above
+          </span>
+        )}
       </div>
     </div>
   );

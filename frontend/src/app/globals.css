@@ -155,14 +155,26 @@ body {
   cursor: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='24'%20viewBox='0%200%2024%2024'%3E%3Cpath%20d='M18.5%203L21%205.5%208.8%2017.7%202%2022l4.3-6.8z'%20fill='%23ffffff'%20stroke='%23ffffff'%20stroke-width='2.4'%20stroke-linejoin='round'/%3E%3Cpath%20d='M18.5%203L21%205.5%208.8%2017.7%206.3%2015.2z'%20fill='%230f172a'/%3E%3Cpath%20d='M6.3%2015.2l2.5%202.5L2%2022z'%20fill='%230ea5e9'/%3E%3Cpath%20d='M15.8%205.7l2.5%202.5'%20stroke='%230ea5e9'%20stroke-width='1.8'%20stroke-linecap='round'/%3E%3C/svg%3E") 2 22, text;
 }
 
+[data-hl-pen-active="true"][data-hl-pen-color="dark"] {
+  cursor: url("data:image/svg+xml,%3Csvg%20xmlns='http://www.w3.org/2000/svg'%20width='24'%20height='24'%20viewBox='0%200%2024%2024'%3E%3Cpath%20d='M18.5%203L21%205.5%208.8%2017.7%202%2022l4.3-6.8z'%20fill='%23ffffff'%20stroke='%23ffffff'%20stroke-width='2.4'%20stroke-linejoin='round'/%3E%3Cpath%20d='M18.5%203L21%205.5%208.8%2017.7%206.3%2015.2z'%20fill='%230f172a'/%3E%3Cpath%20d='M6.3%2015.2l2.5%202.5L2%2022z'%20fill='%230f172a'/%3E%3Cpath%20d='M15.8%205.7l2.5%202.5'%20stroke='%2394a3b8'%20stroke-width='1.8'%20stroke-linecap='round'/%3E%3C/svg%3E") 2 22, crosshair;
+}
+
+[data-hl-write-active="true"] {
+  cursor: text;
+}
+
 [data-hl-pen-active="true"] [data-hl-block],
-[data-hl-pen-active="true"] .study-hl-mark {
+[data-hl-pen-active="true"] .study-hl-mark,
+[data-hl-write-active="true"] [data-hl-block],
+[data-hl-write-active="true"] .study-hl-mark {
   cursor: inherit;
 }
 
 /* Revert cleanly back to normal interactive cursors on toolbars, panels, buttons, links & inputs */
 [data-hl-pen-active="true"] [data-hl-ignore="true"],
-[data-hl-pen-active="true"] [data-hl-ignore="true"] * {
+[data-hl-pen-active="true"] [data-hl-ignore="true"] *,
+[data-hl-write-active="true"] [data-hl-ignore="true"],
+[data-hl-write-active="true"] [data-hl-ignore="true"] * {
   cursor: default;
 }
 
@@ -173,12 +185,22 @@ body {
 [data-hl-pen-active="true"] [role="button"],
 [data-hl-pen-active="true"] [role="button"] *,
 [data-hl-pen-active="true"] select,
-[data-hl-pen-active="true"] label {
+[data-hl-pen-active="true"] label,
+[data-hl-write-active="true"] button,
+[data-hl-write-active="true"] button *,
+[data-hl-write-active="true"] a,
+[data-hl-write-active="true"] a *,
+[data-hl-write-active="true"] [role="button"],
+[data-hl-write-active="true"] [role="button"] *,
+[data-hl-write-active="true"] select,
+[data-hl-write-active="true"] label {
   cursor: pointer !important;
 }
 
 [data-hl-pen-active="true"] input,
-[data-hl-pen-active="true"] textarea {
+[data-hl-pen-active="true"] textarea,
+[data-hl-write-active="true"] input,
+[data-hl-write-active="true"] textarea {
   cursor: text !important;
 }
 

@@ -1,10 +1,15 @@
 import { Router } from "express";
 import { z } from "zod";
 import {
+  clearStudyDrawings,
   clearStudyHighlights,
+  deleteStudyDrawing,
   deleteStudyHighlight,
+  deleteStudyNote,
   getProgress,
+  saveStudyDrawings,
   saveStudyHighlights,
+  saveStudyNote,
   toggleJobBookmark,
   toggleLessonProgress,
   toggleQuestionBookmark,
@@ -68,9 +73,46 @@ const updateHighlightBody = z
     }
   );
 
+const inkColorSchema = z.enum(["dark", "yellow", "green", "pink", "blue"]);
+const drawingItemSchema = z.object({
+  id: z.string().min(1).max(100),
+  scopeKey: z.string().min(1).max(160),
+  viewKey: z.string().max(80).optional(),
+  color: inkColorSchema.optional(),
+  width: z.number().min(1).max(24).optional(),
+  points: z
+    .array(
+      z.object({
+        x: z.number().min(0).max(1),
+        y: z.number().min(0).max(50000),
+      })
+    )
+    .min(1)
+    .max(1500),
+  createdAt: z.string().max(60).optional(),
+});
+
+const saveDrawingsBody = z.object({
+  drawings: z.array(drawingItemSchema).min(1).max(40),
+});
+
+const saveNoteBody = z.object({
+  note: z.object({
+    id: z.string().min(1).max(100),
+    scopeKey: z.string().min(1).max(160),
+    viewKey: z.string().max(80).optional(),
+    x: z.number().min(0).max(1),
+    y: z.number().min(0).max(50000),
+    text: z.string().max(1500),
+    color: inkColorSchema.optional(),
+    createdAt: z.string().max(60).optional(),
+  }),
+});
+
 const router = Router();
 router.use(requireAuth);
 const progressMutationLimiter = createRateLimiter({ windowMs: 60_000, max: 60 });
+const sheetCanvasLimiter = createRateLimiter({ windowMs: 60_000, max: 180 });
 
 router.get("/:sessionId", getProgress);
 router.post(
@@ -124,6 +166,33 @@ router.delete(
   "/:sessionId/highlights",
   progressMutationLimiter,
   clearStudyHighlights
+);
+router.post(
+  "/:sessionId/drawings",
+  sheetCanvasLimiter,
+  validateBody(saveDrawingsBody),
+  saveStudyDrawings
+);
+router.delete(
+  "/:sessionId/drawings/:drawingId",
+  sheetCanvasLimiter,
+  deleteStudyDrawing
+);
+router.delete(
+  "/:sessionId/drawings",
+  sheetCanvasLimiter,
+  clearStudyDrawings
+);
+router.post(
+  "/:sessionId/notes",
+  sheetCanvasLimiter,
+  validateBody(saveNoteBody),
+  saveStudyNote
+);
+router.delete(
+  "/:sessionId/notes/:noteId",
+  sheetCanvasLimiter,
+  deleteStudyNote
 );
 
 export default router;
