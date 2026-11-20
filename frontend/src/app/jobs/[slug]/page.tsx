@@ -59,17 +59,17 @@ export default async function JobDetailPage({
   const safeApplyUrl = safeExternalHref(job.applyUrl, "");
 
   return (
-    <div className="app-container py-5 sm:py-6 space-y-5">
+    <div className="app-container py-8 space-y-8">
       <Link
         href="/jobs"
-        className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-emerald-700 hover:underline"
+        className="inline-flex items-center gap-1.5 text-sm font-bold text-emerald-700 hover:underline"
       >
         <ArrowLeft className="h-4 w-4" />
         <span>Back to Circulars &amp; Notices</span>
       </Link>
 
       {/* Main Header Card */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-5 sm:p-6 shadow-xs space-y-4">
+      <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm space-y-5">
         <div className="flex flex-wrap items-center gap-2">
           <OriginBadge origin={job.origin} />
           <RecordTypeBadge type={job.recordType} />
@@ -78,14 +78,14 @@ export default async function JobDetailPage({
           </span>
         </div>
 
-        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 leading-snug">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 leading-tight">
           {job.title}
         </h1>
         {job.titleBn && job.titleBn !== job.title && (
-          <p className="text-sm sm:text-base font-semibold text-emerald-800">{job.titleBn}</p>
+          <p className="text-base font-semibold text-emerald-800">{job.titleBn}</p>
         )}
 
-        <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+        <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
           {formatReadableText(job.summary)}
         </p>
 

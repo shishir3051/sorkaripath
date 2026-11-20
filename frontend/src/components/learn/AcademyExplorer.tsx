@@ -133,10 +133,10 @@ export function AcademyExplorer({ modules }: { modules: LearningModule[] }) {
         {filtered.map((mod) => {
           const isDone = completedSlugs.includes(mod.slug);
           return (
-              <Link
+            <Link
               key={mod.slug}
               href={`/learn/${mod.slug}`}
-              className={`group flex flex-col justify-between rounded-2xl border p-4 shadow-xs transition-all hover:shadow-md ${
+              className={`group flex flex-col justify-between rounded-2xl border p-5 shadow-sm transition-all hover:shadow-md ${
                 isDone
                   ? "border-emerald-300 bg-emerald-50/40"
                   : "border-slate-200 bg-white hover:border-emerald-400"
@@ -144,7 +144,7 @@ export function AcademyExplorer({ modules }: { modules: LearningModule[] }) {
             >
               <div>
                 <div className="flex items-start justify-between gap-3">
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-700 to-teal-900 text-base font-bold text-white shadow-xs">
+                  <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-700 to-teal-900 text-lg font-extrabold text-white shadow-sm">
                     {mod.letter}
                   </span>
                   <div className="flex items-center gap-1.5">
@@ -159,10 +159,10 @@ export function AcademyExplorer({ modules }: { modules: LearningModule[] }) {
                   </div>
                 </div>
 
-                <p className="mt-2.5 text-[11px] font-bold uppercase tracking-wider text-emerald-700">
+                <p className="mt-3 text-[11px] font-bold uppercase tracking-wider text-emerald-700">
                   {mod.stage}
                 </p>
-                <h2 className="mt-1 text-sm sm:text-base font-bold text-slate-900 group-hover:text-emerald-700 leading-snug">
+                <h2 className="mt-1 text-base font-extrabold text-slate-900 group-hover:text-emerald-700 leading-snug">
                   {mod.title}
                 </h2>
                 {mod.titleBn && (

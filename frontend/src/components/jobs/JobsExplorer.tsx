@@ -483,7 +483,7 @@ export function JobsExplorer({
             {data.items.map((job) => (
               <article
                 key={job._id}
-                className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-xs hover:border-emerald-400 transition-all"
+                className="flex flex-col justify-between rounded-2xl border border-slate-200 bg-white p-5 shadow-sm hover:border-emerald-400 transition-all"
               >
                 <div>
                   <div className="flex flex-wrap items-center gap-2 mb-2.5">
@@ -513,12 +513,12 @@ export function JobsExplorer({
 
                   <Link
                     href={`/jobs/${job.slug}`}
-                    className="block text-sm sm:text-base font-bold text-slate-900 hover:text-emerald-700 leading-snug"
+                    className="block text-base sm:text-lg font-extrabold text-slate-900 hover:text-emerald-700 leading-snug"
                   >
                     {job.title}
                   </Link>
 
-                  <p className="mt-1.5 text-xs sm:text-sm text-slate-600 line-clamp-2">
+                  <p className="mt-1.5 text-sm text-slate-600 line-clamp-2">
                     {formatReadableText(job.summary)}
                   </p>
                 </div>

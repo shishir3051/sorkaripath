@@ -31,15 +31,15 @@ async function LearnContent() {
 export default async function LearnPage() {
   await requireServerUser("/learn");
   return (
-    <div className="app-container py-5 sm:py-6 space-y-5">
+    <div className="app-container py-8 space-y-6">
       <div>
-        <span className="inline-block rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wider text-emerald-800">
+        <span className="inline-block rounded-full bg-emerald-100 px-3 py-1 text-xs font-bold uppercase tracking-wider text-emerald-800">
           Complete A-to-Z Career Encyclopedia
         </span>
-        <h1 className="mt-1.5 text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+        <h1 className="mt-2 text-2xl sm:text-3xl font-extrabold text-slate-900">
           Bangladesh Govt Job Academy (A to Z)
         </h1>
-        <p className="mt-1 text-xs sm:text-sm text-slate-600 max-w-3xl">
+        <p className="mt-1 text-sm text-slate-600 max-w-3xl">
           Every concept explained step by step from A (Architecture of Govt Jobs)
           through Z (Police Verification, Medical Board &amp; Gazette Joining)—updated
           for 2026 Pay Scale, 32-year age limit, and 93/7 quota rules.
