@@ -25,10 +25,8 @@ export default async function JobsPage({
   if (sp.origin && sp.origin !== "All") params.set("origin", sp.origin);
 
   const [jobsResult, overviewResult] = await Promise.allSettled([
-    apiFetch<JobsResponse>(`/jobs?${params.toString()}`, { revalidate: 15 }),
-    apiFetch<{ stats?: { enabledSources?: number } }>("/meta/overview", {
-      revalidate: 30,
-    }),
+    apiFetch<JobsResponse>(`/jobs?${params.toString()}`),
+    apiFetch<{ stats?: { enabledSources?: number } }>("/meta/overview"),
   ]);
 
   const initialData: JobsResponse | null =

@@ -17,7 +17,7 @@ import {
  * Adapter for Bangladesh National Portal Framework v2 notice/exam tables
  * (bpsc.gov.bd, mopa.gov.bd, cabinet.gov.bd, railway.gov.bd, dghs.gov.bd, moedu.gov.bd)
  */
-export async function parseNpfTable(html, source, limit = 15) {
+export async function parseNpfTable(html, source, limit = 15, context = {}) {
   const $ = cheerio.load(html);
   const items = [];
 
@@ -106,28 +106,63 @@ export async function parseNpfTable(html, source, limit = 15) {
 
   // Several NPF v2 portals (e.g. MOPA go-ultimates, BPSC Non-Cadre/BCS) leave
   // td[data-column="files"] blank in the index table and embed the real PDF on detailUrl.
-  const itemsNeedingDetailPdf = items.filter(
-    (item) => !item.pdfUrl && item.detailUrl && item.detailUrl !== source.url
-  );
-  if (itemsNeedingDetailPdf.length > 0) {
-    await mapWithConcurrency(itemsNeedingDetailPdf, 5, async (item) => {
-      try {
-        const detailHtml = await fetchPublicHtml(item.detailUrl, {
-          timeoutMs: 4500,
-        });
-        const [firstPdf] = extractPdfLinksFromHtml(detailHtml, item.detailUrl);
-        if (firstPdf?.url) {
-          item.pdfUrl = firstPdf.url;
-          item.highlights = [
-            `Official Source: ${source.organization}`,
-            `Published Date: ${item.publishedDateRaw}`,
-            "Direct Official PDF Attached",
-          ];
-        }
-      } catch {
-        // Detail page is HTML-only or unreachable; keep portal link fallback.
+  // Reuse already-stored PDFs and avoid re-scraping HTML-only detail pages on every sync.
+  const missingTablePdfItems = items.filter((item) => !item.pdfUrl);
+  if (missingTablePdfItems.length > 0) {
+    const existingMap =
+      typeof context.getExistingJobDocs === "function"
+        ? await context.getExistingJobDocs(
+            missingTablePdfItems.map((it) => it.sourceHash)
+          )
+        : new Map();
+
+    const newItemsToFetch = [];
+    for (const item of missingTablePdfItems) {
+      const existing = existingMap.get(item.sourceHash);
+      if (existing?.pdfUrl) {
+        item.pdfUrl = existing.pdfUrl;
+        item.highlights = [
+          `Official Source: ${source.organization}`,
+          `Published Date: ${item.publishedDateRaw}`,
+          "Direct Official PDF Attached",
+        ];
+        continue;
       }
-    });
+      // Only fetch detail pages for brand-new notices (skip already-checked HTML-only notices).
+      if (!existing && item.detailUrl && item.detailUrl !== source.url) {
+        newItemsToFetch.push(item);
+      }
+    }
+
+    const maxDetailLookups =
+      context.maxDetailPdfLookups ?? (process.env.VERCEL ? 6 : 15);
+    const detailBudgetMs =
+      context.detailBudgetMs ?? (process.env.VERCEL ? 4500 : 10000);
+    const detailDeadlineMs = Date.now() + detailBudgetMs;
+    const batch = newItemsToFetch.slice(0, maxDetailLookups);
+
+    if (batch.length > 0) {
+      await mapWithConcurrency(batch, 5, async (item) => {
+        const remainingMs = detailDeadlineMs - Date.now();
+        if (remainingMs <= 500) return;
+        try {
+          const detailHtml = await fetchPublicHtml(item.detailUrl, {
+            timeoutMs: Math.min(3500, remainingMs),
+          });
+          const [firstPdf] = extractPdfLinksFromHtml(detailHtml, item.detailUrl);
+          if (firstPdf?.url) {
+            item.pdfUrl = firstPdf.url;
+            item.highlights = [
+              `Official Source: ${source.organization}`,
+              `Published Date: ${item.publishedDateRaw}`,
+              "Direct Official PDF Attached",
+            ];
+          }
+        } catch {
+          // Detail page is HTML-only or unreachable; keep portal link fallback.
+        }
+      });
+    }
   }
 
   return items;

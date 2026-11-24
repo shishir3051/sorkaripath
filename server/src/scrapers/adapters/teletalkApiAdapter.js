@@ -27,7 +27,7 @@ import {
  */
 const PAGE_SIZE = 20;
 const MAX_PAGES = 30; // ~600 rows; hard stop if the API ever stops terminating
-const PAGE_DELAY_MS = 250;
+const PAGE_DELAY_MS = 100;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -174,20 +174,28 @@ function extractTeletalkDriveLinks(html, portalUrl) {
   return drives.slice(0, 3);
 }
 
-async function resolveTeletalkPortalPdfs(portalUrl) {
+async function resolveTeletalkPortalPdfs(portalUrl, deadlineMs = Infinity) {
   try {
-    const html = await fetchPublicHtml(portalUrl, { timeoutMs: 4500 });
+    const remainingMain = deadlineMs - Date.now();
+    if (remainingMain <= 500) return [];
+    const html = await fetchPublicHtml(portalUrl, {
+      timeoutMs: Math.min(3500, remainingMain),
+    });
     const directPdfs = extractPdfLinksFromHtml(html, portalUrl);
     if (directPdfs.length > 0) return directPdfs;
 
-    const drives = extractTeletalkDriveLinks(html, portalUrl);
+    const drives = extractTeletalkDriveLinks(html, portalUrl).slice(0, 2);
     if (drives.length === 0) return [];
 
     const collected = [];
     const seen = new Set();
     await mapWithConcurrency(drives, 2, async (drive) => {
+      const remainingSub = deadlineMs - Date.now();
+      if (remainingSub <= 500) return;
       try {
-        const subHtml = await fetchPublicHtml(drive.url, { timeoutMs: 4000 });
+        const subHtml = await fetchPublicHtml(drive.url, {
+          timeoutMs: Math.min(3000, remainingSub),
+        });
         for (const pdf of extractPdfLinksFromHtml(subHtml, drive.url)) {
           if (seen.has(pdf.url)) continue;
           seen.add(pdf.url);
@@ -242,28 +250,68 @@ function pickBestPdfForItem(candidates, item) {
   return bestUrl;
 }
 
-export async function parseTeletalkJobs(payload, source, limit = 400) {
+export async function parseTeletalkJobs(
+  payload,
+  source,
+  limit = 400,
+  context = {}
+) {
   const firstPage = toJson(payload);
   const rows = Array.isArray(firstPage?.govtJobs) ? [...firstPage.govtJobs] : [];
   if (!rows.length) return [];
 
   const reportedTotal = Number(firstPage?.count) || 0;
+  const pageSize = rows.length || PAGE_SIZE;
+  const pageTimeoutMs = context.pageTimeoutMs ?? 7000;
+  const targetCount = reportedTotal > 0 ? Math.min(reportedTotal, limit) : limit;
 
-  for (let page = 2; page <= MAX_PAGES; page += 1) {
-    if (rows.length >= limit) break;
-    if (reportedTotal && rows.length >= reportedTotal) break;
-
-    let batch;
-    try {
-      const next = toJson(await fetchPublicHtml(pageUrl(source.url, page)));
-      batch = Array.isArray(next?.govtJobs) ? next.govtJobs : [];
-    } catch {
-      // Keep the pages already gathered rather than failing the whole sync.
-      break;
+  if (reportedTotal > rows.length) {
+    // We know the total row count from page 1, so walk remaining pages concurrently.
+    const totalPages = Math.min(MAX_PAGES, Math.ceil(targetCount / pageSize));
+    const pageNumbers = [];
+    for (let page = 2; page <= totalPages; page += 1) {
+      pageNumbers.push(page);
     }
-    if (!batch.length) break;
-    rows.push(...batch);
-    await sleep(PAGE_DELAY_MS);
+
+    const pageResults = new Array(pageNumbers.length).fill(null);
+    await mapWithConcurrency(pageNumbers, 5, async (page, idx) => {
+      try {
+        const next = toJson(
+          await fetchPublicHtml(pageUrl(source.url, page), {
+            timeoutMs: pageTimeoutMs,
+          })
+        );
+        pageResults[idx] = Array.isArray(next?.govtJobs) ? next.govtJobs : [];
+      } catch {
+        pageResults[idx] = [];
+      }
+    });
+
+    for (const batch of pageResults) {
+      if (batch && batch.length > 0) {
+        rows.push(...batch);
+      }
+    }
+  } else if (reportedTotal === 0) {
+    // Fallback when API omits total count: walk pages sequentially until empty.
+    for (let page = 2; page <= MAX_PAGES; page += 1) {
+      if (rows.length >= limit) break;
+
+      let batch;
+      try {
+        const next = toJson(
+          await fetchPublicHtml(pageUrl(source.url, page), {
+            timeoutMs: pageTimeoutMs,
+          })
+        );
+        batch = Array.isArray(next?.govtJobs) ? next.govtJobs : [];
+      } catch {
+        break;
+      }
+      if (!batch.length) break;
+      rows.push(...batch);
+      await sleep(PAGE_DELAY_MS);
+    }
   }
 
   const items = [];
@@ -278,32 +326,70 @@ export async function parseTeletalkJobs(payload, source, limit = 400) {
     items.push(item);
   }
 
-  // Batch-resolve PDF attachments once per unique Teletalk application portal URL.
-  const uniquePortalUrls = Array.from(
-    new Set(
-      items
-        .map((it) => it.applyUrl)
-        .filter((u) => u && u !== source.url)
-    )
-  );
-  const portalPdfMap = new Map();
-  await mapWithConcurrency(uniquePortalUrls, 8, async (portalUrl) => {
-    const pdfs = await resolveTeletalkPortalPdfs(portalUrl);
-    if (pdfs.length > 0) {
-      portalPdfMap.set(portalUrl, pdfs);
-    }
-  });
+  // Reuse already-stored PDFs from MongoDB so we only scrape portals for new/missing items.
+  const existingMap =
+    typeof context.getExistingJobDocs === "function"
+      ? await context.getExistingJobDocs(items.map((it) => it.sourceHash))
+      : new Map();
+
+  const newItemsNeedingPdf = [];
+  const existingItemsMissingPdf = [];
 
   for (const item of items) {
-    const candidates = portalPdfMap.get(item.applyUrl);
-    if (!candidates) continue;
-    const matchedPdf = pickBestPdfForItem(candidates, item);
-    if (matchedPdf) {
-      item.pdfUrl = matchedPdf;
-      item.highlights = [
-        ...item.highlights,
-        "Direct Official PDF Attached",
-      ];
+    const existing = existingMap.get(item.sourceHash);
+    if (existing?.pdfUrl) {
+      item.pdfUrl = existing.pdfUrl;
+      item.highlights = [...item.highlights, "Direct Official PDF Attached"];
+      continue;
+    }
+    if (!item.applyUrl || item.applyUrl === source.url) continue;
+    if (!existing) {
+      newItemsNeedingPdf.push(item);
+    } else {
+      existingItemsMissingPdf.push(item);
+    }
+  }
+
+  const maxPortalLookups =
+    context.maxPortalPdfLookups ?? (process.env.VERCEL ? 8 : 20);
+  const pdfBudgetMs = context.pdfBudgetMs ?? (process.env.VERCEL ? 6500 : 15000);
+  const pdfDeadlineMs = Date.now() + pdfBudgetMs;
+
+  // Prioritize brand-new circulars first, then backfill older ones missing a PDF.
+  const prioritizedPortalUrls = [];
+  const seenPortals = new Set();
+  for (const list of [newItemsNeedingPdf, existingItemsMissingPdf]) {
+    for (const it of list) {
+      if (prioritizedPortalUrls.length >= maxPortalLookups) break;
+      if (seenPortals.has(it.applyUrl)) continue;
+      seenPortals.add(it.applyUrl);
+      prioritizedPortalUrls.push(it.applyUrl);
+    }
+    if (prioritizedPortalUrls.length >= maxPortalLookups) break;
+  }
+
+  if (prioritizedPortalUrls.length > 0 && Date.now() < pdfDeadlineMs) {
+    const portalPdfMap = new Map();
+    await mapWithConcurrency(prioritizedPortalUrls, 6, async (portalUrl) => {
+      if (Date.now() >= pdfDeadlineMs) return;
+      const pdfs = await resolveTeletalkPortalPdfs(portalUrl, pdfDeadlineMs);
+      if (pdfs.length > 0) {
+        portalPdfMap.set(portalUrl, pdfs);
+      }
+    });
+
+    for (const item of items) {
+      if (item.pdfUrl) continue;
+      const candidates = portalPdfMap.get(item.applyUrl);
+      if (!candidates) continue;
+      const matchedPdf = pickBestPdfForItem(candidates, item);
+      if (matchedPdf) {
+        item.pdfUrl = matchedPdf;
+        item.highlights = [
+          ...item.highlights,
+          "Direct Official PDF Attached",
+        ];
+      }
     }
   }
 

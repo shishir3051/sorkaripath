@@ -20,6 +20,7 @@ import {
 } from "@/lib/api";
 import type { OverviewData } from "@/lib/types";
 import { HeroSearch } from "@/components/home/HeroSearch";
+import { HomeAutoSync } from "@/components/home/HomeAutoSync";
 import { OriginBadge, RecordTypeBadge } from "@/components/ui/Badges";
 import { DhakaClockBadge } from "@/components/layout/DhakaClockBadge";
 
@@ -27,7 +28,7 @@ export const dynamic = "force-dynamic";
 
 async function loadOverview(): Promise<OverviewData | null> {
   try {
-    return await apiFetch<OverviewData>("/meta/overview", { revalidate: 20 });
+    return await apiFetch<OverviewData>("/meta/overview");
   } catch {
     return null;
   }
@@ -43,6 +44,7 @@ export default async function HomePage() {
 
   return (
     <div className="space-y-10 pb-8">
+      <HomeAutoSync syncMeta={overview?.syncMeta} />
       {/* Hero Banner */}
       <div className="app-container pt-4 sm:pt-5 lg:pt-6">
         <section className="relative overflow-hidden rounded-2xl sm:rounded-3xl border border-slate-800/80 bg-gradient-to-br from-slate-950 via-[#0d2421] to-[#0b382d] text-white shadow-xl shadow-slate-900/10">

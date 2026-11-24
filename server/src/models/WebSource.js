@@ -9,7 +9,7 @@ const webSourceSchema = new mongoose.Schema(
     url: { type: String, required: true, trim: true },
     adapterType: {
       type: String,
-      enum: ["npf-table", "bb-erecruitment", "rss-feed"],
+      enum: ["npf-table", "bb-erecruitment", "rss-feed", "teletalk-api"],
       required: true,
     },
     targetType: {

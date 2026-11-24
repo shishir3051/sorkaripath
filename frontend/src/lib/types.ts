@@ -155,7 +155,7 @@ export interface WebSource {
   organization: string;
   organizationShort: string;
   url: string;
-  adapterType: "npf-table" | "bb-erecruitment" | "rss-feed";
+  adapterType: "npf-table" | "bb-erecruitment" | "rss-feed" | "teletalk-api";
   targetType?: "job" | "current_affairs";
   defaultCategory: string;
   enabled: boolean;
@@ -169,7 +169,7 @@ export interface WebSource {
 
 export interface SyncLog {
   _id: string;
-  triggeredBy: "cron" | "manual" | "seed";
+  triggeredBy: "cron" | "manual" | "seed" | "auto";
   startedAt: string;
   finishedAt: string;
   durationMs: number;
@@ -179,6 +179,13 @@ export interface SyncLog {
   updatedCount: number;
   status: "success" | "partial" | "failed";
   errors: Array<{ sourceKey: string; sourceName: string; message: string }>;
+}
+
+export interface SyncMeta {
+  lastSyncAt?: string | null;
+  isStale?: boolean;
+  syncRunning?: boolean;
+  staleMinutes?: number;
 }
 
 export interface OverviewData {
@@ -191,6 +198,7 @@ export interface OverviewData {
     enabledSources: number;
   };
   lastSyncLog: SyncLog | null;
+  syncMeta?: SyncMeta;
   featuredCirculars: JobCircular[];
   latestLiveNotices: JobCircular[];
   latestRecruitmentCirculars?: JobCircular[];

@@ -35,7 +35,10 @@ git push -u origin main
    - `GEMINI_API_KEYS` = optional comma-separated backup Gemini API keys *(e.g. `key2,key3` — automatically switches to the next healthy key on `429` quota/rate limits or `401/403` errors; numbered `GEMINI_API_KEY_2`, `GEMINI_API_KEY_3` are also supported)*
    - `GEMINI_MODEL` = `gemini-4-hydrogen` *(optional; automatically falls back to `gemini-3.5-flash` / `gemini-3.5-flash-lite` / `gemini-3.1-flash-lite`)*
 4. Click **Deploy**.
-   - `server/vercel.json` routes all requests to `server/api/index.js` (`maxDuration: 60`) and schedules a daily **Vercel Cron Job** (`0 2 * * *` UTC / 08:00 AM BST — compatible with the Vercel Hobby plan). *If you upgrade to Vercel Pro, you can change the cron schedule to `0 */6 * * *`.*
+   - `server/vercel.json` routes all requests to `server/api/index.js` (`maxDuration: 60`) and schedules a daily **Vercel Cron Job** (`0 2 * * *` UTC / 08:00 AM BST — compatible with the Vercel Hobby plan).
+   - For **automatic 30-minute syncing** on Vercel Hobby, this repo includes `.github/workflows/auto-sync.yml` (`*/30 * * * *`). In your GitHub repo **Settings → Secrets and variables → Actions**, add:
+     - `CRON_SECRET` = the exact same `CRON_SECRET` value configured in your Vercel Backend project
+     - `SYNC_API_URL` *(recommended)* = `https://<your-api-project>.vercel.app/api/v1/sync/cron` *(falls back to `https://sorkaripath.vercel.app/api/v1/sync/cron` if omitted)*
 5. Verify your deployed API health URL in the browser:
    - `https://<your-api-project>.vercel.app/api/v1/health` -> should return `"dbState": "connected"`.
 

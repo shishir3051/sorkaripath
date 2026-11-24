@@ -3,6 +3,7 @@ import { LearningModule } from "../models/LearningModule.js";
 import { McqQuestion } from "../models/McqQuestion.js";
 import { WebSource } from "../models/WebSource.js";
 import { SyncLog } from "../models/SyncLog.js";
+import { getSyncFreshness } from "../scrapers/index.js";
 
 function pickDiverseRecent(items = [], maxItems = 12, maxPerSource = 2) {
   const counts = new Map();
@@ -38,6 +39,7 @@ export async function getOverview(req, res, next) {
       mcqCount,
       enabledSources,
       lastSyncLog,
+      syncMeta,
       featuredCirculars,
       recentWebNoticesPool,
       latestRecruitmentCirculars,
@@ -50,6 +52,7 @@ export async function getOverview(req, res, next) {
       McqQuestion.countDocuments(),
       WebSource.countDocuments({ enabled: true }),
       SyncLog.findOne().sort({ finishedAt: -1 }).lean(),
+      getSyncFreshness(),
       JobCircular.find({ isActive: true, isFeatured: true })
         .sort({ publishedDate: -1 })
         .limit(6)
@@ -85,6 +88,7 @@ export async function getOverview(req, res, next) {
           enabledSources,
         },
         lastSyncLog,
+        syncMeta,
         featuredCirculars,
         latestLiveNotices,
         latestRecruitmentCirculars,

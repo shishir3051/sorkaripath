@@ -1,21 +1,26 @@
 import { WebSource } from "../models/WebSource.js";
 import { SyncLog } from "../models/SyncLog.js";
-import { isSyncRunning, runLiveWebSync } from "../scrapers/index.js";
+import {
+  getSyncFreshness,
+  runLiveWebSync,
+} from "../scrapers/index.js";
 import { env } from "../config/env.js";
 import { safeSecretEqual } from "../utils/security.js";
 import { resolveUserFromRequest } from "../middleware/auth.js";
 
 export async function getSyncStatus(req, res, next) {
   try {
-    const [sources, logs] = await Promise.all([
+    const [sources, logs, syncMeta] = await Promise.all([
       WebSource.find().sort({ name: 1 }).lean(),
       SyncLog.find().sort({ finishedAt: -1 }).limit(12).lean(),
+      getSyncFreshness(),
     ]);
 
     res.json({
       success: true,
       data: {
-        syncRunning: isSyncRunning(),
+        syncRunning: syncMeta.syncRunning,
+        syncMeta,
         sources,
         logs,
       },
@@ -33,6 +38,39 @@ export async function triggerWebSync(req, res, next) {
       safeSecretEqual(adminHeader, env.ADMIN_API_KEY) ||
       authUser?.role === "admin";
 
+    const rawTrigger = req.body?.triggeredBy
+      ? String(req.body.triggeredBy).trim().toLowerCase()
+      : "manual";
+    const triggeredBy = rawTrigger === "auto" ? "auto" : "manual";
+
+    // Automatic freshness checks from the UI skip quietly with 200 when data is already fresh
+    // or another serverless instance is currently syncing.
+    if (triggeredBy === "auto") {
+      const freshness = await getSyncFreshness();
+      if (!freshness.isStale) {
+        return res.json({
+          success: true,
+          data: {
+            skipped: true,
+            reason: "fresh",
+            lastSyncAt: freshness.lastSyncAt,
+            message: "Circulars were synced recently.",
+          },
+        });
+      }
+      if (freshness.syncRunning) {
+        return res.json({
+          success: true,
+          data: {
+            skipped: true,
+            reason: "running",
+            lastSyncAt: freshness.lastSyncAt,
+            message: "A live web sync is already in progress.",
+          },
+        });
+      }
+    }
+
     if (!hasValidAdmin && env.PUBLIC_SYNC_COOLDOWN_SEC > 0) {
       const lastSync = await SyncLog.findOne()
         .sort({ finishedAt: -1 })
@@ -44,6 +82,17 @@ export async function triggerWebSync(req, res, next) {
         const cooldownMs = env.PUBLIC_SYNC_COOLDOWN_SEC * 1000;
         if (elapsedMs >= 0 && elapsedMs < cooldownMs) {
           const waitSec = Math.ceil((cooldownMs - elapsedMs) / 1000);
+          if (triggeredBy === "auto") {
+            return res.json({
+              success: true,
+              data: {
+                skipped: true,
+                reason: "cooldown",
+                lastSyncAt: lastSync.finishedAt,
+                message: `Sync cooldown active (${waitSec}s remaining).`,
+              },
+            });
+          }
           res.set("Retry-After", String(waitSec));
           return res.status(429).json({
             success: false,
@@ -65,12 +114,18 @@ export async function triggerWebSync(req, res, next) {
       rawTarget === "job" || rawTarget === "current_affairs" ? rawTarget : null;
 
     const result = await runLiveWebSync({
-      triggeredBy: "manual",
+      triggeredBy,
       sourceKey,
       targetType,
     });
 
     if (result.skipped) {
+      if (triggeredBy === "auto") {
+        return res.json({
+          success: true,
+          data: result,
+        });
+      }
       return res.status(409).json({
         success: false,
         message: result.message,

@@ -1,0 +1,50 @@
+name: Auto-Sync Official Job Circulars
+
+on:
+  schedule:
+    # Runs every 30 minutes (UTC). Works on Vercel Hobby where Vercel Cron is limited to once daily.
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: live-job-circular-sync
+  cancel-in-progress: false
+
+jobs:
+  sync-circulars:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Trigger Live Official Circular Sync
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          # Optional: set SYNC_API_URL to your backend Vercel URL
+          # (e.g. https://<your-api-project>.vercel.app/api/v1/sync/cron)
+          # to bypass the frontend rewrite proxy and get the full 60s backend budget.
+          SYNC_API_URL: ${{ secrets.SYNC_API_URL }}
+        run: |
+          if [ -z "$CRON_SECRET" ]; then
+            echo "::error::Missing CRON_SECRET repository secret. Add CRON_SECRET (matching your Vercel backend CRON_SECRET env var) under Settings -> Secrets and variables -> Actions."
+            exit 1
+          fi
+
+          TARGET_URL="${SYNC_API_URL:-https://sorkaripath.vercel.app/api/v1/sync/cron}"
+          echo "Triggering sync endpoint: ${TARGET_URL}"
+
+          RESPONSE=$(curl -sS --max-time 65 -w "\n%{http_code}" \
+            -H "Authorization: Bearer ${CRON_SECRET}" \
+            -H "Accept: application/json" \
+            "${TARGET_URL}")
+
+          HTTP_CODE=$(printf '%s' "$RESPONSE" | tail -n1)
+          BODY=$(printf '%s' "$RESPONSE" | sed '$d')
+
+          echo "HTTP Status: ${HTTP_CODE}"
+          echo "Response: ${BODY}"
+
+          if [ "$HTTP_CODE" = "200" ] || [ "$HTTP_CODE" = "409" ]; then
+            exit 0
+          fi
+
+          echo "::error::Auto-sync failed with HTTP ${HTTP_CODE}"
+          exit 1

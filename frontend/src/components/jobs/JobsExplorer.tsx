@@ -18,6 +18,7 @@ import {
   Sparkles,
 } from "lucide-react";
 import {
+  ApiError,
   apiFetch,
   cachedApiFetch,
   formatBdDateTime,
@@ -28,9 +29,10 @@ import {
   safeExternalHref,
   setCachedApiData,
 } from "@/lib/api";
-import type { JobCircular } from "@/lib/types";
+import type { JobCircular, SyncMeta } from "@/lib/types";
 import { OriginBadge, RecordTypeBadge } from "@/components/ui/Badges";
 import { openAiAssistantChat } from "@/components/jobs/AiCircularAssistant";
+import { claimAutoSyncAttemptWindow } from "@/components/home/HomeAutoSync";
 
 export interface JobsResponse {
   items: JobCircular[];
@@ -42,11 +44,7 @@ export interface JobsResponse {
   };
   categories: string[];
   searchFallback?: "broad" | null;
-  syncMeta?: {
-    lastSyncAt?: string | null;
-    isStale?: boolean;
-    syncRunning?: boolean;
-  };
+  syncMeta?: SyncMeta;
 }
 
 const CATEGORIES = [
@@ -200,38 +198,76 @@ export function JobsExplorer({
     fetchJobsRef.current = () => fetchJobs(true);
   }, [fetchJobs]);
 
-  useEffect(() => {
-    if (autoSyncedRef.current || !data?.syncMeta?.isStale) return;
-    autoSyncedRef.current = true;
+  const staleMinutes = Math.max(5, data?.syncMeta?.staleMinutes ?? 30);
 
-    const timer = setTimeout(async () => {
+  const runAutoSync = useCallback(
+    async (enforceWindow = true) => {
       if (!mountedRef.current) return;
+      if (enforceWindow && !claimAutoSyncAttemptWindow()) return;
       setSyncing(true);
       try {
         const res = await apiFetch<{
+          skipped?: boolean;
+          reason?: string;
           log?: { totalFetched: number; newInserted: number };
-        }>("/sync/run", { method: "POST", body: JSON.stringify({}) });
+        }>("/sync/run", {
+          method: "POST",
+          body: JSON.stringify({ triggeredBy: "auto" }),
+        });
         if (!mountedRef.current) return;
-        const fresh = res.log?.newInserted ?? 0;
-        if (fresh > 0) {
-          setSyncNotice(
-            `Auto-synced ${fresh} new live notice(s) from official portals.`
-          );
+        if (!res.skipped) {
+          const fresh = res.log?.newInserted ?? 0;
+          if (fresh > 0) {
+            setSyncNotice(
+              `Auto-synced ${fresh} new live notice(s) from official portals.`
+            );
+          }
           invalidateApiCache("/meta");
+          invalidateApiCache("/sync/status");
           router.refresh();
+          await fetchJobsRef.current();
         }
-        await fetchJobsRef.current();
-      } catch {
-        // Silently ignore cooldown (429) or transient background auto-sync errors
+      } catch (err) {
+        if (!mountedRef.current) return;
+        // Ignore expected rate-limit/conflict responses; surface real server errors gently.
+        if (!(err instanceof ApiError && (err.status === 429 || err.status === 409))) {
+          setSyncNotice(
+            'Auto-sync could not complete right now. Click "Grab Latest from Web" to retry.'
+          );
+        }
       } finally {
         if (mountedRef.current) setSyncing(false);
       }
-    }, 200);
+    },
+    [router]
+  );
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    if (!autoSyncedRef.current && data?.syncMeta?.isStale && !data?.syncMeta?.syncRunning) {
+      autoSyncedRef.current = true;
+      timer = setTimeout(() => {
+        runAutoSync(true);
+      }, 200);
+    }
+
+    const periodicTimer = setInterval(() => {
+      if (typeof document !== "undefined" && document.visibilityState !== "visible") {
+        return;
+      }
+      runAutoSync(true);
+    }, staleMinutes * 60_000);
 
     return () => {
-      clearTimeout(timer);
+      if (timer) clearTimeout(timer);
+      clearInterval(periodicTimer);
     };
-  }, [data?.syncMeta?.isStale, router]);
+  }, [
+    data?.syncMeta?.isStale,
+    data?.syncMeta?.syncRunning,
+    staleMinutes,
+    runAutoSync,
+  ]);
 
   function resetAllFilters() {
     setQ("");

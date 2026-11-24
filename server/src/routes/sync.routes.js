@@ -13,5 +13,6 @@ const router = Router();
 router.get("/status", getSyncStatus);
 router.post("/run", syncLimiter, triggerWebSync);
 router.get("/cron", triggerCronSync);
+router.post("/cron", triggerCronSync);
 
 export default router;
