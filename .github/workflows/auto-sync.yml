@@ -18,9 +18,8 @@ jobs:
       - name: Trigger Live Official Circular Sync
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-          # Optional: set SYNC_API_URL to your backend Vercel URL
-          # (e.g. https://<your-api-project>.vercel.app/api/v1/sync/cron)
-          # to bypass the frontend rewrite proxy and get the full 60s backend budget.
+          # Optional override; defaults directly to the Vercel backend API to bypass
+          # the frontend rewrite proxy and use the full 60s serverless budget.
           SYNC_API_URL: ${{ secrets.SYNC_API_URL }}
         run: |
           if [ -z "$CRON_SECRET" ]; then
@@ -28,7 +27,7 @@ jobs:
             exit 1
           fi
 
-          TARGET_URL="${SYNC_API_URL:-https://sorkaripath.vercel.app/api/v1/sync/cron}"
+          TARGET_URL="${SYNC_API_URL:-https://sorkaripath-api.vercel.app/api/v1/sync/cron}"
           echo "Triggering sync endpoint: ${TARGET_URL}"
 
           RESPONSE=$(curl -sS --max-time 65 -w "\n%{http_code}" \

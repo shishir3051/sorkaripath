@@ -38,7 +38,7 @@ git push -u origin main
    - `server/vercel.json` routes all requests to `server/api/index.js` (`maxDuration: 60`) and schedules a daily **Vercel Cron Job** (`0 2 * * *` UTC / 08:00 AM BST — compatible with the Vercel Hobby plan).
    - For **automatic 30-minute syncing** on Vercel Hobby, this repo includes `.github/workflows/auto-sync.yml` (`*/30 * * * *`). In your GitHub repo **Settings → Secrets and variables → Actions**, add:
      - `CRON_SECRET` = the exact same `CRON_SECRET` value configured in your Vercel Backend project
-     - `SYNC_API_URL` *(recommended)* = `https://<your-api-project>.vercel.app/api/v1/sync/cron` *(falls back to `https://sorkaripath.vercel.app/api/v1/sync/cron` if omitted)*
+     - `SYNC_API_URL` *(optional)* = override URL *(defaults directly to `https://sorkaripath-api.vercel.app/api/v1/sync/cron`)*
 5. Verify your deployed API health URL in the browser:
    - `https://<your-api-project>.vercel.app/api/v1/health` -> should return `"dbState": "connected"`.
 
